@@ -42,6 +42,7 @@ export class EngineRuntime {
     this.grid = new EditorGrid(this.app);
     this.gizmoManager = new GizmoManager(this.app, this.editorCamera, this.editor);
     this.selectionHighlighter = new SelectionHighlighter(this.app, this.editor);
+    this.visualHelpers = new ComponentVisualHelpers(this.app, this.editor);
 
     // Initial Scene Setup (Sun + Default Ambient)
     this.setupDefaultScene();
@@ -205,6 +206,10 @@ export class EditorCameraController {
     this.app = app;
     this.canvas = canvas;
 
+    this.target = new pc.Vec3(0, 1, 0);
+    this.distance = 8;
+    this.pitch = -20;
+    this.yaw = 35;
     this.target = new pc.Vec3(0, 0.5, 0);
     this.distance = 9;
     this.pitch = -28;
@@ -252,6 +257,7 @@ export class EditorCameraController {
   }
 
   updatePosition() {
+    this.pitch = Math.max(-89, Math.min(89, this.pitch));
     this.pitch = Math.max(-89.5, Math.min(-0.5, this.pitch));
 
     const quat = new pc.Quat();
@@ -295,6 +301,7 @@ export class EditorCameraController {
 
       if (isOrbiting) {
         this.yaw -= dx * 0.3;
+        this.pitch -= dy * 0.3;
         this.pitch += dy * 0.3;
         this.updatePosition();
       } else if (isPanning) {
@@ -699,5 +706,103 @@ export class SelectionHighlighter {
     this.entity.setPosition(activeEntity.getPosition());
     this.entity.setRotation(activeEntity.getRotation());
     this.entity.setLocalScale(activeEntity.getLocalScale().clone().add(new pc.Vec3(0.05, 0.05, 0.05)));
+  }
+}
+
+/**
+ * 3D Viewport Component Visual Wireframe Helpers
+ * Renders range spheres for lights/audio, wireframe frustums for cameras, and bounding boxes for physics collision shapes.
+ */
+export class ComponentVisualHelpers {
+  constructor(app, editor) {
+    this.app = app;
+    this.editor = editor;
+
+    this.helperEntity = new pc.Entity('ComponentVisualHelpers');
+    this.app.root.addChild(this.helperEntity);
+
+    this.editor.selection.subscribe((selected, active) => {
+      this.updateHelpers(active);
+    });
+
+    this.editor.events.on('entity:transformed', (active) => {
+      if (this.editor.selection.getActive() === active) {
+        this.updateHelpers(active);
+      }
+    });
+  }
+
+  updateHelpers(active) {
+    // Clear previous helper children
+    while (this.helperEntity.children.length > 0) {
+      const child = this.helperEntity.children[0];
+      this.helperEntity.removeChild(child);
+      child.destroy();
+    }
+
+    if (!active || active === this.app.root) return;
+
+    // Light Range Helper
+    if (active.light && active.light.type !== 'directional') {
+      const range = active.light.range || 10;
+      const sphere = new pc.Entity('LightRangeGizmo');
+      sphere.setPosition(active.getPosition());
+      sphere.setLocalScale(range * 2, range * 2, range * 2);
+
+      const mat = new pc.StandardMaterial();
+      mat.diffuse = active.light.color || new pc.Color(1, 1, 0);
+      mat.wireframe = true;
+      mat.update();
+
+      sphere.addComponent('render', { type: 'sphere', material: mat });
+      this.helperEntity.addChild(sphere);
+    }
+
+    // Audio Spatial Radius Helper
+    if (active.sound) {
+      const maxDist = active.sound.maxDistance || 15;
+      const soundSphere = new pc.Entity('SoundRadiusGizmo');
+      soundSphere.setPosition(active.getPosition());
+      soundSphere.setLocalScale(maxDist * 2, maxDist * 2, maxDist * 2);
+
+      const mat = new pc.StandardMaterial();
+      mat.diffuse = new pc.Color(0, 0.9, 1);
+      mat.wireframe = true;
+      mat.update();
+
+      soundSphere.addComponent('render', { type: 'sphere', material: mat });
+      this.helperEntity.addChild(soundSphere);
+    }
+
+    // Collision Shape Helper
+    if (active.collision) {
+      const col = active.collision;
+      const colEntity = new pc.Entity('CollisionGizmo');
+      colEntity.setPosition(active.getPosition());
+      colEntity.setRotation(active.getRotation());
+
+      const mat = new pc.StandardMaterial();
+      mat.diffuse = new pc.Color(0.2, 1.0, 0.3);
+      mat.wireframe = true;
+      mat.update();
+
+      let meshType = 'box';
+      if (col.type === 'sphere') {
+        meshType = 'sphere';
+        const r = col.radius || 0.5;
+        colEntity.setLocalScale(r * 2, r * 2, r * 2);
+      } else if (col.type === 'capsule' || col.type === 'cylinder') {
+        meshType = 'cylinder';
+        const r = col.radius || 0.5;
+        const h = col.height || 2;
+        colEntity.setLocalScale(r * 2, h, r * 2);
+      } else {
+        const half = col.halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
+        colEntity.setLocalScale(half.x * 2, half.y * 2, half.z * 2);
+      }
+
+      colEntity.addComponent('render', { type: meshType, material: mat });
+      this.helperEntity.addChild(colEntity);
+    }
   }
 }
