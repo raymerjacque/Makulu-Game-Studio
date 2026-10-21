@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakuluLinux Game Studio — Master Architecture & Development Roadmap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0c0f12;
+            --bg-surface: #14191f;
+            --bg-card: #1c222a;
+            --bg-card-hover: #232b35;
+            --border-subtle: #29323d;
+            --border-highlight: #ff6600;
+            --text-primary: #f0f4f8;
+            --text-secondary: #9aa7b5;
+            --text-muted: #5e6b78;
+            --accent-orange: #ff6600;
+            --accent-orange-glow: rgba(255, 102, 0, 0.25);
+            --accent-blue: #0099ff;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+            --sidebar-w: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.65;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        #nav-sidebar {
+            width: var(--sidebar-w);
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-subtle);
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .brand-badge {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-orange), #ff3300);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #fff;
+            box-shadow: 0 4px 14px var(--accent-orange-glow);
+        }
+
+        .brand-text h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .brand-text span {
+            font-size: 0.75rem;
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-group-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: 12px;
+            padding-left: 8px;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        /* Main Content Container */
+        #content-container {
+            flex: 1;
+            padding: 40px 60px 100px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: linear-gradient(180deg, rgba(255, 102, 0, 0.08) 0%, rgba(20, 25, 31, 0) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -120px;
+            right: -100px;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, var(--accent-orange-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 102, 0, 0.12);
+            color: var(--accent-orange);
+            border: 1px solid rgba(255, 102, 0, 0.3);
+            border-radius: 100px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 16px;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 900px;
+            line-height: 1.7;
+        }
+
+        /* Section Layout */
+        section {
+            margin-bottom: 56px;
+            scroll-margin-top: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 14px;
+        }
+
+        .section-number {
+            width: 34px;
+            height: 34px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--accent-orange);
+        }
+
+        .section-header h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+        }
+
+        .lead-text {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        /* Card Grid Layouts */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 24px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 102, 0, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+        }
+
+        .card h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Comparison Table */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            background: var(--bg-surface);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 14px 18px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-subtle);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.6px;
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-orange { background: rgba(255, 102, 0, 0.15); color: var(--accent-orange); border: 1px solid rgba(255, 102, 0, 0.3); }
+        .badge-blue { background: rgba(0, 153, 255, 0.15); color: var(--accent-blue); border: 1px solid rgba(0, 153, 255, 0.3); }
+        .badge-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); border: 1px solid rgba(139, 92, 246, 0.3); }
+
+        /* Code Blocks */
+        pre {
+            background: #090c0f;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 18px 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #d1d5db;
+            overflow-x: auto;
+            margin: 18px 0;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #fca5a5;
+        }
+
+        /* Callouts */
+        .callout {
+            border-left: 4px solid var(--accent-orange);
+            background: rgba(255, 102, 0, 0.05);
+            padding: 20px 24px;
+            border-radius: 0 12px 12px 0;
+            margin: 24px 0;
+        }
+
+        .callout-blue {
+            border-left-color: var(--accent-blue);
+            background: rgba(0, 153, 255, 0.05);
+        }
+
+        .callout-purple {
+            border-left-color: var(--accent-purple);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .callout-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        /* Timeline Roadmap */
+        .timeline {
+            position: relative;
+            padding-left: 36px;
+            margin: 32px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: var(--border-subtle);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 36px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 6px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--bg-surface);
+            border: 3px solid var(--accent-orange);
+            box-shadow: 0 0 10px var(--accent-orange-glow);
+        }
+
+        .timeline-item.done::before {
+            border-color: var(--accent-green);
+        }
+
+        .timeline-phase {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--accent-orange);
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .timeline-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        .checklist {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .checklist li input[type="checkbox"] {
+            accent-color: var(--accent-orange);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Interactive Diagram Container */
+        .diagram-box {
+            background: #0d1117;
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 24px;
+            margin: 24px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #e6edf3;
+            line-height: 1.5;
+            white-space: pre;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <nav id="nav-sidebar">
+        <div class="brand">
+            <div class="brand-badge">M</div>
+            <div class="brand-text">
+                <h1>MakuluLinux</h1>
+                <span>Game Studio</span>
+            </div>
+        </div>
+
+        <div class="nav-group-title">Navigation Index</div>
+        <ul class="nav-links">
+            <li><a href="#vision" class="active">🎯 Project Vision</a></li>
+            <li><a href="#gui-architecture">🖥️ Cross-Platform GUI Tech</a></li>
+            <li><a href="#editor-layout">📐 Editor Layout & Panes</a></li>
+            <li><a href="#simple-vs-pro">🎚️ Simple Mode vs Pro Mode</a></li>
+            <li><a href="#ai-architecture">🤖 AI-First Multi-Agent Engine</a></li>
+            <li><a href="#model-library">📦 3D Model Ecosystem & Terrain</a></li>
+            <li><a href="#cloud-backend">☁️ Cloud, Databases & FastAPI</a></li>
+            <li><a href="#aaa-graphics">🌟 AAA-Grade Graphics Pipeline</a></li>
+            <li><a href="#roadmap-phases">🗺️ Phased Implementation Plan</a></li>
+        </ul>
+
+        <div style="margin-top: auto; padding: 12px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">ACTIVE ENGINE</div>
+            <div style="font-size: 0.85rem; color: var(--text-primary); font-weight: 700; margin-top: 2px;">PlayCanvas v2.24+ (Local)</div>
+            <div style="font-size: 0.75rem; color: var(--accent-orange); margin-top: 4px;">● AI Backend: Electra / Nano</div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="content-container">
+
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-pill">Official Blueprint & Technical Specification</div>
+            <h2>MakuluLinux Game Studio</h2>
+            <p>
+                A high-performance, cross-platform 3D Game Engine and Next-Gen Editor built on the open-source PlayCanvas engine. Designed with a familiar, battle-tested interface for game developers, an intuitive beginner mode for newcomers, and deep autonomous AI agent integration capable of constructing scenes, writing code, and orchestrating full game production.
+            </p>
+        </div>
+
+        <!-- Section 1: Vision -->
+        <section id="vision">
+            <div class="section-header">
+                <div class="section-number">01</div>
+                <h3>Strategic Vision & Core Pillars</h3>
+            </div>
+            <p class="lead-text">
+                PlayCanvas pioneered browser-based WebGL/WebGPU 3D rendering with an ultra-lightweight footprint and instant multi-platform execution. However, while their runtime engine is open-source, their world-class graphical editor is closed-source and hosted in a proprietary cloud. 
+                <strong>MakuluLinux Game Studio</strong> breaks this barrier by providing an open, locally owned, cross-distro editor that pairs AAA web-standards rendering with bleeding-edge AI co-pilots.
+            </p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">🎮</div>
+                    <h4>Industry-Familiar Workflow</h4>
+                    <p>Designed specifically to feel natural to seasoned developers migrating from Unity, Unreal, and the PlayCanvas web editor. Zero friction in muscle memory.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🌱</div>
+                    <h4>Dual-Tier Interface</h4>
+                    <p>One-click instant toggle between <strong>Simple Mode</strong> (for hobbyists, students, and beginners) and <strong>Pro Mode</strong> (for technical artists and AAA programmers).</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🧠</div>
+                    <h4>AI-Native Architecture</h4>
+                    <p>Not just an LLM chatbox, but a unified transactional Command Bus where autonomous AI agents can execute every single editor action, from level design to bug fixing.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🌐</div>
+                    <h4>Ubiquitous Compatibility</h4>
+                    <p>Works natively across every Linux distribution (Ubuntu, Debian, Fedora, Arch, MakuluLinux), Windows, macOS, and pure Web browsers without rewriting code.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: GUI Tech Evaluation -->
+        <section id="gui-architecture">
+            <div class="section-header">
+                <div class="section-number">02</div>
+                <h3>Cross-Platform GUI Framework: Electron vs Qt vs Web</h3>
+            </div>
+            <p class="lead-text">
+                To guarantee seamless execution across every Linux distro (Ubuntu, Debian, Mint, Fedora, Arch, Cinnamon, GNOME, KDE, XFCE), as well as Windows and macOS, we evaluated the primary GUI architectures:
+            </p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Criteria</th>
+                            <th>Qt 6 (C++ / QML)</th>
+                            <th>GTK 4 (C / Rust)</th>
+                            <th>Electron + Web Components (Recommended)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Linux Distro Universality</strong></td>
+                            <td>Good, but library version mismatches (libstdc++, Qt ABI breaks) across distros often break apps.</td>
+                            <td>Poor portability on non-GNOME desktops and severe packaging headaches on Arch/Fedora/Debian.</td>
+                            <td><span class="badge badge-green">100% Perfect</span> Bundled Chromium runtime guarantees identical execution on all distros via AppImage/deb/rpm.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Engine Integration</strong></td>
+                            <td>Difficult. Requires embedding QWebEngineView with multi-process IPC lag to PlayCanvas WebGL/WebGPU.</td>
+                            <td>Extremely difficult. No native WebGPU/WebGL canvas without heavyweight webkitgtk bridging.</td>
+                            <td><span class="badge badge-green">Zero-Overhead Native</span> PlayCanvas runs directly inside the same V8/GPU process as the UI. Direct DOM/JS binding.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Windows & macOS Support</strong></td>
+                            <td>Supported, but requires native platform compilers and custom toolchains for each OS.</td>
+                            <td>Poor native look and feel on Windows/macOS; difficult cross-compilation.</td>
+                            <td><span class="badge badge-green">Native 1-Click Build</span> Electron-builder outputs `.exe`, `.dmg`, and Linux AppImages from a single codebase.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Web / Cloud Deployment</strong></td>
+                            <td>Impossible without full WebAssembly rewrite of GUI.</td>
+                            <td>Impossible. Desktop only.</td>
+                            <td><span class="badge badge-green">Dual Target</span> The exact same editor runs both as an offline desktop app AND a self-hosted cloud web app!</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PlayCanvas PCUI Compatibility</strong></td>
+                            <td>Requires rewriting all PlayCanvas UI widgets in QML.</td>
+                            <td>Requires rewriting all widgets in GTK XML.</td>
+                            <td><span class="badge badge-green">100% Native</span> Directly utilizes PlayCanvas's official open-source <code>@playcanvas/pcui</code> component system.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-blue">
+                <div class="callout-title">Architectural Decision: Dual Web + Electron Core</div>
+                <p>
+                    We build the editor using <strong>Vite + PlayCanvas PCUI + Modern Web Standards</strong>, wrapped in an <strong>Electron desktop shell</strong>. This gives us:
+                    <br>1. <strong>Single codebase:</strong> A single codebase that packages into a standalone Linux AppImage/deb (runs on ANY Linux distro out of the box), Windows installer, macOS package, AND a pure Web application that can be served via FastAPI/Nginx.
+                    <br>2. <strong>Zero IPC overhead:</strong> The PlayCanvas 3D scene and the Editor UI share the same JavaScript runtime memory space, meaning zero latency when inspecting thousands of entities.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 3: Editor Layout -->
+        <section id="editor-layout">
+            <div class="section-header">
+                <div class="section-number">03</div>
+                <h3>Editor Layout & Workspace Blueprint</h3>
+            </div>
+            <p class="lead-text">
+                The interface mirrors the intuitive 5-region docked workspace popularized by PlayCanvas, Unity, and Unreal Engine:
+            </p>
+
+            <div class="diagram-box">
++---------------------------------------------------------------------------------------------------------------+
+|  [M] MakuluLinux Studio | Project: [CyberCity] | Scene: [MainLevel v] | View: [Perspective v] | [> Launch] [Save]  |
++----+--------------------------+----------------------------------------------------+--------------------------+
+|    | HIERARCHY   [+ Add] [🔍] | 3D VIEWPORT (WebGL2 / WebGPU)                      | INSPECTOR & COMPONENTS   |
+| T  | ------------------------ |                                                    | ------------------------ |
+| R  | ▼ Root                   |                     [Camera View]                  | Entity: [PlayerCharacter]|
+| A  |   ► Camera & PostProcess |                           ▲ Y                      | [x] Enabled  Tag: [Hero] |
+| N  |   ▼ Environment          |                           |                        | ------------------------ |
+| S  |       Terrain_Chunk_01   |                           +----> X                 | ▼ TRANSFORM              |
+| F  |       Directional_Sun    |                          /                         |   Pos:  [0.0] [1.2] [0.0]|
+| O  |       PointLight_Torch01 |                         Z   [Interactive Gizmo]    |   Rot:  [0.0] [90.] [0.0]|
+| R  |   ▼ Characters           |                                                    |   Scale:[1.0] [1.0] [1.0]|
+| M  |     ► PlayerCharacter    |         [Infinite PBR Grid Floor]                  | ------------------------ |
+|    |     ► Guard_NPC          |                                                    | + ADD COMPONENT          |
+| S  |   ► Props & Buildings    |                                                    | [x] RENDER (Mesh: Hero)  |
+| T  |                          |                                                    | [x] RIGIDBODY (Dynamic)  |
+| R  |                          |                                                    | [x] COLLIDER (Capsule)   |
+| I  |                          |                                                    | [x] SCRIPT (player.js)   |
+| P  +--------------------------+----------------------------------------------------+--------------------------+
+|    | ASSETS BROWSER   [+ New] [Import File] [Library Store]        [🔍 Search]     | MAKULU AI ASSISTANT      |
+|    | ----------------------------------------------------------------------------- | ------------------------ |
+|    | 📁 /assets/              | [hero.glb]      [stone_wall.mat]    [player.js]    | 🤖 Copilot: "I've added  |
+|    |   ├── models/            | [diffuse.png]   [normal_map.png]    [torch.glb]    | 4 torch entities with    |
+|    |   ├── textures/          | [jump.wav]      [skybox_sunset.hdr] [level.json]   | flickering point lights."|
+|    |   ├── materials/         | -------------------------------------------------- | [Prompt: "Make player   |
+|    |   └── scripts/           | (Drag & drop any asset directly into 3D Viewport)  |  sprint on Shift key"]   |
++----+--------------------------+----------------------------------------------------+--------------------------+
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>1. Left Transform Strip</h4>
+                    <p>Translate (W), Rotate (E), Scale (R), Bounding Box (B). World vs Local coordinate system toggle. Precise snapping increments (0.1m, 0.5m, 1m; 15°, 45°). Camera framing (F).</p>
+                </div>
+                <div class="card">
+                    <h4>2. Scene Hierarchy</h4>
+                    <p>Full scene graph tree with entity reparenting, multi-select, drag-drop grouping, instant search filter, visibility toggles, and right-click clone/delete/export.</p>
+                </div>
+                <div class="card">
+                    <h4>3. 3D WebGPU Viewport</h4>
+                    <p>Ultra-smooth 60+ FPS rendering powered by local PlayCanvas engine. Built-in interactive 3D gizmos, orbit/fly camera controls, grid floor, multi-camera split views, and in-editor simulation.</p>
+                </div>
+                <div class="card">
+                    <h4>4. Inspector & Component Stack</h4>
+                    <p>Live transform coordinates, component management (Render, Light, Camera, Collision, Rigidbody, Script, Audio, Particles), and interactive 3D PBR Material sphere preview.</p>
+                </div>
+                <div class="card">
+                    <h4>5. Asset Browser</h4>
+                    <p>Desktop-style folder tree with live thumbnail generation for 3D GLB models, PBR materials, textures, and audio. Drag assets directly into the 3D viewport to spawn them.</p>
+                </div>
+                <div class="card">
+                    <h4>6. Makulu AI Assistant Dock</h4>
+                    <p>Dedicated dockable AI panel capable of inspecting scene context, executing complex multi-step world modifications, generating code, and debugging in real time.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Simple vs Pro Mode -->
+        <section id="simple-vs-pro">
+            <div class="section-header">
+                <div class="section-number">04</div>
+                <h3>Dual-Tier UX: Simple Mode vs Advanced Pro Mode</h3>
+            </div>
+            <p class="lead-text">
+                To satisfy both complete beginners who want to build games without writing complex code and veteran developers building complex AAA systems, the editor features an instantaneous <strong>Simple / Pro Mode Switcher</strong> on the top navigation bar.
+            </p>
+
+            <div class="card-grid">
+                <div class="card" style="border-top: 4px solid var(--accent-green);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4>🌱 Simple Mode (Novice & Indie)</h4>
+                        <span class="badge badge-green">Beginner Friendly</span>
+                    </div>
+                    <p><strong>Goal:</strong> Zero intimidation. Build playable 3D games within minutes.</p>
+                    <ul class="checklist">
+                        <li><input type="checkbox" checked disabled> <strong>Simplified Inspector:</strong> Only displays intuitive properties (Position, Size, Look, Speed, Health, Jump Height). Complex matrices and quaternion math are hidden.</li>
+                        <li><input type="checkbox" checked disabled> <strong>No-Code Behavior Cards:</strong> Attach pre-built logic: <em>"WASD Character Movement"</em>, <em>"Follow Camera"</em>, <em>"Spin When Touched"</em>, <em>"Patrol Between Points"</em>.</li>
+                        <li><input type="checkbox" checked disabled> <strong>1-Click Asset Spawner:</strong> Click to drop pre-rigged characters, trees, cars, weapons, and platforms with physics already pre-configured.</li>
+                        <li><input type="checkbox" checked disabled> <strong>AI Prompt-to-Action Bar:</strong> Large, prominent prompt bar where the user can simply type: <em>"Make this car drive faster"</em> or <em>"Add 10 coins in a circle"</em>.</li>
+                        <li><input type="checkbox" checked disabled> <strong>1-Click Play & Share:</strong> Immediate playtesting without compiling, with instant web export URL generation.</li>
+                    </ul>
+                </div>
+
+                <div class="card" style="border-top: 4px solid var(--accent-orange);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4>⚡ Pro Mode (AAA & Technical)</h4>
+                        <span class="badge badge-orange">Advanced Developer</span>
+                    </div>
+                    <p><strong>Goal:</strong> Unrestricted power and complete control over the entire engine.</p>
+                    <ul class="checklist">
+                        <li><input type="checkbox" checked disabled> <strong>Raw ECS Component Control:</strong> Full access to custom render passes, layer masks, batch groups, and custom shader chunks.</li>
+                        <li><input type="checkbox" checked disabled> <strong>Embedded Monaco Code Editor:</strong> Full VS Code-grade code editing with TypeScript/JavaScript autocompletion for the entire <code>pc.*</code> engine namespace.</li>
+                        <li><input type="checkbox" checked disabled> <strong>Full Physics Rigging:</strong> Ammo.js compound collision meshes, kinematic controllers, raycasting masks, and linear/angular constraints.</li>
+                        <li><input type="checkbox" checked disabled> <strong>Performance Profiler:</strong> Real-time graphs for GPU draw calls, VRAM usage, shader compilation times, and memory allocations.</li>
+                        <li><input type="checkbox" checked disabled> <strong>Post-Processing & Shaders:</strong> Direct authoring of custom WGSL/GLSL shaders, SSAO, SSR, Bloom, and ACES Color Grading.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: AI Architecture -->
+        <section id="ai-architecture">
+            <div class="section-header">
+                <div class="section-number">05</div>
+                <h3>AI-First Engine: Deep Multi-Agent Autonomous Studio</h3>
+            </div>
+            <p class="lead-text">
+                Most AI integrations in editors are basic chatbots that merely give advice. In <strong>MakuluLinux Game Studio</strong>, the AI is an <strong>Active Co-Creator</strong>. The entire editor is engineered around the <em>Universal Command Bus</em>, enabling autonomous AI agents to execute any action a human can perform.
+            </p>
+
+            <div class="callout callout-purple">
+                <div class="callout-title">MakuluLinux AI Backend Details</div>
+                <p>
+                    • <strong>Endpoint:</strong> <code>https://makululinux.us:2007/v1/chat/completions</code><br>
+                    • <strong>Primary Models:</strong> <code>electra</code> (complex reasoning & script synthesis) and <code>electra-nano</code> (rapid sub-second scene commands)<br>
+                    • <strong>Authentication:</strong> Auto-detected from <code>~/.config/ai_terminal/electra_auth.json</code> or user API key via AI Settings<br>
+                    • <strong>Quota:</strong> Unlimited generations enabled on Electra models.
+                </p>
+            </div>
+
+            <div class="diagram-box">
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│                              UNIVERSAL COMMAND BUS (EDITOR CORE)                          │
+└────────┬──────────────────────────────────────────────────────────────────────────▲───────┘
+         │                                                                          │
+   ┌─────▼──────────────────────────────┐                         ┌─────────────────┴───────┐
+   │ HUMAN INPUT (Mouse, Keys, UI)      │                         │ MAKULU AI AGENT ENGINE  │
+   │ - Drag entity in hierarchy         │                         │ - Natural language chat │
+   │ - Move transform gizmo             │                         │ - JSON Tool-Calling API │
+   │ - Edit material slider in inspector│                         │ - Multi-step execution  │
+   └────────────────────────────────────┘                         └─────────────────────────┘
+         │                                                                          │
+         └───────────────────────────────┬──────────────────────────────────────────┘
+                                         ▼
+                   ┌──────────────────────────────────────────────┐
+                   │ TRANSACTION EXECUTION & UNDO/REDO MANAGER    │
+                   │  editor.executeCommand(action, payload)      │
+                   └─────────────────────┬────────────────────────┘
+                                         ▼
+      ┌──────────────────────────────────┴──────────────────────────────────┐
+      ▼                                  ▼                                  ▼
+┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
+│ SCENE GRAPH MUTATION    │   │ ASSET PIPELINE          │   │ SCRIPT & CODE PIPELINE  │
+│ - spawnEntity()         │   │ - importModel()         │   │ - generateScript()      │
+│ - setComponentProperty()│   │ - createMaterial()      │   │ - attachScript()        │
+│ - reparentNode()        │   │ - setTexture()          │   │ - fixRuntimeErrors()    │
+└─────────────────────────┘   └─────────────────────────┘   └─────────────────────────┘
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">🏗️</div>
+                    <h4>1. Scene Architect Agent</h4>
+                    <p>Understands 3D spatial layout. Given prompts like <em>"Create an ancient castle courtyard with 6 pillars and an arched entryway"</em>, it generates entities, calculates proper transforms, scales, and collision bounds.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💻</div>
+                    <h4>2. Gameplay Programmer Agent</h4>
+                    <p>Writes bug-free PlayCanvas JavaScript code (<code>pc.createScript</code>), configures script attributes (<code>@attribute</code>), binds keyboard/mouse inputs, and attaches scripts to selected entities.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎨</div>
+                    <h4>3. Material & Shader Artist Agent</h4>
+                    <p>Translates prompts like <em>"Glowy sci-fi hexagonal energy shield"</em> or <em>"Rusted oxidized copper"</em> into exact PBR material settings, diffuse tints, roughness/metalness values, and custom GLSL shader chunks.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🩺</div>
+                    <h4>4. Autonomous Debugger & QA Agent</h4>
+                    <p>Monitors runtime console errors. If a script crashes during game playtesting, the agent catches the stack trace, analyzes the code, proposes a fix, and offers a 1-click "Auto-Fix & Reload" button.</p>
+                </div>
+            </div>
+
+            <h4>Example: AI Function-Calling Tool Schema</h4>
+            <pre><code>// The AI outputs structured JSON commands executed by the Universal Command Bus
+{
+  "tool_calls": [
+    {
+      "name": "create_entity",
+      "parameters": {
+        "name": "Torch_Pillar",
+        "parent": "Environment",
+        "transform": { "position": [4.5, 0.0, -2.0], "rotation": [0, 0, 0], "scale": [0.8, 3.0, 0.8] },
+        "components": [
+          { "type": "render", "properties": { "type": "cylinder", "material": "stone_pillar.mat" } },
+          { "type": "collision", "properties": { "type": "cylinder", "height": 3.0, "radius": 0.4 } },
+          { "type": "rigidbody", "properties": { "type": "static" } }
+        ]
+      }
+    },
+    {
+      "name": "create_entity",
+      "parameters": {
+        "name": "Torch_Flame_Light",
+        "parent": "Torch_Pillar",
+        "transform": { "position": [0.0, 1.8, 0.0] },
+        "components": [
+          { "type": "light", "properties": { "type": "point", "color": [1.0, 0.55, 0.1], "range": 8.0, "intensity": 2.5, "castShadows": true } },
+          { "type": "script", "properties": { "scripts": ["lightFlicker.js"] } }
+        ]
+      }
+    }
+  ]
+}</code></pre>
+        </section>
+
+        <!-- Section 6: Model Library & Terrain -->
+        <section id="model-library">
+            <div class="section-header">
+                <div class="section-number">06</div>
+                <h3>Asset Ecosystem, Free 3D Model Stores & Terrain</h3>
+            </div>
+            <p class="lead-text">
+                A game engine is only as good as its asset pipeline. PlayCanvas natively utilizes <strong>glTF 2.0 / GLB</strong>, the industry-standard "JPEG of 3D". MakuluLinux Game Studio integrates direct access to premier free model repositories, procedural terrain generators, and ready-to-play templates:
+            </p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">🍕</div>
+                    <h4>Poly Pizza Direct Integration</h4>
+                    <p>Integrated in-editor search and 1-click import for thousands of free low-poly CC0 3D models with instant GLB download and attribution metadata.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📦</div>
+                    <h4>Kenney.nl CC0 Starter Kits</h4>
+                    <p>Pre-bundled library of hundreds of modular game-ready models: Medieval Castle, Sci-Fi Space Kit, City Kit, Nature Pack, and Vehicle Kit—royalty free for any commercial use.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🏞️</div>
+                    <h4>Poly Haven & ambientCG (PBR Materials)</h4>
+                    <p>Direct download of 1K/2K/4K PBR textures (Diffuse, Normal, Roughness, Ambient Occlusion, Displacement) and high dynamic range 360° HDRI skyboxes.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🏃</div>
+                    <h4>Rigged Characters & Animations</h4>
+                    <p>Pre-rigged humanoids with standard Mixamo / GLTF skeletal hierarchies and pre-baked animation sets (Idle, Walk, Run, Jump, Attack, Die).</p>
+                </div>
+            </div>
+
+            <h4>Procedural 3D Terrain Generator</h4>
+            <p class="lead-text">
+                Instead of requiring external tools like Blender just to make a mountain or valley, MakuluLinux Game Studio includes a built-in <strong>Heightmap & Terrain Sculptor</strong>:
+            </p>
+            <ul class="checklist">
+                <li><input type="checkbox" checked disabled> <strong>Procedural Perlin / Simplex Noise:</strong> Generate realistic mountain ranges, rolling hills, canyons, and plains with adjustable octaves, frequency, and persistence.</li>
+                <li><input type="checkbox" checked disabled> <strong>Real-time Brush Sculpting:</strong> Raise, Lower, Smooth, and Flatten brushes with radius and falloff control directly inside the 3D viewport.</li>
+                <li><input type="checkbox" checked disabled> <strong>Splatmap Multi-Texture Blending:</strong> Automatically blend Grass on flat surfaces, Rock on steep cliff angles, and Snow at high altitudes via GPU shaders.</li>
+                <li><input type="checkbox" checked disabled> <strong>Automatic Collision Generation:</strong> Instant conversion of terrain height fields into static Ammo.js physics collision shapes.</li>
+            </ul>
+
+            <h4 style="margin-top: 28px;">Curated Project Templates</h4>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>1. First-Person Shooter (FPS)</h4>
+                    <p>Character controller with mouselook, weapon sway, projectile shooting, health system, sound effects, and target dummy enemies.</p>
+                </div>
+                <div class="card">
+                    <h4>2. Third-Person Action Adventure</h4>
+                    <p>Orbiting third-person camera, animated character movement, jumping, combat animations, and level checkpoints.</p>
+                </div>
+                <div class="card">
+                    <h4>3. Arcade Racing / Vehicle Sandbox</h4>
+                    <p>Raycast vehicle physics, suspension tuning, drift mechanics, engine audio, and race track checkpoint timer.</p>
+                </div>
+                <div class="card">
+                    <h4>4. Physics & Puzzle Sandbox</h4>
+                    <p>Interactive grab-and-throw physics, dominoes, gravity toggles, exploding barrels, and pressure plates.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: Cloud & Backend -->
+        <section id="cloud-backend">
+            <div class="section-header">
+                <div class="section-number">07</div>
+                <h3>Cloud Sync, Remote Database & FastAPI Backend</h3>
+            </div>
+            <p class="lead-text">
+                MakuluLinux Game Studio is built with modern cloud architecture in mind. It supports fully local offline development, but also seamlessly interfaces with a custom FastAPI backend for remote collaboration, cloud asset hosting, user accounts, and one-click web publishing:
+            </p>
+
+            <div class="diagram-box">
+┌─────────────────────────────────┐                 ┌──────────────────────────────────────────────┐
+│  MAKULU GAME STUDIO EDITOR      │                 │  MAKULU FASTAPI CLOUD BACKEND (Port 2007)    │
+│  (Desktop or Web Browser)       │                 │  (Ubuntu 24.04 / Nginx / MariaDB)            │
+└────────────────┬────────────────┘                 └───────────────────────▲──────────────────────┘
+                 │                                                          │
+                 │ 1. Project Sync & Auto-Save (JSON Scene Graphs)          │
+                 ├──────────────────────────────────────────────────────────┤
+                 │ 2. Remote Asset Storage (GLB models, textures, audio)    │
+                 ├──────────────────────────────────────────────────────────┤
+                 │ 3. 1-Click Game Publishing (HTML5 Standalone Bundle)     │
+                 ├──────────────────────────────────────────────────────────┤
+                 │ 4. Multi-User Realtime Collaboration (WebSocket Delta)   │
+                 └──────────────────────────────────────────────────────────┘
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Remote Database & User Auth</h4>
+                    <p>JWT-based user authentication. Store project metadata, version tags, user permissions, and shared team assets in MariaDB/PostgreSQL via FastAPI.</p>
+                </div>
+                <div class="card">
+                    <h4>1-Click Instant Web Publishing</h4>
+                    <p>Export the compiled game into an optimized standalone HTML5 bundle and upload it to the MakuluLinux web server (<code>https://makululinux.us/games/[project_id]</code>) for instant play on mobile and desktop.</p>
+                </div>
+                <div class="card">
+                    <h4>Cloud Asset Streaming</h4>
+                    <p>Heavy assets (4K textures, large meshes) can be stored in the cloud and streamed on-demand to keep project sizes lightweight on local disk.</p>
+                </div>
+                <div class="card">
+                    <h4>Multiplayer Backend Ready</h4>
+                    <p>Built-in integration templates for Colyseus / WebSockets allowing developers to create real-time multiplayer games right out of the box.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: AAA Graphics -->
+        <section id="aaa-graphics">
+            <div class="section-header">
+                <div class="section-number">08</div>
+                <h3>AAA-Grade Rendering Pipeline</h3>
+            </div>
+            <p class="lead-text">
+                Leveraging the latest capabilities of the local PlayCanvas engine (v2.24+), MakuluLinux Game Studio delivers graphical fidelity comparable to desktop engines while maintaining high framerates across low-end and high-end hardware:
+            </p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>⚡ WebGPU & WebGL2 Next-Gen API</h4>
+                    <p>WebGPU compute shaders, bind groups, and indirect drawing alongside rock-solid WebGL2 fallback for 100% device coverage.</p>
+                </div>
+                <div class="card">
+                    <h4>💡 Clustered Lighting Pipeline</h4>
+                    <p>Render hundreds of dynamic point and spot lights simultaneously with minimal performance cost via GPU clustered light culling.</p>
+                </div>
+                <div class="card">
+                    <h4>✨ Physically Based Rendering (PBR)</h4>
+                    <p>Full support for Metallic-Roughness, Anisotropy, Sheen, Clearcoat, Transmission (glass/refraction), and Subsurface Scattering.</p>
+                </div>
+                <div class="card">
+                    <h4>🎥 Cinematic Post-Processing Stack</h4>
+                    <p>Built-in Screen-Space Ambient Occlusion (SSAO), HDR Bloom with threshold curves, Screen-Space Reflections (SSR), Depth of Field bokeh, and ACES Tonemapping.</p>
+                </div>
+                <div class="card">
+                    <h4>☁️ 3D Gaussian Splatting</h4>
+                    <p>Native rendering of photo-realistic 3D Gaussian Splats directly in the editor, allowing real-world scans to be placed into games.</p>
+                </div>
+                <div class="card">
+                    <h4>🌑 Cascaded Shadow Maps (CSM)</h4>
+                    <p>Ultra-crisp directional shadows with seamless distance fading, soft PCF filtering, and contact shadow approximation.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: Roadmap Phases -->
+        <section id="roadmap-phases">
+            <div class="section-header">
+                <div class="section-number">09</div>
+                <h3>Comprehensive Phased Implementation Plan</h3>
+            </div>
+            <p class="lead-text">
+                The development of MakuluLinux Game Studio is structured into six well-defined, testable phases:
+            </p>
+
+            <div class="timeline">
+
+                <!-- Phase 1 -->
+                <div class="timeline-item done">
+                    <div class="timeline-phase">Phase 01 · Completed Milestone</div>
+                    <div class="timeline-title">Core Engine Linking, Viewport Shell & Desktop Integration</div>
+                    <div class="timeline-content">
+                        <p>Project initialized in <code>/PlayCanvas/editor</code> with Vite, connected to the local PlayCanvas engine, active on port 3000, 5-region docked workspace running, Electron desktop wrapper and launchers deployed.</p>
+                        <ul class="checklist">
+                            <li><input type="checkbox" checked disabled> Clone PlayCanvas Engine to <code>/PlayCanvas/engine</code></li>
+                            <li><input type="checkbox" checked disabled> Verify MakuluLinux FastAPI endpoint & API key (Verified with Electra models)</li>
+                            <li><input type="checkbox" checked disabled> Create Master Architecture Blueprint (<code>roadmap.html</code>)</li>
+                            <li><input type="checkbox" checked disabled> Initialize <code>editor/</code> project with Vite + ESM + PlayCanvas runtime</li>
+                            <li><input type="checkbox" checked disabled> Build 3D WebGL2/WebGPU Viewport with infinite grid floor and orbit/fly camera</li>
+                            <li><input type="checkbox" checked disabled> Integrate native PlayCanvas <code>TranslateGizmo</code>, <code>RotateGizmo</code>, <code>ScaleGizmo</code></li>
+                            <li><input type="checkbox" checked disabled> Implement Electron desktop wrapper (<code>electron.cjs</code>) & 1-click launcher (<code>launch.sh</code>)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="timeline-item done">
+                    <div class="timeline-phase">Phase 02 · Completed Milestone</div>
+                    <div class="timeline-title">Hierarchy, Inspector, Material Preview & Script Studio</div>
+                    <div class="timeline-content">
+                        <p>Deepened the Scene Graph Hierarchy, Entity & Component Inspector, 3D rotating PBR Material preview sphere, in-editor Script Studio with templates, and the transactional Command Bus with full undo/redo.</p>
+                        <ul class="checklist">
+                            <li><input type="checkbox" checked disabled> Universal Command Bus with full Undo / Redo history (Ctrl+Z / Ctrl+Y)</li>
+                            <li><input type="checkbox" checked disabled> Scene Hierarchy tree (add, delete, duplicate entities, search filter)</li>
+                            <li><input type="checkbox" checked disabled> Entity Inspector with Vector3 Transform controls (Pos, Rot, Scale)</li>
+                            <li><input type="checkbox" checked disabled> Expanded Component cards (Collision, Rigidbody physics, Camera, Script, Light)</li>
+                            <li><input type="checkbox" checked disabled> Interactive PBR Material Inspector with real-time 3D rotating preview sphere</li>
+                            <li><input type="checkbox" checked disabled> Built-in Script Code Editor with syntax styling, templates & live compilation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="timeline-item done">
+                    <div class="timeline-phase">Phase 03 · Completed Milestone</div>
+                    <div class="timeline-title">Dual-Tier Interface, Model Store & Interactive Viewport Fixes</div>
+                    <div class="timeline-content">
+                        <p>Implemented Simple Mode beginner cards & quick palettes, functional gizmo dragging with pointer event gates, visible fixtures for spot/point lights and cameras, simulation mode with active banners, and 1-click model/terrain spawners.</p>
+                        <ul class="checklist">
+                            <li><input type="checkbox" checked disabled> 1-Click Simple/Pro Mode switcher with dynamic Inspector transformation</li>
+                            <li><input type="checkbox" checked disabled> Plug-and-play behavior engine (WASD Movement, Object Spinner, Light Flicker)</li>
+                            <li><input type="checkbox" checked disabled> Full Gizmo drag interaction and DPI-scaled Raycast hit-testing</li>
+                            <li><input type="checkbox" checked disabled> Visible 3D editor fixtures for Spot Lights, Point Lights, and Cameras</li>
+                            <li><input type="checkbox" checked disabled> Live Game Simulation Mode (▶ Play / ⏹ Stop) with viewport banner</li>
+                            <li><input type="checkbox" checked disabled> Makulu 3D Model Store modal with 1-click spawn (Kenney & Poly Pizza CC0 assets)</li>
+                            <li><input type="checkbox" checked disabled> Procedural 3D Terrain Generator with elevation biome coloring & seed controls</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="timeline-item done">
+                    <div class="timeline-phase">Phase 04 · Completed Milestone</div>
+                    <div class="timeline-title">Makulu AI Multi-Agent Autonomous Studio & Starter Templates</div>
+                    <div class="timeline-content">
+                        <p>Implemented streaming AI chat dock with Electra/Nano models, AI Scene Health Doctor with 1-click auto-fixes, Console Drawer with error catching, and 1-Click Game Genre Starter Templates (FPS, Adventure, Cyberpunk, Physics).</p>
+                        <ul class="checklist">
+                            <li><input type="checkbox" checked disabled> Streaming AI chat dock in editor connecting to <code>https://makululinux.us:2007</code></li>
+                            <li><input type="checkbox" checked disabled> Function-calling tool execution engine (maps LLM tool calls to Command Bus)</li>
+                            <li><input type="checkbox" checked disabled> AI Scene Architect: Natural language prompt to 3D entity generation</li>
+                            <li><input type="checkbox" checked disabled> AI Auto-Debugger & Console Drawer: Catches runtime errors with "Ask AI to Fix"</li>
+                            <li><input type="checkbox" checked disabled> AI Scene Health Doctor: Scans for missing colliders, light blowouts & fixes them</li>
+                            <li><input type="checkbox" checked disabled> Multi-Provider AI Settings Dialog (OpenAI, Gemini, Claude, Groq, Kimi, Mistral, OpenRouter, Local Ollama)</li>
+                            <li><input type="checkbox" checked disabled> 1-Click Game Genre Starter Templates (FPS Arena, Courtyard, Cyberpunk, Domino Physics)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phase 5 -->
+                <div class="timeline-item done">
+                    <div class="timeline-phase">Phase 05 · Completed Milestone</div>
+                    <div class="timeline-title">Standalone Game Bundler & 1-Click Cloud Web Publisher</div>
+                    <div class="timeline-content">
+                        <p>Implemented the standalone HTML5 Game Compiler, single-file zero-install game exporter (.html), and the 1-Click Cloud Web Publisher modal with instant live URL generation and sharing.</p>
+                        <ul class="checklist">
+                            <li><input type="checkbox" checked disabled> Local JSON Scene Graph Serializer & Exporter</li>
+                            <li><input type="checkbox" checked disabled> Standalone HTML5 Game Compiler & Bundler (Zero-install self-contained game)</li>
+                            <li><input type="checkbox" checked disabled> 1-Click Cloud Web Publisher with live playtest URL and clipboard copy</li>
+                            <li><input type="checkbox" checked disabled> Responsive full-screen game canvas with mobile touch & keyboard controls</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phase 6 -->
+                <div class="timeline-item done">
+                    <div class="timeline-phase">Phase 06 · Completed Milestone</div>
+                    <div class="timeline-title">Desktop Packaging (AppImage, Deb, Directory) & Production Verification</div>
+                    <div class="timeline-content">
+                        <p>Completed universal cross-distro packaging for MakuluLinux, Ubuntu, Debian, Fedora, Arch, and all Linux distros via standalone AppImage, Debian <code>.deb</code>, unpacked binary, native desktop launcher, and Vite production bundle.</p>
+                        <ul class="checklist">
+                            <li><input type="checkbox" checked disabled> Electron desktop wrapper (<code>electron.cjs</code>) & 1-click execution script (<code>launch.sh</code>)</li>
+                            <li><input type="checkbox" checked disabled> Native desktop entry file with custom 512x512 icon (<code>MakuluLinux-Game-Studio.desktop</code>)</li>
+                            <li><input type="checkbox" checked disabled> Linux universal AppImage builder & generated bundle (<code>MakuluLinux Game Studio-1.0.0.AppImage</code> - 139 MB)</li>
+                            <li><input type="checkbox" checked disabled> Debian package builder & generated package (<code>makululinux-game-studio_1.0.0_amd64.deb</code> - 110 MB)</li>
+                            <li><input type="checkbox" checked disabled> Built-in Categorized <b>Help & Reference Studio Modal</b> with live search filter & hotkeys table</li>
+                            <li><input type="checkbox" checked disabled> Built-in 10-Step <b>Novice Game Creation Guide Modal</b> ("The Rolling Gem Collector") with visual progress bar</li>
+                            <li><input type="checkbox" checked disabled> Unpacked standalone Linux binary in <code>release/linux-unpacked/</code></li>
+                            <li><input type="checkbox" checked disabled> End-to-end studio verification & full-stack production build</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Smooth scrolling and active link highlighting
+        const navLinks = document.querySelectorAll('.nav-links a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+
+        // Intersection Observer to highlight current active section on scroll
+        const sections = document.querySelectorAll('section');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 80;
+                if (pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

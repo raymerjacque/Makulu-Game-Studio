@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MakuluLinux Game Studio
+Comment=AI-Powered 3D Web Game Engine and Editor
+Exec=/home/jacque/AI-center/PlayCanvas/editor/launch.sh
+Path=/home/jacque/AI-center/PlayCanvas/editor
+Terminal=false
+Categories=Development;IDE;Graphics;Game;
+Icon=/home/jacque/AI-center/PlayCanvas/editor/public/icon.png
+StartupNotify=true

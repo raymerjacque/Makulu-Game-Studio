@@ -1,0 +1,247 @@
+import { showToast } from './toast.js';
+
+/**
+ * Top Navigation Bar
+ */
+export class TopBar {
+  constructor(container, editor, aiController, templatesModal = null, publishModal = null, helpModal = null, guideModal = null, aiSettingsModal = null) {
+    this.container = container;
+    this.editor = editor;
+    this.aiController = aiController;
+    this.templatesModal = templatesModal;
+    this.publishModal = publishModal;
+    this.helpModal = helpModal;
+    this.guideModal = guideModal;
+    this.aiSettingsModal = aiSettingsModal;
+    this.isPlaying = false;
+    this.render();
+  }
+
+  render() {
+    this.container.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 26px; height: 26px; background: linear-gradient(135deg, #ff6600, #ff3300); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: #fff; box-shadow: 0 0 10px rgba(255,102,0,0.4);">M</div>
+          <span style="font-weight: 700; font-size: 13px; color: var(--text-primary); letter-spacing: -0.2px;">MakuluLinux <span style="color: var(--accent-orange); font-weight: 600;">Studio</span></span>
+        </div>
+
+        <div style="height: 18px; width: 1px; background: var(--border-subtle); margin: 0 4px;"></div>
+
+        <!-- Scene Picker, Templates, Guide, Help, AI Settings -->
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary);">
+          <span>Scene:</span>
+          <select id="top-scene-select" class="select-input" style="width: 100px; padding: 2px 6px; height: 26px;">
+            <option value="main">Main Scene</option>
+          </select>
+          <button id="btn-open-templates" class="btn" style="background: rgba(255,102,0,0.18); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 3px 8px; font-size: 11px;" title="1-Click Genre Starter Templates">🎮 Templates</button>
+          <button id="btn-open-guide" class="btn" style="background: rgba(0, 229, 255, 0.16); border-color: #00e5ff; color: #00e5ff; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Beginner's Step-by-Step Game Creation Masterclass">📖 Guide</button>
+          <button id="btn-open-help" class="btn" style="background: rgba(168, 85, 247, 0.16); border-color: #c084fc; color: #c084fc; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Editor Overview, Navigation Controls & Hotkeys">❓ Help</button>
+          <button id="btn-open-ai-settings" class="btn" style="background: rgba(255, 102, 0, 0.16); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Configure AI Providers (OpenAI, Gemini, Claude, Groq, Kimi...)">⚙️ AI Settings</button>
+        </div>
+
+        <!-- Mode Switcher (Simple vs Pro) -->
+        <div class="mode-switch" id="mode-switcher">
+          <button class="mode-btn ${this.editor.mode === 'simple' ? 'active' : ''}" data-mode="simple">🌱 Simple Mode</button>
+          <button class="mode-btn ${this.editor.mode === 'pro' ? 'active' : ''}" data-mode="pro">⚡ Pro Mode</button>
+        </div>
+      </div>
+
+      <!-- Quick AI Prompt Bar -->
+      <div class="quick-prompt-wrap">
+        <span class="quick-prompt-icon">✨</span>
+        <input type="text" id="top-quick-prompt" class="quick-prompt-input" placeholder="Ask AI: 'Create a medieval arena with 6 pillars' or 'Make a neon light'..." />
+        <button id="top-quick-submit" class="quick-prompt-submit" title="Send to AI Copilot">↵</button>
+      </div>
+
+      <!-- Right Action Controls -->
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- Camera View Toggle -->
+        <select id="camera-view-select" class="select-input" style="width: 105px; height: 26px; padding: 2px 4px; font-size: 11px;">
+          <option value="persp">Perspective</option>
+          <option value="ortho">Orthographic</option>
+        </select>
+
+        <!-- Undo / Redo -->
+        <button id="btn-undo" class="btn" title="Undo (Ctrl+Z)" style="padding: 4px 8px; font-size: 11px;">↶</button>
+        <button id="btn-redo" class="btn" title="Redo (Ctrl+Y)" style="padding: 4px 8px; font-size: 11px;">↷</button>
+
+        <!-- Play / Simulate Button -->
+        <button id="btn-play-sim" class="btn btn-primary" style="padding: 4px 12px; font-size: 11px; gap: 4px;">
+          <span id="play-icon">▶</span> <span id="play-text">Play</span>
+        </button>
+
+        <!-- Save Project & Publish -->
+        <button id="btn-save-project" class="btn" style="padding: 4px 10px; font-size: 11px;">💾 Export</button>
+        <button id="btn-open-publish" class="btn btn-primary" style="padding: 4px 12px; font-size: 11px; font-weight: 700; background: linear-gradient(135deg, #ff6600, #ff3300); border: none; box-shadow: 0 0 10px rgba(255,102,0,0.4);">🚀 Publish</button>
+      </div>
+    `;
+
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    // Open Templates
+    const tmplBtn = this.container.querySelector('#btn-open-templates');
+    if (tmplBtn) {
+      tmplBtn.addEventListener('click', () => {
+        if (this.templatesModal) this.templatesModal.open();
+      });
+    }
+
+    // Open Guide
+    const guideBtn = this.container.querySelector('#btn-open-guide');
+    if (guideBtn) {
+      guideBtn.addEventListener('click', () => {
+        if (this.guideModal) this.guideModal.open();
+      });
+    }
+
+    // Open Help
+    const helpBtn = this.container.querySelector('#btn-open-help');
+    if (helpBtn) {
+      helpBtn.addEventListener('click', () => {
+        if (this.helpModal) this.helpModal.open();
+      });
+    }
+
+    // Open AI Settings
+    const aiSettingsBtn = this.container.querySelector('#btn-open-ai-settings');
+    if (aiSettingsBtn) {
+      aiSettingsBtn.addEventListener('click', () => {
+        if (this.aiSettingsModal) this.aiSettingsModal.open();
+      });
+    }
+
+    // Mode switcher buttons
+    const modeBtns = this.container.querySelectorAll('.mode-btn');
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode = btn.dataset.mode;
+        this.editor.setEditorMode(mode);
+        showToast(
+          mode === 'simple' ? '🌱 Switched to Simple Novice Mode' : '⚡ Switched to Pro Technical ECS Mode',
+          'success'
+        );
+      });
+    });
+
+    // Undo / Redo
+    const btnUndo = this.container.querySelector('#btn-undo');
+    const btnRedo = this.container.querySelector('#btn-redo');
+    btnUndo.addEventListener('click', () => {
+      this.editor.commandBus.undo();
+      showToast('↶ Action Undone', 'info');
+    });
+    btnRedo.addEventListener('click', () => {
+      this.editor.commandBus.redo();
+      showToast('↷ Action Redone', 'info');
+    });
+
+    // Camera view select
+    const camSelect = this.container.querySelector('#camera-view-select');
+    camSelect.addEventListener('change', (e) => {
+      if (this.editor.runtime && this.editor.runtime.editorCamera) {
+        this.editor.runtime.editorCamera.setProjection(e.target.value);
+        showToast(`Camera view: ${e.target.value === 'ortho' ? 'Orthographic' : 'Perspective'}`, 'info');
+      }
+    });
+
+    // Quick AI prompt bar
+    const promptInput = this.container.querySelector('#top-quick-prompt');
+    const promptSubmit = this.container.querySelector('#top-quick-submit');
+
+    const submitPrompt = () => {
+      const text = promptInput.value.trim();
+      if (!text) return;
+      promptInput.value = '';
+      if (this.aiController) {
+        this.aiController.sendUserPrompt(text);
+      }
+    };
+
+    promptSubmit.addEventListener('click', submitPrompt);
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitPrompt();
+    });
+
+    // Play simulation button
+    const playBtn = this.container.querySelector('#btn-play-sim');
+    const playIcon = this.container.querySelector('#play-icon');
+    const playText = this.container.querySelector('#play-text');
+
+    playBtn.addEventListener('click', () => {
+      this.isPlaying = !this.isPlaying;
+      let banner = document.getElementById('simulation-banner');
+
+      if (this.isPlaying) {
+        playBtn.style.background = '#ef4444';
+        playBtn.style.borderColor = '#ef4444';
+        playIcon.textContent = '⏹';
+        playText.textContent = 'Stop';
+
+        // Add visual banner over 3D Viewport
+        if (!banner) {
+          banner = document.createElement('div');
+          banner.id = 'simulation-banner';
+          banner.style.cssText = `
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(16, 185, 129, 0.95);
+            border: 1px solid #34d399;
+            color: #fff;
+            padding: 6px 18px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+            z-index: 50;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          `;
+          banner.innerHTML = `<span style="animation: pulse 1s infinite;">🟢</span> <span>GAME SIMULATION RUNNING — Press WASD to Move</span>`;
+          document.getElementById('viewport-container').appendChild(banner);
+        }
+
+        this.editor.events.emit('game:play');
+        showToast('▶ Game Simulation Active! Use WASD to control objects.', 'success');
+      } else {
+        playBtn.style.background = 'var(--accent-orange)';
+        playBtn.style.borderColor = 'var(--accent-orange)';
+        playIcon.textContent = '▶';
+        playText.textContent = 'Play';
+
+        if (banner) banner.remove();
+
+        this.editor.events.emit('game:stop');
+        showToast('⏹ Simulation Stopped. Back to Editor mode.', 'info');
+      }
+    });
+
+    // Publish modal button
+    const publishBtn = this.container.querySelector('#btn-open-publish');
+    if (publishBtn) {
+      publishBtn.addEventListener('click', () => {
+        if (this.publishModal) this.publishModal.open();
+      });
+    }
+
+    // Save project button
+    const saveBtn = this.container.querySelector('#btn-save-project');
+    saveBtn.addEventListener('click', () => {
+      const json = this.editor.exportSceneJSON();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.editor.projectName.replace(/\s+/g, '_')}_scene.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+}

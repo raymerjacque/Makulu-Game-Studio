@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MakuluLinux Game Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff6600'/><text x='50' y='68' font-size='50' font-family='sans-serif' font-weight='900' fill='white' text-anchor='middle'>M</text></svg>" />
+</head>
+<body>
+  <div id="app-shell">
+    <!-- Top Navigation Bar -->
+    <header id="top-bar"></header>
+
+    <!-- Main Workspace -->
+    <main id="workspace">
+      <!-- Far-Left Tool Strip -->
+      <aside id="tool-strip"></aside>
+
+      <!-- Hierarchy Scene Graph Panel -->
+      <section id="hierarchy-panel"></section>
+
+      <!-- Center 3D Viewport Stage & Bottom Assets -->
+      <section id="center-stage">
+        <!-- 3D Viewport -->
+        <div id="viewport-container">
+          <div class="viewport-overlay-top">
+            <div class="viewport-pill">
+              <span style="color: var(--accent-orange); font-weight: 700;">●</span>
+              <span>WebGL2 Engine: PlayCanvas</span>
+            </div>
+            <div class="viewport-pill">
+              <span>Grid: 1.0m Snap</span>
+            </div>
+          </div>
+          <canvas id="viewport-canvas"></canvas>
+        </div>
+
+        <!-- Bottom Asset Browser -->
+        <section id="assets-panel"></section>
+      </section>
+
+      <!-- Right Inspector Panel -->
+      <aside id="inspector-panel"></aside>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

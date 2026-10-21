@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" width="100%" height="100%" style="background:#0a0d11; border-radius:12px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <defs>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6600"/>
+      <stop offset="100%" stop-color="#ff3300"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#0088cc"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#7e22ce"/>
+    </linearGradient>
+    <linearGradient id="boxGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1b232e"/>
+      <stop offset="100%" stop-color="#131922"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="38" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="800" letter-spacing="-0.3">MAKULULINUX GAME STUDIO · CORE ARCHITECTURE</text>
+  <text x="450" y="58" text-anchor="middle" fill="#8892b0" font-size="12">Next-Gen WebGL/WebGPU 3D Engine Forked from PlayCanvas with Native Multi-LLM Copilot</text>
+
+  <!-- Left: UI Tier -->
+  <rect x="30" y="85" width="230" height="205" rx="10" fill="url(#boxGrad)" stroke="#2d3748" stroke-width="1.5"/>
+  <rect x="42" y="97" width="206" height="26" rx="6" fill="#ff6600" fill-opacity="0.2"/>
+  <text x="145" y="115" text-anchor="middle" fill="#ff6600" font-size="12" font-weight="700">🌱 DUAL-TIER WORKFLOW</text>
+  
+  <rect x="45" y="135" width="200" height="65" rx="6" fill="#0d1117" stroke="#10b981" stroke-width="1"/>
+  <text x="55" y="153" fill="#10b981" font-size="11" font-weight="700">🌱 Simple Mode (Novice)</text>
+  <text x="55" y="170" fill="#a0aec0" font-size="10">• 8-Color Quick Swatches</text>
+  <text x="55" y="185" fill="#a0aec0" font-size="10">• Visual Size Sliders &amp; Nudge Buttons</text>
+  <text x="55" y="195" fill="#a0aec0" font-size="10">• Plug &amp; Play Behavior Cards</text>
+
+  <rect x="45" y="210" width="200" height="65" rx="6" fill="#0d1117" stroke="#ff6600" stroke-width="1"/>
+  <text x="55" y="228" fill="#ff6600" font-size="11" font-weight="700">⚡ Pro Mode (Technical)</text>
+  <text x="55" y="245" fill="#a0aec0" font-size="10">• Exact Vector3 Positions &amp; Rotations</text>
+  <text x="55" y="260" fill="#a0aec0" font-size="10">• PBR Material Channels (Rough/Metal)</text>
+  <text x="55" y="270" fill="#a0aec0" font-size="10">• Custom PlayCanvas Script Studio</text>
+
+  <!-- Arrow 1 -->
+  <path d="M 265 187 L 305 187" stroke="#ff6600" stroke-width="2" marker-end="url(#arrow)"/>
+  <polygon points="310,187 300,182 300,192" fill="#ff6600"/>
+
+  <!-- Center: Universal Command Bus -->
+  <rect x="315" y="85" width="270" height="205" rx="10" fill="url(#boxGrad)" stroke="#00e5ff" stroke-width="1.5"/>
+  <rect x="327" y="97" width="246" height="26" rx="6" fill="#00e5ff" fill-opacity="0.15"/>
+  <text x="450" y="115" text-anchor="middle" fill="#00e5ff" font-size="12" font-weight="700">⚡ UNIVERSAL COMMAND BUS</text>
+
+  <rect x="330" y="135" width="240" height="42" rx="6" fill="#0d1117" stroke="#2d3748" stroke-width="1"/>
+  <text x="340" y="153" fill="#ffffff" font-size="11" font-weight="600">Transactional Scene Graph</text>
+  <text x="340" y="168" fill="#8892b0" font-size="10">Undo / Redo History Stack (Ctrl+Z / Ctrl+Y)</text>
+
+  <rect x="330" y="185" width="240" height="42" rx="6" fill="#0d1117" stroke="#2d3748" stroke-width="1"/>
+  <text x="340" y="203" fill="#ffffff" font-size="11" font-weight="600">PlayCanvas Engine Runtime</text>
+  <text x="340" y="218" fill="#8892b0" font-size="10">WebGL2 / WebGPU 60fps Clustered Lighting</text>
+
+  <rect x="330" y="235" width="240" height="42" rx="6" fill="#0d1117" stroke="#2d3748" stroke-width="1"/>
+  <text x="340" y="253" fill="#ffffff" font-size="11" font-weight="600">Cross-Platform Distribution</text>
+  <text x="340" y="268" fill="#8892b0" font-size="10">AppImage • Debian • Standalone HTML5</text>
+
+  <!-- Arrow 2 -->
+  <polygon points="620,187 610,182 610,192" fill="#a855f7"/>
+  <path d="M 590 187 L 615 187" stroke="#a855f7" stroke-width="2"/>
+
+  <!-- Right: AI Copilot -->
+  <rect x="625" y="85" width="245" height="205" rx="10" fill="url(#boxGrad)" stroke="#a855f7" stroke-width="1.5"/>
+  <rect x="637" y="97" width="221" height="26" rx="6" fill="#a855f7" fill-opacity="0.2"/>
+  <text x="747" y="115" text-anchor="middle" fill="#c084fc" font-size="12" font-weight="700">🤖 NATIVE AI COPILOT</text>
+
+  <rect x="640" y="135" width="215" height="45" rx="6" fill="#0d1117" stroke="#2d3748" stroke-width="1"/>
+  <text x="650" y="153" fill="#c084fc" font-size="11" font-weight="600">MakuluLinux Electra Engine</text>
+  <text x="650" y="168" fill="#8892b0" font-size="10">Auto-detected from MakuluLinux AI-OS</text>
+
+  <rect x="640" y="188" width="215" height="45" rx="6" fill="#0d1117" stroke="#2d3748" stroke-width="1"/>
+  <text x="650" y="206" fill="#00e5ff" font-size="11" font-weight="600">Multi-Provider BYOK Gateway</text>
+  <text x="650" y="221" fill="#8892b0" font-size="10">OpenAI • Gemini • Claude • Groq • Ollama</text>
+
+  <rect x="640" y="240" width="215" height="40" rx="6" fill="#0d1117" stroke="#2d3748" stroke-width="1"/>
+  <text x="650" y="258" fill="#10b981" font-size="11" font-weight="600">Autonomous Actions</text>
+  <text x="650" y="271" fill="#8892b0" font-size="10">Spawns meshes, lights, terrain &amp; scripts</text>
+</svg>

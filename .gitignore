@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Large Binaries & Release Builds (Exceeds GitHub 100MB file limit)
+release/
+dist/
+build/
+*.AppImage
+*.deb
+*.rpm
+*.tar.gz
+
+# PlayCanvas Engine source clone (956MB - users install engine via npm dependency)
+engine/
+
+# Logs & Temporary Files
+*.log
+.vite/
+.cache/
+*.tmp
+
+# Operating System Files
+.DS_Store
+Thumbs.db
