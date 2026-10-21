@@ -35,6 +35,19 @@ export class PrefabSystem {
         size: JSON.stringify(prefabData).length,
         prefabData: prefabData
       });
+    const assetObj = {
+      id: prefabId,
+      name: prefabData.name,
+      type: 'prefabs',
+      icon: '📦',
+      size: `${Math.max(1, Math.round(JSON.stringify(prefabData).length / 1024))} KB`,
+      prefabData: prefabData
+    };
+
+    if (this.editor.assetsPanel) {
+      this.editor.assetsPanel.addAsset(assetObj);
+    } else if (this.editor.assets && this.editor.assets.addAsset) {
+      this.editor.assets.addAsset(assetObj);
     }
 
     showToast(`📦 Created Prefab Asset "${prefabData.name}"!`, 'success');
@@ -81,6 +94,56 @@ export class PrefabSystem {
           color: [entity.light.color.r, entity.light.color.g, entity.light.color.b],
           intensity: entity.light.intensity,
           range: entity.light.range
+        }
+      });
+    }
+
+    if (entity.camera) {
+      data.components.push({
+        type: 'camera',
+        properties: {
+          fov: entity.camera.fov,
+          nearClip: entity.camera.nearClip,
+          farClip: entity.camera.farClip
+        }
+      });
+    }
+
+    if (entity.collision) {
+      data.components.push({
+        type: 'collision',
+        properties: {
+          type: entity.collision.type
+        }
+      });
+    }
+
+    if (entity.rigidbody) {
+      data.components.push({
+        type: 'rigidbody',
+        properties: {
+          type: entity.rigidbody.type,
+          mass: entity.rigidbody.mass
+        }
+      });
+    }
+
+    if (entity.particlesystem) {
+      data.components.push({
+        type: 'particlesystem',
+        properties: {
+          numParticles: entity.particlesystem.numParticles,
+          lifetime: entity.particlesystem.lifetime
+        }
+      });
+    }
+
+    if (entity.sound) {
+      data.components.push({
+        type: 'sound',
+        properties: {
+          volume: entity.sound.volume,
+          loop: entity.sound.loop
         }
       });
     }

@@ -9,6 +9,7 @@ export class AssetsPanel {
     this.terrainModal = terrainModal;
     this.codeEditor = codeEditorModal;
     this.materialModal = materialModal;
+    this.editor.assetsPanel = this;
     this.activeFolder = 'all';
 
     this.assets = [
@@ -48,6 +49,10 @@ export class AssetsPanel {
           <div class="tree-item ${this.activeFolder === 'all' ? 'selected' : ''}" data-folder="all">
             <span class="tree-icon">📁</span>
             <span class="tree-label">All Assets</span>
+          </div>
+          <div class="tree-item ${this.activeFolder === 'prefabs' ? 'selected' : ''}" data-folder="prefabs">
+            <span class="tree-icon">📦</span>
+            <span class="tree-label">Prefabs</span>
           </div>
           <div class="tree-item ${this.activeFolder === 'models' ? 'selected' : ''}" data-folder="models">
             <span class="tree-icon">📦</span>
@@ -118,6 +123,10 @@ export class AssetsPanel {
               transform: { position: [0, 1, 0] },
               components: [{ type: 'render', properties: { type: 'box' } }]
             });
+          }
+        } else if (asset.type === 'prefabs' && asset.prefabData) {
+          if (this.editor.prefabs) {
+            this.editor.prefabs.instantiatePrefab(asset.prefabData);
           }
         } else if (asset.type === 'scripts') {
           if (this.codeEditor) {
@@ -240,5 +249,10 @@ export class AssetsPanel {
         position: [0, 0, 0]
       });
     }
+  }
+
+  addAsset(asset) {
+    this.assets.push(asset);
+    this.renderAssetCards();
   }
 }

@@ -4,7 +4,7 @@ import { showToast } from './toast.js';
  * Top Navigation Bar
  */
 export class TopBar {
-  constructor(container, editor, aiController, templatesModal = null, publishModal = null, helpModal = null, guideModal = null, aiSettingsModal = null) {
+  constructor(container, editor, aiController, templatesModal = null, publishModal = null, helpModal = null, guideModal = null, aiSettingsModal = null, projectSettingsModal = null, postProcessingModal = null, timelinePanel = null) {
     this.container = container;
     this.editor = editor;
     this.aiController = aiController;
@@ -13,6 +13,9 @@ export class TopBar {
     this.helpModal = helpModal;
     this.guideModal = guideModal;
     this.aiSettingsModal = aiSettingsModal;
+    this.projectSettingsModal = projectSettingsModal;
+    this.postProcessingModal = postProcessingModal;
+    this.timelinePanel = timelinePanel;
     this.isPlaying = false;
     this.render();
   }
@@ -34,9 +37,11 @@ export class TopBar {
             <option value="main">Main Scene</option>
           </select>
           <button id="btn-open-templates" class="btn" style="background: rgba(255,102,0,0.18); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 3px 8px; font-size: 11px;" title="1-Click Genre Starter Templates">🎮 Templates</button>
+          <button id="btn-open-timeline" class="btn" style="background: rgba(251, 146, 60, 0.16); border-color: #fb923c; color: #fb923c; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Animation Timeline & Keyframe Sequencer">🎬 Timeline</button>
           <button id="btn-open-guide" class="btn" style="background: rgba(0, 229, 255, 0.16); border-color: #00e5ff; color: #00e5ff; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Beginner's Step-by-Step Game Creation Masterclass">📖 Guide</button>
           <button id="btn-open-help" class="btn" style="background: rgba(168, 85, 247, 0.16); border-color: #c084fc; color: #c084fc; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Editor Overview, Navigation Controls & Hotkeys">❓ Help</button>
           <button id="btn-open-ai-settings" class="btn" style="background: rgba(255, 102, 0, 0.16); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Configure AI Providers (OpenAI, Gemini, Claude, Groq, Kimi...)">⚙️ AI Settings</button>
+          <button id="btn-open-proj-settings" class="btn" style="background: rgba(34, 197, 94, 0.16); border-color: #22c55e; color: #4ade80; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Project & Physics Settings (Gravity, Tone Mapping, Shadows)">⚙️ Project</button>
         </div>
 
         <!-- Mode Switcher (Simple vs Pro) -->
@@ -63,6 +68,7 @@ export class TopBar {
           <option value="foggy">🌫️ Foggy Valley</option>
           <option value="night">🌙 Night</option>
         </select>
+        <button id="btn-open-postfx" class="btn" style="background: rgba(0, 229, 255, 0.16); border-color: #00e5ff; color: #00e5ff; font-weight: 600; padding: 2px 8px; height: 26px; font-size: 11px;" title="Post-Processing & Render Pipeline FX (Bloom, Fog, Exposure)">✨ FX</button>
 
         <select id="camera-view-select" class="select-input" style="width: 105px; height: 26px; padding: 2px 4px; font-size: 11px;">
           <option value="persp">Perspective</option>
@@ -242,6 +248,30 @@ export class TopBar {
         showToast('⏹ Simulation Stopped. Back to Editor mode.', 'info');
       }
     });
+
+    // Timeline panel button
+    const tlBtn = this.container.querySelector('#btn-open-timeline');
+    if (tlBtn) {
+      tlBtn.addEventListener('click', () => {
+        if (this.timelinePanel) this.timelinePanel.toggle();
+      });
+    }
+
+    // Post-Processing FX modal button
+    const fxBtn = this.container.querySelector('#btn-open-postfx');
+    if (fxBtn) {
+      fxBtn.addEventListener('click', () => {
+        if (this.postProcessingModal) this.postProcessingModal.open();
+      });
+    }
+
+    // Project Settings modal button
+    const projBtn = this.container.querySelector('#btn-open-proj-settings');
+    if (projBtn) {
+      projBtn.addEventListener('click', () => {
+        if (this.projectSettingsModal) this.projectSettingsModal.open();
+      });
+    }
 
     // Publish modal button
     const publishBtn = this.container.querySelector('#btn-open-publish');

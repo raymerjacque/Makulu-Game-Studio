@@ -284,6 +284,7 @@ export class InspectorPanel {
       <div class="inspector-section">
         <div class="inspector-section-header">
           <span>Entity Info</span>
+          <button id="btn-save-as-prefab" class="btn" style="padding: 1px 8px; font-size: 10px; color: var(--accent-orange); border-color: var(--accent-orange);" title="Save entity hierarchy as a reusable Prefab asset">📦 Save Prefab</button>
         </div>
         <div class="inspector-section-content">
           <div class="prop-row">
@@ -377,6 +378,16 @@ export class InspectorPanel {
       nameInput.addEventListener('change', () => {
         ent.name = nameInput.value;
         this.editor.events.emit('scene:changed');
+      });
+    }
+
+    // Save as Prefab
+    const savePrefabBtn = body.querySelector('#btn-save-as-prefab');
+    if (savePrefabBtn) {
+      savePrefabBtn.addEventListener('click', () => {
+        if (this.editor.prefabs) {
+          this.editor.prefabs.createPrefabFromEntity(ent);
+        }
       });
     }
 
