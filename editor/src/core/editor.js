@@ -338,6 +338,18 @@ export class Editor {
           farClip: node.camera.farClip
         };
       }
+      if (node.particlesystem) {
+        data.components.particlesystem = {
+          numParticles: node.particlesystem.numParticles || 60,
+          lifetime: node.particlesystem.lifetime || 1.5
+        };
+      }
+      if (node.sound) {
+        data.components.sound = {
+          volume: node.sound.volume || 1,
+          loop: node.sound.loop !== false
+        };
+      }
 
       node.children.forEach(child => {
         if (child.name !== 'EditorGrid' && child.name !== 'EditorCamera') {

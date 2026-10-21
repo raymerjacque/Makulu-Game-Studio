@@ -64,6 +64,34 @@ export class EngineRuntime {
     this.app.root.addChild(sun);
   }
 
+  setAtmosphere(preset) {
+    if (!this.app || !this.app.scene) return;
+
+    if (preset === 'sunset') {
+      this.app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
+      this.app.scene.fog = pc.FOG_EXP2;
+      this.app.scene.fogColor = new pc.Color(0.8, 0.4, 0.2);
+      this.app.scene.fogDensity = 0.015;
+    } else if (preset === 'cyberpunk') {
+      this.app.scene.ambientLight = new pc.Color(0.05, 0.08, 0.18);
+      this.app.scene.fog = pc.FOG_EXP2;
+      this.app.scene.fogColor = new pc.Color(0.02, 0.05, 0.15);
+      this.app.scene.fogDensity = 0.02;
+    } else if (preset === 'foggy') {
+      this.app.scene.ambientLight = new pc.Color(0.3, 0.35, 0.4);
+      this.app.scene.fog = pc.FOG_EXP2;
+      this.app.scene.fogColor = new pc.Color(0.45, 0.5, 0.55);
+      this.app.scene.fogDensity = 0.035;
+    } else if (preset === 'night') {
+      this.app.scene.ambientLight = new pc.Color(0.02, 0.03, 0.08);
+      this.app.scene.fog = pc.FOG_NONE;
+    } else {
+      // Clear Day
+      this.app.scene.ambientLight = new pc.Color(0.22, 0.24, 0.28);
+      this.app.scene.fog = pc.FOG_NONE;
+    }
+  }
+
   setupViewportPicking() {
     let mouseDownPos = { x: 0, y: 0 };
 

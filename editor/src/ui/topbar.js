@@ -55,7 +55,15 @@ export class TopBar {
 
       <!-- Right Action Controls -->
       <div style="display: flex; align-items: center; gap: 8px;">
-        <!-- Camera View Toggle -->
+        <!-- Atmosphere Sky & Camera Select -->
+        <select id="env-sky-select" class="select-input" style="width: 100px; height: 26px; padding: 2px 4px; font-size: 11px;" title="Environment Atmosphere & Fog">
+          <option value="day">☀️ Clear Day</option>
+          <option value="sunset">🌅 Sunset</option>
+          <option value="cyberpunk">🌆 Cyberpunk</option>
+          <option value="foggy">🌫️ Foggy Valley</option>
+          <option value="night">🌙 Night</option>
+        </select>
+
         <select id="camera-view-select" class="select-input" style="width: 105px; height: 26px; padding: 2px 4px; font-size: 11px;">
           <option value="persp">Perspective</option>
           <option value="ortho">Orthographic</option>
@@ -138,6 +146,17 @@ export class TopBar {
       this.editor.commandBus.redo();
       showToast('↷ Action Redone', 'info');
     });
+
+    // Environment Sky Atmosphere select
+    const envSelect = this.container.querySelector('#env-sky-select');
+    if (envSelect) {
+      envSelect.addEventListener('change', (e) => {
+        if (this.editor.runtime) {
+          this.editor.runtime.setAtmosphere(e.target.value);
+          showToast(`🌌 Atmosphere updated to ${e.target.options[e.target.selectedIndex].text}`, 'info');
+        }
+      });
+    }
 
     // Camera view select
     const camSelect = this.container.querySelector('#camera-view-select');
