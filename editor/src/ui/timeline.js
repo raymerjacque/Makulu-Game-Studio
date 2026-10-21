@@ -27,6 +27,7 @@ export class TimelinePanel {
       height: 140px;
       background: var(--bg-darkest);
       border-top: 1px solid var(--border-subtle);
+      display: flex;
       display: none;
       flex-direction: column;
       z-index: 100;
@@ -42,6 +43,7 @@ export class TimelinePanel {
           <button id="tl-btn-record" class="btn" style="padding: 2px 8px; color: var(--accent-red); font-weight: 700;">🔴 Add Keyframe</button>
           <span style="color: var(--text-muted); margin-left: 8px;">Time: <strong id="tl-time-disp" style="color: var(--text-primary);">0.0s</strong> / 10.0s</span>
         </div>
+        <div style="font-size: 10px; color: var(--accent-orange); font-weight: 600;">🎬 Animation Keyframe Sequencer</div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 10px; color: var(--accent-orange); font-weight: 600;">🎬 Animation Keyframe Sequencer</span>
           <button id="tl-btn-close" class="btn" style="padding: 1px 6px; font-size: 10px; border-radius: 4px;">✕</button>
@@ -200,6 +202,8 @@ export class TimelinePanel {
       // Lerp position
       const pos = kf1.pos.clone().lerp(kf1.pos, kf2.pos, t);
       entity.setPosition(pos);
+    });
+  }
 
       // Lerp rotation
       if (kf1.rot && kf2.rot) {

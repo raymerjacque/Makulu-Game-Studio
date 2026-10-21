@@ -27,6 +27,14 @@ export class PrefabSystem {
     this.prefabs.set(prefabId, prefabData);
 
     // Register asset into Assets Panel
+    if (this.editor.assets) {
+      this.editor.assets.addAsset({
+        id: prefabId,
+        name: prefabData.name,
+        type: 'prefabs',
+        size: JSON.stringify(prefabData).length,
+        prefabData: prefabData
+      });
     const assetObj = {
       id: prefabId,
       name: prefabData.name,

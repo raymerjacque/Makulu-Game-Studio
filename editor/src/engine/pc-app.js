@@ -206,6 +206,10 @@ export class EditorCameraController {
     this.app = app;
     this.canvas = canvas;
 
+    this.target = new pc.Vec3(0, 1, 0);
+    this.distance = 8;
+    this.pitch = -20;
+    this.yaw = 35;
     this.target = new pc.Vec3(0, 0.5, 0);
     this.distance = 9;
     this.pitch = -28;
@@ -253,6 +257,7 @@ export class EditorCameraController {
   }
 
   updatePosition() {
+    this.pitch = Math.max(-89, Math.min(89, this.pitch));
     this.pitch = Math.max(-89.5, Math.min(-0.5, this.pitch));
 
     const quat = new pc.Quat();
@@ -296,6 +301,7 @@ export class EditorCameraController {
 
       if (isOrbiting) {
         this.yaw -= dx * 0.3;
+        this.pitch -= dy * 0.3;
         this.pitch += dy * 0.3;
         this.updatePosition();
       } else if (isPanning) {
