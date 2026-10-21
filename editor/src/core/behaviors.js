@@ -71,6 +71,14 @@ export class BehaviorManager {
         const noise = (Math.random() - 0.5) * variance;
         entity.light.intensity = Math.max(0.1, base + noise);
       });
+    } else if (behaviorType === 'physics_impulse') {
+      const force = params.force || 8;
+      app.on('update', (dt) => {
+        if (!this.isPlaying || !entity.rigidbody || !entity.enabled) return;
+        if (app.keyboard.wasPressed(pc.KEY_SPACE)) {
+          entity.rigidbody.applyImpulse(0, force, 0);
+        }
+      });
     }
 
     this.editor.events.emit('entity:component:changed', entity);

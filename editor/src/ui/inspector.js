@@ -162,6 +162,9 @@ export class InspectorPanel {
           <button class="btn" id="add-flicker-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>💡</span> <span>Add Flame/Light Flicker</span>
           </button>
+          <button class="btn" id="add-impulse-behavior" style="justify-content: flex-start; gap: 8px;">
+            <span>💥</span> <span>Add Spacebar Physics Jump</span>
+          </button>
         </div>
       </div>
     `;
@@ -250,6 +253,15 @@ export class InspectorPanel {
       if (this.editor.behaviors) {
         this.editor.behaviors.attachBehavior(ent, 'light_flicker', { variance: 0.5 });
         alert(`Attached Light Flicker Behavior to ${ent.name}!`);
+      }
+    });
+
+    body.querySelector('#add-impulse-behavior').addEventListener('click', () => {
+      if (this.editor.behaviors) {
+        if (!ent.rigidbody) this.editor.addComponent(ent, 'rigidbody', { type: 'dynamic' });
+        if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+        this.editor.behaviors.attachBehavior(ent, 'physics_impulse', { force: 8 });
+        alert(`Attached Physics Jump Behavior to ${ent.name}! Press Spacebar during ▶ Play to jump!`);
       }
     });
   }
