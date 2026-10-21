@@ -575,5 +575,137 @@ export class InspectorPanel {
       });
       stack.appendChild(card);
     }
+
+    // Camera Component Card
+    if (ent.camera) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>🎥 Camera</span>
+          <button class="btn btn-remove-comp" data-comp="camera" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content">
+          <div class="prop-row">
+            <span class="prop-label">FOV</span>
+            <input type="range" min="30" max="120" step="1" class="text-input" id="cam-fov" value="${ent.camera.fov || 60}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Near Clip</span>
+            <input type="number" step="0.01" min="0.01" class="text-input" id="cam-near" value="${ent.camera.nearClip || 0.1}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Far Clip</span>
+            <input type="number" step="10" min="10" class="text-input" id="cam-far" value="${ent.camera.farClip || 1000}">
+          </div>
+        </div>
+      `;
+      card.querySelector('#cam-fov').addEventListener('input', (e) => {
+        ent.camera.fov = parseFloat(e.target.value);
+      });
+      card.querySelector('#cam-near').addEventListener('change', (e) => {
+        ent.camera.nearClip = parseFloat(e.target.value);
+      });
+      card.querySelector('#cam-far').addEventListener('change', (e) => {
+        ent.camera.farClip = parseFloat(e.target.value);
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'camera');
+      });
+      stack.appendChild(card);
+    }
+
+    // Collision Component Card
+    if (ent.collision) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>🎯 Collision</span>
+          <button class="btn btn-remove-comp" data-comp="collision" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content">
+          <div class="prop-row">
+            <span class="prop-label">Shape</span>
+            <select class="select-input" id="collision-type-select">
+              <option value="box" ${ent.collision.type === 'box' ? 'selected' : ''}>Box</option>
+              <option value="sphere" ${ent.collision.type === 'sphere' ? 'selected' : ''}>Sphere</option>
+              <option value="capsule" ${ent.collision.type === 'capsule' ? 'selected' : ''}>Capsule</option>
+              <option value="cylinder" ${ent.collision.type === 'cylinder' ? 'selected' : ''}>Cylinder</option>
+              <option value="mesh" ${ent.collision.type === 'mesh' ? 'selected' : ''}>Mesh</option>
+            </select>
+          </div>
+        </div>
+      `;
+      card.querySelector('#collision-type-select').addEventListener('change', (e) => {
+        ent.collision.type = e.target.value;
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'collision');
+      });
+      stack.appendChild(card);
+    }
+
+    // Rigidbody Physics Card
+    if (ent.rigidbody) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>⚙️ Rigidbody Physics</span>
+          <button class="btn btn-remove-comp" data-comp="rigidbody" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content">
+          <div class="prop-row">
+            <span class="prop-label">Body Type</span>
+            <select class="select-input" id="rigidbody-type-select">
+              <option value="static" ${ent.rigidbody.type === 'static' ? 'selected' : ''}>Static</option>
+              <option value="dynamic" ${ent.rigidbody.type === 'dynamic' ? 'selected' : ''}>Dynamic</option>
+              <option value="kinematic" ${ent.rigidbody.type === 'kinematic' ? 'selected' : ''}>Kinematic</option>
+            </select>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Mass (kg)</span>
+            <input type="number" min="0.1" step="0.5" class="text-input" id="rigidbody-mass" value="${ent.rigidbody.mass || 1}">
+          </div>
+        </div>
+      `;
+      card.querySelector('#rigidbody-type-select').addEventListener('change', (e) => {
+        ent.rigidbody.type = e.target.value;
+      });
+      card.querySelector('#rigidbody-mass').addEventListener('change', (e) => {
+        ent.rigidbody.mass = parseFloat(e.target.value);
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'rigidbody');
+      });
+      stack.appendChild(card);
+    }
+
+    // Script Behavior Component Card
+    if (ent.script) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>📜 Script Behavior</span>
+          <button class="btn btn-remove-comp" data-comp="script" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
+          <button class="btn btn-primary" id="btn-open-code-script" style="font-size: 11px; padding: 4px;">
+            📝 Edit Attached Script
+          </button>
+        </div>
+      `;
+      card.querySelector('#btn-open-code-script').addEventListener('click', () => {
+        if (this.codeEditor) {
+          this.codeEditor.open('customScript.js');
+        }
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'script');
+      });
+      stack.appendChild(card);
+    }
   }
 }

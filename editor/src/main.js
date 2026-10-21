@@ -61,7 +61,7 @@ async function bootstrap() {
   new ToolStrip(toolStripContainer, editor);
   new HierarchyPanel(hierarchyContainer, editor);
   new InspectorPanel(inspectorContainer, editor, codeEditor);
-  new AssetsPanel(assetsContainer, editor, modelStore, terrainModal);
+  new AssetsPanel(assetsContainer, editor, modelStore, terrainModal, codeEditor);
 
   // Initialize PlayCanvas 3D Engine Runtime
   const runtime = new EngineRuntime(canvasElement, editor);
