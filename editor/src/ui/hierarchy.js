@@ -79,6 +79,34 @@ export class HierarchyPanel {
       });
     });
 
+    // Keyboard shortcuts (Delete, Ctrl+D duplicate, Ctrl+S export)
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+      if (e.key === 'Delete') {
+        const active = this.editor.selection.getActive();
+        if (active) this.editor.deleteEntity(active);
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        const active = this.editor.selection.getActive();
+        if (active) this.editor.duplicateEntity(active);
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        const json = this.editor.exportSceneJSON();
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${this.editor.projectName.replace(/\s+/g, '_')}_scene.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    });
+
     // Subscribe to scene and selection changes
     this.editor.events.on('scene:changed', () => this.rebuildTree());
     this.editor.selection.subscribe(() => this.updateSelectionHighlight());
@@ -247,6 +275,35 @@ export class HierarchyPanel {
         item.addEventListener('dblclick', () => {
           if (this.editor.runtime) {
             this.editor.runtime.editorCamera.frameEntity(node);
+          }
+        });
+
+        // Drag & drop reparenting
+        item.draggable = true;
+        item.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/entity-id', node.getGuid ? node.getGuid() : node.name);
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          item.style.background = 'rgba(255,102,0,0.2)';
+        });
+
+        item.addEventListener('dragleave', () => {
+          item.style.background = '';
+        });
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          item.style.background = '';
+          const draggedId = e.dataTransfer.getData('text/entity-id');
+          if (draggedId && draggedId !== (node.getGuid ? node.getGuid() : node.name)) {
+            const app = this.editor.getApp();
+            const draggedNode = app.root.findByGuid(draggedId) || app.root.findByName(draggedId);
+            if (draggedNode && draggedNode !== node) {
+              node.addChild(draggedNode);
+              this.editor.events.emit('scene:changed');
+            }
           }
         });
 

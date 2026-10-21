@@ -118,6 +118,23 @@ export class GameBundler {
         });
       }
 
+      // Particle System Component
+      if (data.components && data.components.particlesystem) {
+        ent.addComponent('particlesystem', {
+          numParticles: data.components.particlesystem.numParticles || 50,
+          lifetime: data.components.particlesystem.lifetime || 1.5,
+          rate: 0.05
+        });
+      }
+
+      // Sound Component
+      if (data.components && data.components.sound) {
+        ent.addComponent('sound', {
+          volume: data.components.sound.volume || 1,
+          loop: data.components.sound.loop !== false
+        });
+      }
+
       parent.addChild(ent);
 
       if (data.children) {
