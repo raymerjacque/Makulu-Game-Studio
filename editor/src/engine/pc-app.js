@@ -38,7 +38,7 @@ export class EngineRuntime {
     this.editor.runtime = this;
 
     // Setup Runtime Subsystems
-    this.editorCamera = new EditorCameraController(this.app, this.canvas);
+    this.editorCamera = new EditorCameraController(this.app, this.canvas, this.editor);
     this.grid = new EditorGrid(this.app);
     this.gizmoManager = new GizmoManager(this.app, this.editorCamera, this.editor);
     this.selectionHighlighter = new SelectionHighlighter(this.app, this.editor);
@@ -109,7 +109,7 @@ export class EngineRuntime {
       if (dist > 4) return;
 
       // Ignore if clicking gizmo handle
-      if (this.gizmoManager.isHovered) return;
+      if (this.gizmoManager.isHovered || this.gizmoManager.isDragging) return;
 
       const rect = this.canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -202,9 +202,10 @@ export class EngineRuntime {
  * WASD Spectator Flythrough, and Frame Entity (F key).
  */
 export class EditorCameraController {
-  constructor(app, canvas) {
+  constructor(app, canvas, editor = null) {
     this.app = app;
     this.canvas = canvas;
+    this.editor = editor;
 
     this.target = new pc.Vec3(0, 0.5, 0);
     this.distance = 9;
@@ -253,6 +254,20 @@ export class EditorCameraController {
   }
 
   updatePosition() {
+    // Robust NaN protection
+    if (isNaN(this.target.x) || isNaN(this.target.y) || isNaN(this.target.z)) {
+      this.target.set(0, 0.5, 0);
+    }
+    if (isNaN(this.distance) || this.distance <= 0) {
+      this.distance = 9;
+    }
+    if (isNaN(this.pitch)) {
+      this.pitch = -28;
+    }
+    if (isNaN(this.yaw)) {
+      this.yaw = -45;
+    }
+
     this.pitch = Math.max(-89.5, Math.min(-0.5, this.pitch));
 
     const quat = new pc.Quat();
@@ -272,7 +287,14 @@ export class EditorCameraController {
     let lastY = 0;
 
     const keys = {};
-    window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+      keys[e.key.toLowerCase()] = true;
+      if (e.key.toLowerCase() === 'f' && this.editor) {
+        const active = this.editor.selection.getActive();
+        if (active) this.frameEntity(active);
+      }
+    });
     window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
     this.canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -300,8 +322,8 @@ export class EditorCameraController {
         this.updatePosition();
       } else if (isPanning) {
         const panSpeed = this.distance * 0.0015;
-        const right = this.entity.right.clone().mul(-dx * panSpeed);
-        const up = this.entity.up.clone().mul(dy * panSpeed);
+        const right = this.entity.right.clone().mulScalar(-dx * panSpeed);
+        const up = this.entity.up.clone().mulScalar(dy * panSpeed);
         this.target.add(right).add(up);
         this.updatePosition();
       }
@@ -330,7 +352,7 @@ export class EditorCameraController {
         if (keys['d']) move.add(this.entity.right);
 
         if (move.lengthSq() > 0) {
-          move.normalize().mul(speed);
+          move.normalize().mulScalar(speed);
           this.target.add(move);
           this.updatePosition();
         }
@@ -550,9 +572,14 @@ export class GizmoManager {
     const canvas = this.app.graphicsDevice.canvas;
 
     canvas.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Only left-click drags gizmos
       if (!this.targetEntity || this.mode === 'none') return;
 
-      const hitGizmo = this.pickGizmoAxis(e.clientX, e.clientY);
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+
+      const hitGizmo = this.pickGizmoAxis(clientX, clientY);
       if (hitGizmo) {
         this.isDragging = true;
         this.activeAxis = hitGizmo;
@@ -564,6 +591,14 @@ export class GizmoManager {
           initialScale: this.targetEntity.getLocalScale().clone()
         };
       }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (this.isDragging || !this.targetEntity || this.mode === 'none') return;
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+      this.pickGizmoAxis(clientX, clientY);
     });
 
     window.addEventListener('mousemove', (e) => {
