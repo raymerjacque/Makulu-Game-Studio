@@ -165,6 +165,9 @@ export class InspectorPanel {
           <button class="btn" id="add-impulse-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>💥</span> <span>Add Spacebar Physics Jump</span>
           </button>
+          <button class="btn" id="add-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
+            <span>⚡</span> <span>Add Teleport Trigger Volume</span>
+          </button>
         </div>
       </div>
     `;
@@ -262,6 +265,17 @@ export class InspectorPanel {
         if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
         this.editor.behaviors.attachBehavior(ent, 'physics_impulse', { force: 8 });
         alert(`Attached Physics Jump Behavior to ${ent.name}! Press Spacebar during ▶ Play to jump!`);
+      }
+    });
+
+    body.querySelector('#add-trigger-behavior').addEventListener('click', () => {
+      if (this.editor.triggers) {
+        if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+        this.editor.triggers.registerTrigger(ent.name, {
+          eventType: 'on_enter',
+          action: 'teleport',
+          targetPosition: [0, 2, 0]
+        });
       }
     });
   }

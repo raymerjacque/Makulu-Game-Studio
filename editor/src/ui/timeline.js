@@ -202,8 +202,6 @@ export class TimelinePanel {
       // Lerp position
       const pos = kf1.pos.clone().lerp(kf1.pos, kf2.pos, t);
       entity.setPosition(pos);
-    });
-  }
 
       // Lerp rotation
       if (kf1.rot && kf2.rot) {
