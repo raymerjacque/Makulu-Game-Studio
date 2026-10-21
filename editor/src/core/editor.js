@@ -368,4 +368,89 @@ export class Editor {
 
     return JSON.stringify(sceneData, null, 2);
   }
+
+  /**
+   * Import and Deserialize Scene JSON
+   */
+  loadSceneJSON(jsonData) {
+    const app = this.getApp();
+    if (!app || !app.root) return false;
+
+    try {
+      const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+      if (data.project) this.projectName = data.project;
+      if (data.scene) this.activeSceneName = data.scene;
+
+      // Clear existing user entities (keep EditorGrid and EditorCamera)
+      const toRemove = [];
+      app.root.children.forEach(c => {
+        if (c.name !== 'EditorGrid' && c.name !== 'EditorCamera') {
+          toRemove.push(c);
+        }
+      });
+      toRemove.forEach(c => app.root.removeChild(c));
+
+      const buildNode = (nodeData, parent) => {
+        const ent = new pc.Entity(nodeData.name);
+        if (nodeData.position) ent.setPosition(...nodeData.position);
+        if (nodeData.rotation) ent.setEulerAngles(...nodeData.rotation);
+        if (nodeData.scale) ent.setLocalScale(...nodeData.scale);
+        ent.enabled = nodeData.enabled !== false;
+
+        if (nodeData.components) {
+          if (nodeData.components.render) {
+            ent.addComponent('render', { type: nodeData.components.render.type || 'box' });
+          }
+          if (nodeData.components.light) {
+            const l = nodeData.components.light;
+            ent.addComponent('light', {
+              type: l.type || 'point',
+              color: l.color ? new pc.Color(...l.color) : new pc.Color(1, 1, 1),
+              intensity: l.intensity || 2,
+              range: l.range || 10,
+              castShadows: true
+            });
+          }
+          if (nodeData.components.camera) {
+            ent.addComponent('camera', {
+              fov: nodeData.components.camera.fov || 60,
+              nearClip: nodeData.components.camera.nearClip || 0.1,
+              farClip: nodeData.components.camera.farClip || 1000
+            });
+          }
+          if (nodeData.components.particlesystem) {
+            ent.addComponent('particlesystem', {
+              numParticles: nodeData.components.particlesystem.numParticles || 60,
+              lifetime: nodeData.components.particlesystem.lifetime || 1.5
+            });
+          }
+          if (nodeData.components.sound) {
+            ent.addComponent('sound', {
+              volume: nodeData.components.sound.volume || 1,
+              loop: nodeData.components.sound.loop !== false
+            });
+          }
+        }
+
+        parent.addChild(ent);
+
+        if (nodeData.children) {
+          nodeData.children.forEach(childData => buildNode(childData, ent));
+        }
+
+        return ent;
+      };
+
+      if (data.root && data.root.children) {
+        data.root.children.forEach(childData => buildNode(childData, app.root));
+      }
+
+      this.selection.clear();
+      this.events.emit('scene:changed');
+      return true;
+    } catch (err) {
+      console.error('Editor: Failed to load scene JSON:', err);
+      return false;
+    }
+  }
 }

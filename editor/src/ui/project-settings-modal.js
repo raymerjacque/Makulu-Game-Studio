@@ -1,0 +1,137 @@
+import * as pc from 'playcanvas';
+import { showToast } from './toast.js';
+
+/**
+ * Global Project & Physics Settings Modal
+ */
+export class ProjectSettingsModal {
+  constructor(editor) {
+    this.editor = editor;
+    this.isOpen = false;
+    this.gravity = [0, -9.8, 0];
+    this.render();
+    this.bindEvents();
+  }
+
+  render() {
+    this.modal = document.createElement('div');
+    this.modal.id = 'project-settings-modal';
+    this.modal.style.cssText = `
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: var(--font-sans);
+    `;
+
+    this.modal.innerHTML = `
+      <div style="width: 580px; background: var(--bg-darkest); border: 1px solid var(--accent-orange); border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(255,102,0,0.25); display: flex; flex-direction: column; overflow: hidden;">
+
+        <!-- Header -->
+        <div style="height: 48px; background: var(--bg-darker); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 20px;">⚙️</div>
+            <div>
+              <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Project & Physics Engine Settings</div>
+              <div style="font-size: 11px; color: var(--accent-orange); font-weight: 600;">Global Physics Gravity, Shadows & Tone Mapping</div>
+            </div>
+          </div>
+          <button id="proj-btn-close" class="btn" style="padding: 4px 10px; font-size: 13px; border-radius: 6px;">✕</button>
+        </div>
+
+        <!-- Body Form -->
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+
+          <div class="prop-row">
+            <span class="prop-label" style="width: 140px;">Project Title</span>
+            <input type="text" id="proj-title-input" class="text-input" value="${this.editor.projectName || 'My 3D Game'}">
+          </div>
+
+          <div class="prop-row">
+            <span class="prop-label" style="width: 140px;">Physics Gravity Y</span>
+            <div style="display: flex; gap: 8px; align-items: center; flex: 1;">
+              <input type="number" step="0.5" id="proj-gravity-y" class="text-input" value="-9.8">
+              <span style="font-size: 11px; color: var(--text-muted);">m/s² (Earth = -9.8, Moon = -1.6)</span>
+            </div>
+          </div>
+
+          <div class="prop-row">
+            <span class="prop-label" style="width: 140px;">Tone Mapping</span>
+            <select class="select-input" id="proj-tonemap-select" style="flex: 1;">
+              <option value="aces">ACES Filmic (Recommended)</option>
+              <option value="linear">Linear Standard</option>
+              <option value="filmic">Filmic High Contrast</option>
+            </select>
+          </div>
+
+          <div class="prop-row">
+            <span class="prop-label" style="width: 140px;">Shadow Map Resolution</span>
+            <select class="select-input" id="proj-shadow-resolution" style="flex: 1;">
+              <option value="1024">Medium (1024x1024)</option>
+              <option value="2048">High Crisp (2048x2048)</option>
+              <option value="512">Low Mobile (512x512)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button id="btn-save-project-settings" class="btn btn-primary" style="padding: 8px 18px; font-size: 12px; font-weight: 700;">
+              💾 Apply Project Settings
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(this.modal);
+  }
+
+  bindEvents() {
+    const closeBtn = this.modal.querySelector('#proj-btn-close');
+    closeBtn.addEventListener('click', () => this.close());
+
+    this.modal.addEventListener('click', (e) => {
+      if (e.target === this.modal) this.close();
+    });
+
+    const saveBtn = this.modal.querySelector('#btn-save-project-settings');
+    saveBtn.addEventListener('click', () => {
+      const title = this.modal.querySelector('#proj-title-input').value.trim();
+      const gravityY = parseFloat(this.modal.querySelector('#proj-gravity-y').value) || -9.8;
+      const tonemap = this.modal.querySelector('#proj-tonemap-select').value;
+
+      if (title) this.editor.projectName = title;
+
+      const app = this.editor.getApp();
+      if (app) {
+        if (app.systems && app.systems.rigidbody) {
+          app.systems.rigidbody.gravity.set(0, gravityY, 0);
+        }
+        if (app.scene) {
+          if (tonemap === 'aces') app.scene.toneMapping = pc.TONEMAP_ACES;
+          else if (tonemap === 'linear') app.scene.toneMapping = pc.TONEMAP_LINEAR;
+          else if (tonemap === 'filmic') app.scene.toneMapping = pc.TONEMAP_FILMIC;
+        }
+      }
+
+      showToast(`⚙️ Updated Project & Physics Settings! Gravity Y: ${gravityY} m/s²`, 'success');
+      this.close();
+    });
+  }
+
+  open() {
+    this.modal.style.display = 'flex';
+    this.isOpen = true;
+  }
+
+  close() {
+    this.modal.style.display = 'none';
+    this.isOpen = false;
+  }
+}

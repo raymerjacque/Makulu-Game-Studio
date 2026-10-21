@@ -78,7 +78,8 @@ export class TopBar {
           <span id="play-icon">▶</span> <span id="play-text">Play</span>
         </button>
 
-        <!-- Save Project & Publish -->
+        <!-- Save & Load Project -->
+        <button id="btn-import-project" class="btn" style="padding: 4px 10px; font-size: 11px;">📂 Import</button>
         <button id="btn-save-project" class="btn" style="padding: 4px 10px; font-size: 11px;">💾 Export</button>
         <button id="btn-open-publish" class="btn btn-primary" style="padding: 4px 12px; font-size: 11px; font-weight: 700; background: linear-gradient(135deg, #ff6600, #ff3300); border: none; box-shadow: 0 0 10px rgba(255,102,0,0.4);">🚀 Publish</button>
       </div>
@@ -247,6 +248,32 @@ export class TopBar {
     if (publishBtn) {
       publishBtn.addEventListener('click', () => {
         if (this.publishModal) this.publishModal.open();
+      });
+    }
+
+    // Import project button
+    const importBtn = this.container.querySelector('#btn-import-project');
+    if (importBtn) {
+      importBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const success = this.editor.loadSceneJSON(event.target.result);
+              if (success) {
+                showToast(`✨ Loaded scene from "${file.name}"!`, 'success');
+              } else {
+                showToast(`Failed to parse scene JSON from "${file.name}"`, 'error');
+              }
+            };
+            reader.readAsText(file);
+          }
+        };
+        input.click();
       });
     }
 

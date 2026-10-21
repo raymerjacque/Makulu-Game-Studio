@@ -34,6 +34,9 @@ export class EngineRuntime {
     // Handle Window Resizing
     window.addEventListener('resize', () => this.app.resizeCanvas());
 
+    // Register runtime reference on editor instance
+    this.editor.runtime = this;
+
     // Setup Runtime Subsystems
     this.editorCamera = new EditorCameraController(this.app, this.canvas);
     this.grid = new EditorGrid(this.app);
@@ -296,8 +299,8 @@ export class EditorCameraController {
         this.updatePosition();
       } else if (isPanning) {
         const panSpeed = this.distance * 0.0015;
-        const right = this.entity.right.clone().mulScalar(-dx * panSpeed);
-        const up = this.entity.up.clone().mulScalar(dy * panSpeed);
+        const right = this.entity.right.clone().mul(-dx * panSpeed);
+        const up = this.entity.up.clone().mul(dy * panSpeed);
         this.target.add(right).add(up);
         this.updatePosition();
       }
@@ -326,7 +329,7 @@ export class EditorCameraController {
         if (keys['d']) move.add(this.entity.right);
 
         if (move.lengthSq() > 0) {
-          move.normalize().mulScalar(speed);
+          move.normalize().mul(speed);
           this.target.add(move);
           this.updatePosition();
         }
@@ -625,15 +628,40 @@ export class GizmoManager {
     camera.screenToWorld(screenX, screenY, camera.nearClip, start);
     camera.screenToWorld(screenX, screenY, camera.farClip, end);
 
-    const ray = new pc.Ray(start, end.clone().sub(start).normalize());
-    const gizmoPos = this.rootEntity.getPosition();
+    const rayDirection = end.clone().sub(start).normalize();
 
-    // Simple proximity pick to gizmo axes
-    const dist = ray.distanceToPoint(gizmoPos);
-    if (dist < 1.2) {
+    // Check collision against individual axis gizmo entities
+    let closestAxis = null;
+    let closestDist = Infinity;
+
+    const checkHandles = (group) => {
+      if (!group || !group.enabled) return;
+      group.children.forEach(handle => {
+        if (!handle.enabled || !handle.render || !handle.render.meshInstances[0]) return;
+        const bbox = handle.render.meshInstances[0].aabb;
+        const hitPoint = new pc.Vec3();
+        const ray = new pc.Ray(start, rayDirection);
+        if (bbox.intersectsRay(ray, hitPoint)) {
+          const dist = start.distance(hitPoint);
+          if (dist < closestDist) {
+            closestDist = dist;
+            if (handle.name.includes('_x')) closestAxis = 'x';
+            else if (handle.name.includes('_y')) closestAxis = 'y';
+            else if (handle.name.includes('_z')) closestAxis = 'z';
+          }
+        }
+      });
+    };
+
+    if (this.mode === 'translate') checkHandles(this.translateGroup);
+    else if (this.mode === 'rotate') checkHandles(this.rotateGroup);
+    else if (this.mode === 'scale') checkHandles(this.scaleGroup);
+
+    if (closestAxis) {
       this.isHovered = true;
-      return 'y';
+      return closestAxis;
     }
+
     this.isHovered = false;
     return null;
   }
