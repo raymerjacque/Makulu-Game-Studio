@@ -200,7 +200,13 @@ export class HierarchyPanel {
 
   renderNode(node, container, depth) {
     // Skip internal editor entities
-    if (node.name === 'EditorGrid' || node.name === 'EditorCamera') return;
+    if (
+      node.name === 'EditorGrid' ||
+      node.name === 'EditorCamera' ||
+      node.name === 'GizmoRoot' ||
+      node.name === 'SelectionOutline' ||
+      node.name.startsWith('Gizmo')
+    ) return;
 
     const isRoot = node === this.editor.getApp().root;
 

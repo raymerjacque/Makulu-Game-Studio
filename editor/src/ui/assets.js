@@ -2,11 +2,12 @@
  * Bottom Asset Browser & File Manager
  */
 export class AssetsPanel {
-  constructor(container, editor, modelStoreModal = null, terrainModal = null) {
+  constructor(container, editor, modelStoreModal = null, terrainModal = null, codeEditorModal = null) {
     this.container = container;
     this.editor = editor;
     this.storeModal = modelStoreModal;
     this.terrainModal = terrainModal;
+    this.codeEditor = codeEditorModal;
     this.activeFolder = 'all';
 
     this.assets = [
@@ -115,6 +116,10 @@ export class AssetsPanel {
               transform: { position: [0, 1, 0] },
               components: [{ type: 'render', properties: { type: 'box' } }]
             });
+          }
+        } else if (asset.type === 'scripts') {
+          if (this.codeEditor) {
+            this.codeEditor.open(asset.name);
           }
         }
       });
