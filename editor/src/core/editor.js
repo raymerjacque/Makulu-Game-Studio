@@ -1,6 +1,8 @@
 import * as pc from 'playcanvas';
 import { CommandBus, Command } from './command-bus.js';
 import { SelectionManager } from './selection.js';
+import { PrefabSystem } from './prefabs.js';
+import { TriggerSystem } from './triggers.js';
 
 /**
  * Simple Event Emitter
@@ -40,6 +42,11 @@ export class Editor {
     // Materials and Assets registry
     this.materials = new Map();
     this.scripts = new Map();
+
+    // Prefab and Trigger Subsystems
+    this.prefabs = new PrefabSystem(this);
+    this.triggers = new TriggerSystem(this);
+    this.assetsPanel = null;
   }
 
   setRuntime(runtime) {

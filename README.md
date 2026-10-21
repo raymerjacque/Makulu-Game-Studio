@@ -49,29 +49,29 @@ The studio is organized into five unified subsystems:
 ## 🖥️ 5-Pane Studio Interface
 
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ [M] MakuluLinux Studio | Scene: Main | 🎮 Templates | 📖 Guide | ❓ Help | ⚙️ AI Settings | ⚙️ Project   │
-├─────────┬──────────────────────────────────────────────────────────────────────────────┬───────────────┤
-│ HIER-   │ 3D VIEWPORT                                                                  │ INSPECTOR     │
-│ ARCHY   │                                                                              │               │
-│         │   • Infinite 3D Floor Grid & Coordinate Axes                                │ [🌱 Simple /  │
-│ [Search]│   • PlayCanvas 3D Gizmos (W: Move, E: Rotate, R: Scale)                      │  ⚡ Pro Mode]  │
-│         │   • Atmosphere Sky Presets (Day, Sunset, Cyberpunk, Foggy, Night)            │               │
-│ + Add   │   • Smooth Orbit, Pan, Zoom, WASD Flythrough, Framing (F)                    │ • Transforms  │
-│  ├ Cube │   • Drag-and-Drop Reparenting in Scene Hierarchy                             │ • Materials   │
-│  ├ Sun  │                                                                              │ • Behaviors   │
-│  └ Cam  │                                                                              │ • ECS Cards   │
-├─────────┴──────────────────────────────────────────────────────────────────────────────┴───────────────┤
-│ ASSETS & CODE STUDIO                                                                                   │
-│ [📁 All Assets] [📦 3D Store] [🏔️ Terrain Sculptor] [🎨 Material Studio] [📜 Script Studio] [🩺 Console]│
-└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [M] MakuluLinux Studio | Scene: Main | 🎮 Templates | 🎬 Timeline | 📖 Guide | ❓ Help | ⚙️ AI Settings | ⚙️ Project     │
+├─────────┬──────────────────────────────────────────────────────────────────────────────────────────────┬───────────────┤
+│ HIER-   │ 3D VIEWPORT                                                                                  │ INSPECTOR     │
+│ ARCHY   │                                                                                              │               │
+│         │   • Infinite 3D Floor Grid & Coordinate Axes                                                │ [🌱 Simple /  │
+│ [Search]│   • PlayCanvas 3D Gizmos (W: Move, E: Rotate, R: Scale)                                      │  ⚡ Pro Mode]  │
+│         │   • Atmosphere Sky Presets (Day, Sunset, Cyberpunk, Foggy, Night) + ✨ FX Post-Processing    │               │
+│ + Add   │   • Smooth Orbit, Pan, Zoom, WASD Flythrough, Framing (F)                                    │ • Transforms  │
+│  ├ Cube │   • Drag-and-Drop Reparenting in Scene Hierarchy                                             │ • Materials   │
+│  ├ Sun  │   • Visual Wireframe Helpers (Light Range, Audio Radius, Collision Boxes)                    │ • Prefabs     │
+│  └ Cam  │                                                                                              │ • ECS Cards   │
+├─────────┴──────────────────────────────────────────────────────────────────────────────────────────────┴───────────────┤
+│ ASSETS & CODE STUDIO                                                                                                   │
+│ [📁 All] [📦 Prefabs] [📦 3D Store] [🏔️ Terrain Sculptor] [🎨 Material Studio] [📜 Script Studio] [🩺 Console Drawer] │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 1. **Hierarchy Panel (Left):** Real-time scene graph with instant search, tree nesting, visual **drag-and-drop reparenting**, and the `+ Add` menu for primitives, lights, cameras, particles, and audio.
-2. **Interactive 3D Viewport (Center):** High-DPI canvas with an infinite procedural floor grid, raycast picking, transform gizmos, and real-time **Atmosphere & Fog Sky selector** (Clear Day, Sunset, Cyberpunk, Foggy Valley, Night).
-3. **Inspector Panel (Right):** Morphing property editor that automatically adapts based on whether you are in Simple or Pro Mode, with complete ECS component stacks for Cameras, Collisions, Rigidbodies, Particles, Spatial Audio, and Scripts.
-4. **Asset Browser & Code Studio (Bottom):** Integrated project file explorer, authentic CC0 3D model importer, procedural Perlin terrain generator, visual PBR material studio, and Monaco-style script editor.
-5. **Top Navigation Bar:** Scene selector, Simple/Pro switcher, AI Quick Prompt bar, Play/Simulate mode, Templates, Guide, Help, AI Settings, Project Physics Settings, Scene Import/Export, and 1-Click Web Publishing.
+2. **Interactive 3D Viewport (Center):** High-DPI canvas with an infinite procedural floor grid, raycast picking, transform gizmos, live **Component Visual Wireframe Helpers** (light ranges, audio radius, collision bounding shapes), and real-time **Atmosphere & Fog Sky selector** with **✨ FX Post-Processing**.
+3. **Inspector Panel (Right):** Morphing property editor that automatically adapts based on whether you are in Simple or Pro Mode, with **1-click Prefab Creation** and complete ECS component stacks for Cameras, Collisions, Rigidbodies, Particles, Spatial Audio, and Scripts.
+4. **Asset Browser & Code Studio (Bottom):** Integrated project file explorer with dedicated `/assets/prefabs` support, authentic CC0 3D model importer, procedural Perlin terrain generator, visual PBR material studio, and Monaco-style script editor.
+5. **Top Navigation Bar:** Scene selector, Simple/Pro switcher, AI Quick Prompt bar, Play/Simulate mode, Templates, Animation Timeline Sequencer, Guide, Help, AI Settings, Project Physics Settings, Post-Processing FX, Scene Import/Export, and 1-Click Web Publishing.
 
 ---
 
@@ -136,15 +136,27 @@ Add interactive gameplay logic without writing a single line of JavaScript:
   * **Physics Gravity Y:** Freely tune gravity between Earth (`-9.8 m/s²`), Moon (`-1.6 m/s²`), Zero-G (`0`), or high-gravity worlds.
   * **Tone Mapping Selection:** Choose between ACES Filmic, Linear Standard, and High Contrast Filmic.
   * **Shadow Map Resolution:** Toggle between Medium (1024×1024), High Crisp (2048×2048), and Low Mobile (512×512).
+* **✨ Post-Processing & Render Pipeline FX (`✨ FX`):**
+  * **High-Dynamic Range Bloom:** Adjustable bloom intensity and luminance threshold.
+  * **Tone Mapping & Exposure:** Fine-tune exposure multiplier and HDR curve algorithms.
+  * **Exponential Atmospheric Fog:** Custom fog color picker, fog density slider, and distance falloff.
 * **🌌 Dynamic Atmosphere & Sky Presets:**
   * Switch between **☀️ Clear Day**, **🌅 Sunset**, **🌆 Cyberpunk**, **🌫️ Foggy Valley**, and **🌙 Night** with real-time ambient lighting and exponential squared fog (`pc.FOG_EXP2`).
+* **🎬 Visual Animation Timeline & Keyframe Sequencer (`🎬 Timeline`):**
+  * Integrated multi-track keyframe sequencer for position, rotation, and scale.
+  * Real-time scrubbable time ruler with **🔴 Add Keyframe** recording and seamless playback loop evaluation.
 
 ---
 
-## 📦 3D Model Store, Procedural Terrain & ECS Engine
+## 📦 3D Model Store, Procedural Terrain, Prefabs & ECS Engine
 
 * **📦 CC0 3D Model Store:** Integrated catalog of 19 authentic public-domain (CC0) 3D GLB models (Kenney, Khronos) ready for 1-click spawning: hero characters, armored warriors, ships, trees, rocks, barrels, chests, and gates. Also includes direct links to Poly Pizza, Quaternius, OpenGameArt, Sketchfab, and Mixamo, plus custom `.glb` drag-and-drop file import.
+* **📦 Prefab & Entity Template System:** Save any configured entity hierarchy as a reusable Prefab with 1-click **"Save Prefab"** in the Inspector. Re-instantiate prefabs into the scene with a single click or double-click from `/assets/prefabs`.
 * **🏔️ Procedural Terrain Sculptor:** Multi-octave Perlin noise heightmap mesh generator with customizable resolution (16×16 to 128×128 vertices), max altitude, roughness, seamless edge falloff, and elevation-based vertex coloring (beach sand, lush grass, mountain rock, and snow peak). Includes physics mesh collision.
+* **👁️ 3D Viewport Component Visual Wireframe Helpers:**
+  * **Light Range Gizmo:** Wireframe sphere matching point/spot light radius and color.
+  * **Spatial Audio Gizmo:** Cyan wireframe sphere displaying audio maximum attenuation range.
+  * **Physics Collision Gizmo:** Real-time green wireframe outlines displaying box, sphere, capsule, and cylinder collision bounds.
 * **🧩 Advanced ECS Component Inspector:**
   * **🎥 Camera:** FOV, Near Clip, and Far Clip.
   * **🎯 Collision Shapes:** Box, Sphere, Capsule, Cylinder, and Mesh.

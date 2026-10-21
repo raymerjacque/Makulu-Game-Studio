@@ -6,6 +6,7 @@ import { showToast } from './toast.js';
 export class TimelinePanel {
   constructor(editor) {
     this.editor = editor;
+    this.isOpen = false;
     this.isPlaying = false;
     this.currentTime = 0; // seconds
     this.duration = 10;   // total seconds
@@ -26,7 +27,7 @@ export class TimelinePanel {
       height: 140px;
       background: var(--bg-darkest);
       border-top: 1px solid var(--border-subtle);
-      display: flex;
+      display: none;
       flex-direction: column;
       z-index: 100;
       font-family: var(--font-sans);
@@ -41,7 +42,10 @@ export class TimelinePanel {
           <button id="tl-btn-record" class="btn" style="padding: 2px 8px; color: var(--accent-red); font-weight: 700;">🔴 Add Keyframe</button>
           <span style="color: var(--text-muted); margin-left: 8px;">Time: <strong id="tl-time-disp" style="color: var(--text-primary);">0.0s</strong> / 10.0s</span>
         </div>
-        <div style="font-size: 10px; color: var(--accent-orange); font-weight: 600;">🎬 Animation Keyframe Sequencer</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 10px; color: var(--accent-orange); font-weight: 600;">🎬 Animation Keyframe Sequencer</span>
+          <button id="tl-btn-close" class="btn" style="padding: 1px 6px; font-size: 10px; border-radius: 4px;">✕</button>
+        </div>
       </div>
 
       <!-- Keyframe Track Area -->
@@ -55,6 +59,9 @@ export class TimelinePanel {
   }
 
   bindEvents() {
+    const closeBtn = this.container.querySelector('#tl-btn-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => this.close());
+
     const playBtn = this.container.querySelector('#tl-btn-play');
     const recBtn = this.container.querySelector('#tl-btn-record');
     const timeDisp = this.container.querySelector('#tl-time-disp');
@@ -193,6 +200,42 @@ export class TimelinePanel {
       // Lerp position
       const pos = kf1.pos.clone().lerp(kf1.pos, kf2.pos, t);
       entity.setPosition(pos);
+
+      // Lerp rotation
+      if (kf1.rot && kf2.rot) {
+        const rot = kf1.rot.clone().lerp(kf1.rot, kf2.rot, t);
+        entity.setEulerAngles(rot);
+      }
+
+      // Lerp scale
+      if (kf1.scale && kf2.scale) {
+        const scale = kf1.scale.clone().lerp(kf1.scale, kf2.scale, t);
+        entity.setLocalScale(scale);
+      }
     });
+  }
+
+  open() {
+    this.container.style.display = 'flex';
+    this.isOpen = true;
+  }
+
+  close() {
+    this.container.style.display = 'none';
+    this.isOpen = false;
+    this.isPlaying = false;
+    const playBtn = this.container.querySelector('#tl-btn-play');
+    if (playBtn) {
+      playBtn.textContent = '▶ Play';
+      playBtn.style.color = 'var(--accent-green)';
+    }
+  }
+
+  toggle() {
+    if (this.isOpen) {
+      this.close();
+    } else {
+      this.open();
+    }
   }
 }
