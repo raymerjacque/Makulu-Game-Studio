@@ -8,6 +8,7 @@ import { AssetsPanel } from './ui/assets.js';
 import { AIAssistantUI } from './ui/ai-assistant.js';
 import { CodeEditorModal } from './ui/code-editor.js';
 import { ModelStoreModal } from './ui/model-store-modal.js';
+import { MaterialEditorModal } from './ui/material-editor-modal.js';
 import { TerrainModal } from './ui/terrain-modal.js';
 import { TemplatesModal } from './ui/templates-modal.js';
 import { PublishModal } from './ui/publish-modal.js';
@@ -46,6 +47,7 @@ async function bootstrap() {
   const codeEditor = new CodeEditorModal(editor, aiUI);
   const modelStore = new ModelStoreModal(editor);
   const terrainModal = new TerrainModal(editor);
+  const materialModal = new MaterialEditorModal(editor);
   const templatesModal = new TemplatesModal(editor);
   const publishModal = new PublishModal(editor);
   const helpModal = new HelpModal(editor);
@@ -61,7 +63,7 @@ async function bootstrap() {
   new ToolStrip(toolStripContainer, editor);
   new HierarchyPanel(hierarchyContainer, editor);
   new InspectorPanel(inspectorContainer, editor, codeEditor);
-  new AssetsPanel(assetsContainer, editor, modelStore, terrainModal);
+  new AssetsPanel(assetsContainer, editor, modelStore, terrainModal, codeEditor, materialModal);
 
   // Initialize PlayCanvas 3D Engine Runtime
   const runtime = new EngineRuntime(canvasElement, editor);

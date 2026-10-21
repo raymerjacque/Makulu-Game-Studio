@@ -2,11 +2,13 @@
  * Bottom Asset Browser & File Manager
  */
 export class AssetsPanel {
-  constructor(container, editor, modelStoreModal = null, terrainModal = null) {
+  constructor(container, editor, modelStoreModal = null, terrainModal = null, codeEditorModal = null, materialModal = null) {
     this.container = container;
     this.editor = editor;
     this.storeModal = modelStoreModal;
     this.terrainModal = terrainModal;
+    this.codeEditor = codeEditorModal;
+    this.materialModal = materialModal;
     this.activeFolder = 'all';
 
     this.assets = [
@@ -33,6 +35,7 @@ export class AssetsPanel {
         <div class="panel-header-actions">
           <button id="btn-open-store" class="btn" style="background: rgba(255,102,0,0.18); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 2px 8px; font-size: 11px;">📦 3D Store</button>
           <button id="btn-open-terrain" class="btn" style="padding: 2px 8px; font-size: 11px;">🏔️ Terrain</button>
+          <button id="btn-open-material" class="btn" style="padding: 2px 8px; font-size: 11px;">🎨 Material</button>
           <button id="btn-import-asset" class="btn" style="padding: 2px 8px; font-size: 11px;">+ Import File</button>
           <button id="btn-create-script" class="btn" style="padding: 2px 8px; font-size: 11px;">+ New Script</button>
           <button id="btn-collapse-assets" class="btn" style="padding: 2px 6px; font-size: 11px;" title="Collapse/Expand">▾</button>
@@ -116,6 +119,10 @@ export class AssetsPanel {
               components: [{ type: 'render', properties: { type: 'box' } }]
             });
           }
+        } else if (asset.type === 'scripts') {
+          if (this.codeEditor) {
+            this.codeEditor.open(asset.name);
+          }
         }
       });
 
@@ -147,6 +154,14 @@ export class AssetsPanel {
     if (terrainBtn) {
       terrainBtn.addEventListener('click', () => {
         if (this.terrainModal) this.terrainModal.open();
+      });
+    }
+
+    // Open Material Creator Modal
+    const matBtn = this.container.querySelector('#btn-open-material');
+    if (matBtn) {
+      matBtn.addEventListener('click', () => {
+        if (this.materialModal) this.materialModal.open();
       });
     }
 

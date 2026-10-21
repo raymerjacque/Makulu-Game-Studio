@@ -162,6 +162,9 @@ export class InspectorPanel {
           <button class="btn" id="add-flicker-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>💡</span> <span>Add Flame/Light Flicker</span>
           </button>
+          <button class="btn" id="add-impulse-behavior" style="justify-content: flex-start; gap: 8px;">
+            <span>💥</span> <span>Add Spacebar Physics Jump</span>
+          </button>
         </div>
       </div>
     `;
@@ -252,6 +255,15 @@ export class InspectorPanel {
         alert(`Attached Light Flicker Behavior to ${ent.name}!`);
       }
     });
+
+    body.querySelector('#add-impulse-behavior').addEventListener('click', () => {
+      if (this.editor.behaviors) {
+        if (!ent.rigidbody) this.editor.addComponent(ent, 'rigidbody', { type: 'dynamic' });
+        if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+        this.editor.behaviors.attachBehavior(ent, 'physics_impulse', { force: 8 });
+        alert(`Attached Physics Jump Behavior to ${ent.name}! Press Spacebar during ▶ Play to jump!`);
+      }
+    });
   }
 
   /* ========================================================================= */
@@ -334,6 +346,9 @@ export class InspectorPanel {
           <option value="camera">Camera</option>
           <option value="collision">Collision Shape</option>
           <option value="rigidbody">Rigidbody Physics</option>
+          <option value="particlesystem">Particle Emitter</option>
+          <option value="sound">3D Audio / Sound</option>
+          <option value="anim">Animation Player</option>
           <option value="script">Script Behavior</option>
         </select>
       </div>
@@ -572,6 +587,275 @@ export class InspectorPanel {
       });
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'light');
+      });
+      stack.appendChild(card);
+    }
+
+    // Camera Component Card
+    if (ent.camera) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>🎥 Camera</span>
+          <button class="btn btn-remove-comp" data-comp="camera" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content">
+          <div class="prop-row">
+            <span class="prop-label">FOV</span>
+            <input type="range" min="30" max="120" step="1" class="text-input" id="cam-fov" value="${ent.camera.fov || 60}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Near Clip</span>
+            <input type="number" step="0.01" min="0.01" class="text-input" id="cam-near" value="${ent.camera.nearClip || 0.1}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Far Clip</span>
+            <input type="number" step="10" min="10" class="text-input" id="cam-far" value="${ent.camera.farClip || 1000}">
+          </div>
+        </div>
+      `;
+      card.querySelector('#cam-fov').addEventListener('input', (e) => {
+        ent.camera.fov = parseFloat(e.target.value);
+      });
+      card.querySelector('#cam-near').addEventListener('change', (e) => {
+        ent.camera.nearClip = parseFloat(e.target.value);
+      });
+      card.querySelector('#cam-far').addEventListener('change', (e) => {
+        ent.camera.farClip = parseFloat(e.target.value);
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'camera');
+      });
+      stack.appendChild(card);
+    }
+
+    // Collision Component Card
+    if (ent.collision) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>🎯 Collision</span>
+          <button class="btn btn-remove-comp" data-comp="collision" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content">
+          <div class="prop-row">
+            <span class="prop-label">Shape</span>
+            <select class="select-input" id="collision-type-select">
+              <option value="box" ${ent.collision.type === 'box' ? 'selected' : ''}>Box</option>
+              <option value="sphere" ${ent.collision.type === 'sphere' ? 'selected' : ''}>Sphere</option>
+              <option value="capsule" ${ent.collision.type === 'capsule' ? 'selected' : ''}>Capsule</option>
+              <option value="cylinder" ${ent.collision.type === 'cylinder' ? 'selected' : ''}>Cylinder</option>
+              <option value="mesh" ${ent.collision.type === 'mesh' ? 'selected' : ''}>Mesh</option>
+            </select>
+          </div>
+        </div>
+      `;
+      card.querySelector('#collision-type-select').addEventListener('change', (e) => {
+        ent.collision.type = e.target.value;
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'collision');
+      });
+      stack.appendChild(card);
+    }
+
+    // Rigidbody Physics Card
+    if (ent.rigidbody) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>⚙️ Rigidbody Physics</span>
+          <button class="btn btn-remove-comp" data-comp="rigidbody" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content">
+          <div class="prop-row">
+            <span class="prop-label">Body Type</span>
+            <select class="select-input" id="rigidbody-type-select">
+              <option value="static" ${ent.rigidbody.type === 'static' ? 'selected' : ''}>Static</option>
+              <option value="dynamic" ${ent.rigidbody.type === 'dynamic' ? 'selected' : ''}>Dynamic</option>
+              <option value="kinematic" ${ent.rigidbody.type === 'kinematic' ? 'selected' : ''}>Kinematic</option>
+            </select>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Mass (kg)</span>
+            <input type="number" min="0.1" step="0.5" class="text-input" id="rigidbody-mass" value="${ent.rigidbody.mass || 1}">
+          </div>
+        </div>
+      `;
+      card.querySelector('#rigidbody-type-select').addEventListener('change', (e) => {
+        ent.rigidbody.type = e.target.value;
+      });
+      card.querySelector('#rigidbody-mass').addEventListener('change', (e) => {
+        ent.rigidbody.mass = parseFloat(e.target.value);
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'rigidbody');
+      });
+      stack.appendChild(card);
+    }
+
+    // Animation Player Component Card
+    if (ent.anim || ent.animation || ent.findComponent('anim')) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>💃 Skeletal Animation Player</span>
+          <button class="btn btn-remove-comp" data-comp="anim" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-primary" id="btn-anim-play" style="flex: 1; font-size: 11px;">▶ Play</button>
+            <button class="btn" id="btn-anim-pause" style="flex: 1; font-size: 11px;">⏸ Pause</button>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Speed</span>
+            <input type="range" min="0.1" max="2.0" step="0.1" class="text-input" id="anim-speed" value="1.0">
+          </div>
+        </div>
+      `;
+
+      card.querySelector('#btn-anim-play').addEventListener('click', () => {
+        const animComp = ent.anim || ent.animation || ent.findComponent('anim');
+        if (animComp && animComp.playing === false) {
+          if (animComp.play) animComp.play();
+        }
+      });
+
+      card.querySelector('#btn-anim-pause').addEventListener('click', () => {
+        const animComp = ent.anim || ent.animation || ent.findComponent('anim');
+        if (animComp && animComp.pause) animComp.pause();
+      });
+
+      card.querySelector('#anim-speed').addEventListener('input', (e) => {
+        const speed = parseFloat(e.target.value);
+        const animComp = ent.anim || ent.animation || ent.findComponent('anim');
+        if (animComp) animComp.speed = speed;
+      });
+
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'anim');
+      });
+
+      stack.appendChild(card);
+    }
+
+    // Sound / Audio Component Card
+    if (ent.sound) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>🔊 3D Positional Audio</span>
+          <button class="btn btn-remove-comp" data-comp="sound" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="prop-row">
+            <span class="prop-label">Volume</span>
+            <input type="range" min="0" max="1" step="0.05" class="text-input" id="sound-volume" value="${ent.sound.volume || 1}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Pitch</span>
+            <input type="range" min="0.5" max="2" step="0.1" class="text-input" id="sound-pitch" value="${ent.sound.pitch || 1}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Loop</span>
+            <input type="checkbox" id="sound-loop" ${ent.sound.loop !== false ? 'checked' : ''}>
+          </div>
+        </div>
+      `;
+
+      card.querySelector('#sound-volume').addEventListener('input', (e) => {
+        ent.sound.volume = parseFloat(e.target.value);
+      });
+
+      card.querySelector('#sound-pitch').addEventListener('input', (e) => {
+        ent.sound.pitch = parseFloat(e.target.value);
+      });
+
+      card.querySelector('#sound-loop').addEventListener('change', (e) => {
+        ent.sound.loop = e.target.checked;
+      });
+
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'sound');
+      });
+
+      stack.appendChild(card);
+    }
+
+    // Particle System Emitter Component Card
+    if (ent.particlesystem) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>✨ Particle System</span>
+          <button class="btn btn-remove-comp" data-comp="particlesystem" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="prop-row">
+            <span class="prop-label">Preset</span>
+            <select class="select-input" id="particle-preset-select">
+              <option value="fire">🔥 Fire / Flame</option>
+              <option value="smoke">💨 Smoke Puff</option>
+              <option value="sparks">⚡ Electric Sparks</option>
+              <option value="magic">✨ Magic Dust</option>
+            </select>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Particle Count</span>
+            <input type="range" min="10" max="200" step="5" class="text-input" id="particle-num" value="${ent.particlesystem.numParticles || 60}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Lifetime (s)</span>
+            <input type="range" min="0.2" max="5" step="0.1" class="text-input" id="particle-lifetime" value="${ent.particlesystem.lifetime || 1.5}">
+          </div>
+        </div>
+      `;
+
+      card.querySelector('#particle-num').addEventListener('input', (e) => {
+        ent.particlesystem.numParticles = parseInt(e.target.value, 10);
+        if (ent.particlesystem.rebuild) ent.particlesystem.rebuild();
+      });
+
+      card.querySelector('#particle-lifetime').addEventListener('input', (e) => {
+        ent.particlesystem.lifetime = parseFloat(e.target.value);
+        if (ent.particlesystem.rebuild) ent.particlesystem.rebuild();
+      });
+
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'particlesystem');
+      });
+
+      stack.appendChild(card);
+    }
+
+    // Script Behavior Component Card
+    if (ent.script) {
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.innerHTML = `
+        <div class="inspector-section-header">
+          <span>📜 Script Behavior</span>
+          <button class="btn btn-remove-comp" data-comp="script" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
+          <button class="btn btn-primary" id="btn-open-code-script" style="font-size: 11px; padding: 4px;">
+            📝 Edit Attached Script
+          </button>
+        </div>
+      `;
+      card.querySelector('#btn-open-code-script').addEventListener('click', () => {
+        if (this.codeEditor) {
+          this.codeEditor.open('customScript.js');
+        }
+      });
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        this.editor.removeComponent(ent, 'script');
       });
       stack.appendChild(card);
     }
