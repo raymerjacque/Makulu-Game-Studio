@@ -105,6 +105,60 @@ export class Editor {
   }
 
   /**
+   * Load and spawn an authentic 3D GLB/GLTF model into the scene
+   */
+  async loadModel(url, options = {}) {
+    const app = this.getApp();
+    if (!app) return null;
+
+    const name = options.name || '3D Model';
+    const position = options.position || [0, 0, 0];
+    const scale = options.scale || [1, 1, 1];
+    const rotation = options.rotation || [0, 0, 0];
+
+    return new Promise((resolve, reject) => {
+      app.assets.loadFromUrl(url, 'container', (err, asset) => {
+        if (err) {
+          console.error(`Failed to load model from ${url}:`, err);
+          return reject(err);
+        }
+
+        const modelEntity = asset.resource.instantiateRenderEntity({
+          castShadows: true,
+          receiveShadows: true
+        });
+
+        const rootEntity = new pc.Entity(name);
+        rootEntity.setPosition(...position);
+        rootEntity.setEulerAngles(...rotation);
+        rootEntity.setLocalScale(...scale);
+        rootEntity.addChild(modelEntity);
+
+        const command = new Command(
+          `Spawn 3D Model: ${name}`,
+          () => {
+            app.root.addChild(rootEntity);
+            this.selection.set(rootEntity);
+            this.events.emit('scene:changed');
+            if (this.runtime && this.runtime.editorCamera) {
+              this.runtime.editorCamera.frameEntity(rootEntity);
+            }
+            return rootEntity;
+          },
+          () => {
+            if (rootEntity.parent) rootEntity.parent.removeChild(rootEntity);
+            if (this.selection.getActive() === rootEntity) this.selection.clear();
+            this.events.emit('scene:changed');
+          }
+        );
+
+        const result = this.commandBus.execute(command);
+        resolve(result);
+      });
+    });
+  }
+
+  /**
    * Delete selected or given entity
    */
   deleteEntity(entity = null) {

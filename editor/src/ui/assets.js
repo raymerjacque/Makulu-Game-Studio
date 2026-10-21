@@ -10,11 +10,13 @@ export class AssetsPanel {
     this.activeFolder = 'all';
 
     this.assets = [
-      { id: '1', name: 'Starter_Cube.glb', type: 'model', icon: '📦', size: '24 KB' },
-      { id: '2', name: 'Default_Grid.png', type: 'texture', icon: '🖼️', size: '128 KB' },
-      { id: '3', name: 'PBR_Gold.mat', type: 'material', icon: '🟡', size: '2 KB' },
-      { id: '4', name: 'RotateBehavior.js', type: 'script', icon: '📜', size: '1.2 KB' },
-      { id: '5', name: 'Ambient_Wind.wav', type: 'audio', icon: '🔊', size: '450 KB' }
+      { id: '1', name: 'Character_Hero.glb', type: 'models', icon: '🧍', size: '128 KB', url: 'models/character_hero.glb' },
+      { id: '2', name: 'Pine_Tree.glb', type: 'models', icon: '🌲', size: '13 KB', url: 'models/pine_tree.glb' },
+      { id: '3', name: 'Treasure_Chest.glb', type: 'models', icon: '📦', size: '16 KB', url: 'models/chest.glb' },
+      { id: '4', name: 'Default_Grid.png', type: 'textures', icon: '🖼️', size: '128 KB' },
+      { id: '5', name: 'PBR_Gold.mat', type: 'materials', icon: '🟡', size: '2 KB' },
+      { id: '6', name: 'RotateBehavior.js', type: 'scripts', icon: '📜', size: '1.2 KB' },
+      { id: '7', name: 'Ambient_Wind.wav', type: 'audio', icon: '🔊', size: '450 KB' }
     ];
 
     this.render();
@@ -100,12 +102,20 @@ export class AssetsPanel {
 
       // Double click to open/use
       card.addEventListener('dblclick', () => {
-        if (asset.type === 'model') {
-          this.editor.createEntity({
-            name: asset.name.replace(/\.[^/.]+$/, ""),
-            transform: { position: [0, 1, 0] },
-            components: [{ type: 'render', properties: { type: 'box' } }]
-          });
+        if (asset.type === 'models' || asset.type === 'model') {
+          if (asset.url) {
+            this.editor.loadModel(asset.url, {
+              name: asset.name.replace(/\.[^/.]+$/, ""),
+              scale: [1, 1, 1],
+              position: [0, 0, 0]
+            });
+          } else {
+            this.editor.createEntity({
+              name: asset.name.replace(/\.[^/.]+$/, ""),
+              transform: { position: [0, 1, 0] },
+              components: [{ type: 'render', properties: { type: 'box' } }]
+            });
+          }
         }
       });
 
@@ -190,15 +200,30 @@ export class AssetsPanel {
     else if (ext === 'js') { type = 'scripts'; icon = '📜'; }
 
     const sizeKb = Math.round(file.size / 1024);
+    let blobUrl = null;
+    if (['glb', 'gltf', 'png', 'jpg', 'jpeg', 'webp', 'wav', 'mp3'].includes(ext)) {
+      blobUrl = URL.createObjectURL(file);
+    }
 
     this.assets.push({
       id: Date.now().toString(),
       name: file.name,
       type: type,
       icon: icon,
-      size: `${sizeKb} KB`
+      size: `${sizeKb} KB`,
+      url: blobUrl,
+      file: file
     });
 
     this.renderAssetCards();
+
+    // If it's a 3D model, spawn it into the 3D scene canvas
+    if (type === 'models' && blobUrl) {
+      this.editor.loadModel(blobUrl, {
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        scale: [1, 1, 1],
+        position: [0, 0, 0]
+      });
+    }
   }
 }
