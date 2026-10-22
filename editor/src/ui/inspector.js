@@ -494,7 +494,7 @@ export class InspectorPanel {
     }
 
     // Save as Prefab
-    const savePrefabBtn = body.querySelector('#btn-save-as-prefab');
+    const savePrefabBtn = this.container.querySelector('#btn-save-as-prefab');
     if (savePrefabBtn) {
       savePrefabBtn.addEventListener('click', () => {
         if (this.editor.prefabs) {

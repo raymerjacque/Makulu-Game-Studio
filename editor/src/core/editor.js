@@ -329,14 +329,27 @@ export class Editor {
       };
 
       if (node.render) {
-        data.components.render = { type: node.render.type };
+        data.components.render = {
+          type: node.render.type,
+          castShadows: node.render.castShadows !== false
+        };
+        if (node.render.material) {
+          const mat = node.render.material;
+          data.components.render.material = {
+            diffuse: mat.diffuse ? [mat.diffuse.r, mat.diffuse.g, mat.diffuse.b] : [1, 1, 1],
+            metalness: mat.metalness !== undefined ? mat.metalness : 0.5,
+            roughness: mat.roughness !== undefined ? mat.roughness : 0.3,
+            opacity: mat.opacity !== undefined ? mat.opacity : 1.0
+          };
+        }
       }
       if (node.light) {
         data.components.light = {
           type: node.light.type,
           color: [node.light.color.r, node.light.color.g, node.light.color.b],
           intensity: node.light.intensity,
-          range: node.light.range
+          range: node.light.range,
+          castShadows: node.light.castShadows !== false
         };
       }
       if (node.camera) {
@@ -344,6 +357,21 @@ export class Editor {
           fov: node.camera.fov,
           nearClip: node.camera.nearClip,
           farClip: node.camera.farClip
+        };
+      }
+      if (node.collision) {
+        data.components.collision = {
+          type: node.collision.type || 'box',
+          radius: node.collision.radius || 0.5,
+          height: node.collision.height || 2
+        };
+      }
+      if (node.rigidbody) {
+        data.components.rigidbody = {
+          type: node.rigidbody.type || 'static',
+          mass: node.rigidbody.mass || 1,
+          restitution: node.rigidbody.restitution || 0.5,
+          friction: node.rigidbody.friction || 0.5
         };
       }
       if (node.particlesystem) {
@@ -355,8 +383,22 @@ export class Editor {
       if (node.sound) {
         data.components.sound = {
           volume: node.sound.volume || 1,
+          pitch: node.sound.pitch || 1,
           loop: node.sound.loop !== false
         };
+      }
+      if (node.script) {
+        data.components.script = {
+          enabled: true
+        };
+      }
+
+      // Check for attached behaviors
+      if (this.behaviors && this.behaviors.attachedBehaviors && this.behaviors.attachedBehaviors.has(node)) {
+        data.behaviors = Array.from(this.behaviors.attachedBehaviors.get(node).entries()).map(([type, props]) => ({
+          type,
+          properties: props
+        }));
       }
 
       node.children.forEach(child => {
@@ -407,16 +449,35 @@ export class Editor {
 
         if (nodeData.components) {
           if (nodeData.components.render) {
-            ent.addComponent('render', { type: nodeData.components.render.type || 'box' });
+            ent.addComponent('render', {
+              type: nodeData.components.render.type || 'box',
+              castShadows: nodeData.components.render.castShadows !== false
+            });
+            if (nodeData.components.render.material) {
+              const matData = nodeData.components.render.material;
+              const mat = new pc.StandardMaterial();
+              if (matData.diffuse) mat.diffuse = new pc.Color(...matData.diffuse);
+              if (matData.metalness !== undefined) {
+                mat.metalness = matData.metalness;
+                mat.useMetalness = true;
+              }
+              if (matData.roughness !== undefined) mat.roughness = matData.roughness;
+              if (matData.opacity !== undefined) {
+                mat.opacity = matData.opacity;
+                if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
+              }
+              mat.update();
+              ent.render.material = mat;
+            }
           }
           if (nodeData.components.light) {
             const l = nodeData.components.light;
             ent.addComponent('light', {
               type: l.type || 'point',
               color: l.color ? new pc.Color(...l.color) : new pc.Color(1, 1, 1),
-              intensity: l.intensity || 2,
-              range: l.range || 10,
-              castShadows: true
+              intensity: l.intensity !== undefined ? l.intensity : 2,
+              range: l.range !== undefined ? l.range : 10,
+              castShadows: l.castShadows !== false
             });
           }
           if (nodeData.components.camera) {
@@ -424,6 +485,23 @@ export class Editor {
               fov: nodeData.components.camera.fov || 60,
               nearClip: nodeData.components.camera.nearClip || 0.1,
               farClip: nodeData.components.camera.farClip || 1000
+            });
+          }
+          if (nodeData.components.collision) {
+            const col = nodeData.components.collision;
+            ent.addComponent('collision', {
+              type: col.type || 'box',
+              radius: col.radius || 0.5,
+              height: col.height || 2
+            });
+          }
+          if (nodeData.components.rigidbody) {
+            const rb = nodeData.components.rigidbody;
+            ent.addComponent('rigidbody', {
+              type: rb.type || 'static',
+              mass: rb.mass || 1,
+              restitution: rb.restitution || 0.5,
+              friction: rb.friction || 0.5
             });
           }
           if (nodeData.components.particlesystem) {
@@ -434,10 +512,20 @@ export class Editor {
           }
           if (nodeData.components.sound) {
             ent.addComponent('sound', {
-              volume: nodeData.components.sound.volume || 1,
+              volume: nodeData.components.sound.volume !== undefined ? nodeData.components.sound.volume : 1,
+              pitch: nodeData.components.sound.pitch !== undefined ? nodeData.components.sound.pitch : 1,
               loop: nodeData.components.sound.loop !== false
             });
           }
+          if (nodeData.components.script) {
+            ent.addComponent('script');
+          }
+        }
+
+        if (nodeData.behaviors && this.behaviors) {
+          nodeData.behaviors.forEach(b => {
+            this.behaviors.attachBehavior(ent, b.type, b.properties || {});
+          });
         }
 
         parent.addChild(ent);

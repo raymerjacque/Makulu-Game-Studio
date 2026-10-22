@@ -91,9 +91,22 @@ export class GameBundler {
       if (data.scale) ent.setLocalScale(...data.scale);
       ent.enabled = data.enabled !== false;
 
-      // Render Component
+      // Render Component & Material
       if (data.components && data.components.render) {
-        ent.addComponent('render', { type: data.components.render.type || 'box' });
+        ent.addComponent('render', {
+          type: data.components.render.type || 'box',
+          castShadows: data.components.render.castShadows !== false
+        });
+        if (data.components.render.material) {
+          const m = data.components.render.material;
+          const mat = new pc.StandardMaterial();
+          if (m.diffuse) mat.diffuse = new pc.Color(...m.diffuse);
+          if (m.metalness !== undefined) { mat.metalness = m.metalness; mat.useMetalness = true; }
+          if (m.roughness !== undefined) mat.roughness = m.roughness;
+          if (m.opacity !== undefined) { mat.opacity = m.opacity; if (m.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL; }
+          mat.update();
+          ent.render.material = mat;
+        }
       }
 
       // Light Component
@@ -102,9 +115,9 @@ export class GameBundler {
         ent.addComponent('light', {
           type: l.type || 'point',
           color: l.color ? new pc.Color(...l.color) : new pc.Color(1, 1, 1),
-          intensity: l.intensity || 2,
-          range: l.range || 10,
-          castShadows: true
+          intensity: l.intensity !== undefined ? l.intensity : 2,
+          range: l.range !== undefined ? l.range : 10,
+          castShadows: l.castShadows !== false
         });
       }
 
@@ -122,17 +135,22 @@ export class GameBundler {
       if (data.components && data.components.particlesystem) {
         ent.addComponent('particlesystem', {
           numParticles: data.components.particlesystem.numParticles || 50,
-          lifetime: data.components.particlesystem.lifetime || 1.5,
-          rate: 0.05
+          lifetime: data.components.particlesystem.lifetime || 1.5
         });
       }
 
       // Sound Component
       if (data.components && data.components.sound) {
         ent.addComponent('sound', {
-          volume: data.components.sound.volume || 1,
+          volume: data.components.sound.volume !== undefined ? data.components.sound.volume : 1,
+          pitch: data.components.sound.pitch !== undefined ? data.components.sound.pitch : 1,
           loop: data.components.sound.loop !== false
         });
+      }
+
+      // Behaviors
+      if (data.behaviors) {
+        ent._behaviors = data.behaviors;
       }
 
       parent.addChild(ent);
@@ -170,12 +188,42 @@ export class GameBundler {
     const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character')) || app.root.children[0];
 
     app.on('update', dt => {
+      // Execute embedded behaviors
+      app.root.forEach(node => {
+        if (!node.enabled || !node._behaviors) return;
+        node._behaviors.forEach(b => {
+          if (b.type === 'spin') {
+            const speed = b.properties?.speed || 45;
+            const axis = b.properties?.axis || 'y';
+            const s = speed * dt;
+            if (axis === 'x') node.rotate(s, 0, 0);
+            else if (axis === 'y') node.rotate(0, s, 0);
+            else if (axis === 'z') node.rotate(0, 0, s);
+          } else if (b.type === 'light_flicker') {
+            if (node.light) {
+              const variance = b.properties?.variance || 0.4;
+              const base = b.properties?.baseIntensity || 2;
+              node.light.intensity = Math.max(0.1, base + (Math.random() - 0.5) * variance);
+            }
+          } else if (b.type === 'patrol') {
+            const speed = b.properties?.speed || 3;
+            const distance = b.properties?.distance || 6;
+            if (!b._state) b._state = { startX: node.getPosition().x, dir: 1 };
+            const currentX = node.getPosition().x;
+            const delta = currentX - b._state.startX;
+            if (delta > distance && b._state.dir > 0) b._state.dir = -1;
+            if (delta < -distance && b._state.dir < 0) b._state.dir = 1;
+            node.translate(b._state.dir * speed * dt, 0, 0);
+          }
+        });
+      });
+
       if (!playerEntity) return;
       const move = new pc.Vec3();
-      if (keys['w']) move.add(playerEntity.forward);
-      if (keys['s']) move.sub(playerEntity.forward);
-      if (keys['a']) move.sub(playerEntity.right);
-      if (keys['d']) move.add(playerEntity.right);
+      if (keys['w'] || keys['arrowup']) move.add(playerEntity.forward);
+      if (keys['s'] || keys['arrowdown']) move.sub(playerEntity.forward);
+      if (keys['a'] || keys['arrowleft']) move.sub(playerEntity.right);
+      if (keys['d'] || keys['arrowright']) move.add(playerEntity.right);
 
       if (move.lengthSq() > 0) {
         move.normalize().mulScalar(8 * dt);

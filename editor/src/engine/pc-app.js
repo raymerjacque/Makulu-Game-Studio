@@ -223,9 +223,31 @@ export class EngineRuntime {
               });
             }
           } else if (asset.type === 'prefabs') {
-            this.editor.prefabs.instantiate(asset.data, {
-              position: [0, 0, 0]
-            });
+            if (this.editor.prefabs) {
+              this.editor.prefabs.instantiate(asset.data || asset.prefabData, {
+                position: [0, 0, 0]
+              });
+            }
+          } else if (asset.type === 'materials' && asset.materialData) {
+            const rect = this.canvas.getBoundingClientRect();
+            const hit = this.raycastPick(e.clientX - rect.left, e.clientY - rect.top);
+            if (hit && hit.render) {
+              const matProps = asset.materialData;
+              const mat = new pc.StandardMaterial();
+              if (matProps.diffuse) mat.diffuse = new pc.Color(...matProps.diffuse);
+              if (matProps.metalness !== undefined) {
+                mat.metalness = matProps.metalness;
+                mat.useMetalness = true;
+              }
+              if (matProps.roughness !== undefined) mat.roughness = matProps.roughness;
+              if (matProps.opacity !== undefined) {
+                mat.opacity = matProps.opacity;
+                if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
+              }
+              mat.update();
+              hit.render.material = mat;
+              this.editor.events.emit('entity:component:changed', hit);
+            }
           }
         }
       } catch (err) {

@@ -42,6 +42,16 @@ export class HierarchyPanel {
         <div class="context-menu-item" data-action="camera:persp">🎥 Camera</div>
         <div class="context-menu-item" data-action="empty">📁 Empty Group</div>
       </div>
+
+      <!-- Item Right-Click Context Menu -->
+      <div id="item-context-menu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" data-item-action="rename">✏️ Rename</div>
+        <div class="context-menu-item" data-item-action="frame">🎯 Frame Entity</div>
+        <div class="context-menu-item" data-item-action="duplicate">📋 Duplicate</div>
+        <div class="context-menu-item" data-item-action="add-child">➕ Add Child Entity</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-item-action="delete" style="color: #ef4444;">🗑️ Delete</div>
+      </div>
     `;
 
     this.rebuildTree();
@@ -257,9 +267,10 @@ export class HierarchyPanel {
 
         item.innerHTML = `
           <span class="tree-icon">${icon}</span>
-          <span class="tree-label">${node.name}</span>
-          <div class="tree-actions">
-            <span class="tree-action-del" title="Delete" style="color: #ef4444; font-size: 10px;">✕</span>
+          <span class="tree-label" style="flex: 1; ${node.enabled === false ? 'opacity: 0.5; text-decoration: line-through;' : ''}">${node.name}</span>
+          <div class="tree-actions" style="display: flex; align-items: center; gap: 4px;">
+            <span class="tree-action-vis" title="${node.enabled !== false ? 'Hide' : 'Show'}" style="cursor: pointer; font-size: 11px; opacity: 0.7;">${node.enabled !== false ? '👁️' : '🙈'}</span>
+            <span class="tree-action-del" title="Delete" style="color: #ef4444; font-size: 10px; cursor: pointer;">✕</span>
           </div>
         `;
 
@@ -268,9 +279,62 @@ export class HierarchyPanel {
           this.editor.selection.set(node);
         });
 
+        item.querySelector('.tree-action-vis').addEventListener('click', (e) => {
+          e.stopPropagation();
+          node.enabled = !node.enabled;
+          this.editor.events.emit('scene:changed');
+        });
+
         item.querySelector('.tree-action-del').addEventListener('click', (e) => {
           e.stopPropagation();
           this.editor.deleteEntity(node);
+        });
+
+        // Item Right-Click Context Menu
+        item.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.editor.selection.set(node);
+
+          const itemMenu = this.container.querySelector('#item-context-menu');
+          itemMenu.style.top = `${e.clientY}px`;
+          itemMenu.style.left = `${e.clientX}px`;
+          itemMenu.style.display = 'block';
+
+          const handleItemAction = (itemEv) => {
+            itemEv.stopPropagation();
+            const action = itemEv.target.dataset.itemAction;
+            if (action === 'rename') {
+              const newName = prompt('Enter new entity name:', node.name);
+              if (newName) {
+                node.name = newName;
+                this.editor.events.emit('scene:changed');
+              }
+            } else if (action === 'frame') {
+              if (this.editor.runtime) this.editor.runtime.editorCamera.frameEntity(node);
+            } else if (action === 'duplicate') {
+              this.editor.duplicateEntity(node);
+            } else if (action === 'add-child') {
+              this.editor.createEntity({
+                name: 'Child Entity',
+                parent: node,
+                transform: { position: [0, 1, 0] }
+              });
+            } else if (action === 'delete') {
+              this.editor.deleteEntity(node);
+            }
+            itemMenu.style.display = 'none';
+          };
+
+          const closeMenu = () => {
+            itemMenu.style.display = 'none';
+            window.removeEventListener('click', closeMenu);
+          };
+
+          itemMenu.querySelectorAll('.context-menu-item').forEach(m => {
+            m.onclick = handleItemAction;
+          });
+          setTimeout(() => window.addEventListener('click', closeMenu), 10);
         });
 
         // Double click to frame

@@ -33,8 +33,9 @@ export class TopBar {
         <!-- Scene Picker, Templates, Guide, Help, AI Settings -->
         <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary);">
           <span>Scene:</span>
-          <select id="top-scene-select" class="select-input" style="width: 100px; padding: 2px 6px; height: 26px;">
-            <option value="main">Main Scene</option>
+          <select id="top-scene-select" class="select-input" style="width: 110px; padding: 2px 6px; height: 26px;">
+            <option value="Main Scene">Main Scene</option>
+            <option value="__create_new__">+ New Scene...</option>
           </select>
           <button id="btn-open-templates" class="btn" style="background: rgba(255,102,0,0.18); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 3px 8px; font-size: 11px;" title="1-Click Genre Starter Templates">🎮 Templates</button>
           <button id="btn-open-timeline" class="btn" style="background: rgba(251, 146, 60, 0.16); border-color: #fb923c; color: #fb923c; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Animation Timeline & Keyframe Sequencer">🎬 Timeline</button>
@@ -116,6 +117,43 @@ export class TopBar {
     if (helpBtn) {
       helpBtn.addEventListener('click', () => {
         if (this.helpModal) this.helpModal.open();
+      });
+    }
+
+    // Scene Selector
+    const sceneSelect = this.container.querySelector('#top-scene-select');
+    if (sceneSelect) {
+      sceneSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === '__create_new__') {
+          const name = prompt('Enter new scene name:', 'Level_2');
+          if (name) {
+            this.editor.activeSceneName = name;
+            // Clear current user scene
+            const app = this.editor.getApp();
+            if (app && app.root) {
+              const toRemove = [];
+              app.root.children.forEach(c => {
+                if (c.name !== 'EditorGrid' && c.name !== 'EditorCamera') toRemove.push(c);
+              });
+              toRemove.forEach(c => app.root.removeChild(c));
+              this.editor.selection.clear();
+              this.editor.events.emit('scene:changed');
+            }
+            // Add option to select
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            sceneSelect.insertBefore(opt, sceneSelect.lastElementChild);
+            sceneSelect.value = name;
+            showToast(`✨ Created and switched to scene "${name}"!`, 'success');
+          } else {
+            sceneSelect.value = this.editor.activeSceneName;
+          }
+        } else {
+          this.editor.activeSceneName = val;
+          showToast(`Switched active scene to "${val}"`, 'info');
+        }
       });
     }
 
