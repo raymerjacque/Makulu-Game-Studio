@@ -190,6 +190,47 @@ export class BehaviorManager {
                 showToast(`✨ Collected item: ${entity.name}!`, 'success');
               }
             }
+          } else if (b.type === 'health') {
+            if (b.params.currentHp === undefined) b.params.currentHp = b.params.maxHp || 100;
+            if (!b._invincibleTimer) b._invincibleTimer = 0;
+            if (b._invincibleTimer > 0) b._invincibleTimer -= dt;
+          } else if (b.type === 'damage_dealer') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 1.8;
+              const dmg = b.params.damage || 20;
+              if (dist < radius) {
+                // Find health behavior on player
+                const playerBehaviors = this.getBehaviors(player);
+                const healthB = playerBehaviors.find(hb => hb.type === 'health');
+                if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
+                  healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || healthB.params.maxHp || 100) - dmg);
+                  healthB._invincibleTimer = b.params.cooldown || 1.0;
+                  showToast(`⚠️ Player took ${dmg} damage from ${entity.name}! HP: ${healthB.params.currentHp}`, 'warn');
+                  if (healthB.params.currentHp <= 0) {
+                    showToast(`💀 GAME OVER! ${player.name} was defeated.`, 'error');
+                  }
+                }
+              }
+            }
+          } else if (b.type === 'health_pickup') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 1.5;
+              const heal = b.params.healAmount || 25;
+              if (dist < radius) {
+                const playerBehaviors = this.getBehaviors(player);
+                const healthB = playerBehaviors.find(hb => hb.type === 'health');
+                if (healthB) {
+                  const maxHp = healthB.params.maxHp || 100;
+                  healthB.params.currentHp = Math.min(maxHp, (healthB.params.currentHp || maxHp) + heal);
+                  entity.enabled = false;
+                  showToast(`💚 Restored +${heal} HP! Current HP: ${healthB.params.currentHp}`, 'success');
+                }
+              }
+            }
           }
         }
       }

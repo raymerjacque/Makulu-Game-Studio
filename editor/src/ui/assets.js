@@ -284,20 +284,30 @@ export class AssetsPanel {
 
     const sizeKb = Math.round(file.size / 1024);
     let blobUrl = null;
-    if (['glb', 'gltf', 'png', 'jpg', 'jpeg', 'webp', 'wav', 'mp3'].includes(ext)) {
+    if (['glb', 'gltf', 'png', 'jpg', 'jpeg', 'webp', 'wav', 'mp3', 'ogg'].includes(ext)) {
       blobUrl = URL.createObjectURL(file);
     }
 
-    this.assets.push({
+    const assetObj = {
       id: Date.now().toString(),
       name: file.name,
       type: type,
       icon: icon,
       size: `${sizeKb} KB`,
       url: blobUrl,
-      file: file
-    });
+      file: file,
+      base64Data: null
+    };
 
+    // Convert file to Base64 for 100% portable offline inlining in compiled HTML
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      assetObj.base64Data = e.target.result;
+      if (assetObj.url) assetObj.url = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    this.assets.push(assetObj);
     this.renderAssetCards();
 
     // If it's a 3D model, spawn it into the 3D scene canvas

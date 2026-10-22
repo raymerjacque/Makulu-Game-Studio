@@ -1,6 +1,6 @@
 /**
  * Standalone HTML5 Game Bundler & Compiler
- * Packages the active scene, entities, materials, and behaviors into a self-contained playable game.
+ * Packages the active scene, entities, materials, behaviors, 2D HUD, and Base64 assets into a self-contained playable game.
  */
 
 export class GameBundler {
@@ -13,6 +13,20 @@ export class GameBundler {
     const title = options.title || this.editor.projectName || 'My MakuluLinux 3D Game';
     const author = options.author || 'MakuluLinux Creator';
 
+    // Collect Base64 encoded assets if available
+    const assetRegistry = [];
+    if (this.editor.assetsPanel && this.editor.assetsPanel.assets) {
+      this.editor.assetsPanel.assets.forEach(a => {
+        if (a.base64Data) {
+          assetRegistry.push({
+            name: a.name,
+            type: a.type,
+            dataUrl: a.base64Data
+          });
+        }
+      });
+    }
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,8 +35,10 @@ export class GameBundler {
   <title>${this.escapeHTML(title)}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, sans-serif; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     #game-canvas { width: 100%; height: 100%; display: block; }
+
+    /* Top Left Title Overlay */
     #ui-overlay {
       position: absolute;
       top: 12px;
@@ -37,7 +53,131 @@ export class GameBundler {
       display: flex;
       align-items: center;
       gap: 8px;
+      z-index: 10;
     }
+
+    /* 2D HUD UI Overlay Panel */
+    #hud-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    #hud-health-bar-wrap {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 240px;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 6px 10px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #hud-health-label-wrap {
+      display: flex;
+      justify-content: space-between;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    #hud-health-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #hud-health-fill {
+      height: 100%;
+      width: 100%;
+      background: #ef4444;
+      transition: width 0.2s ease-out;
+    }
+
+    #hud-score-counter {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(234,179,8,0.4);
+      color: #facc15;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+    }
+
+    #hud-crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,0.85);
+      font-size: 18px;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    /* Game Over Modal Screen */
+    #gameover-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 0, 0, 0.88);
+      backdrop-filter: blur(12px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #gameover-title {
+      font-size: 42px;
+      font-weight: 900;
+      color: #ef4444;
+      text-shadow: 0 0 20px rgba(239,68,68,0.6);
+      margin-bottom: 8px;
+    }
+
+    #gameover-msg {
+      font-size: 14px;
+      color: #cbd5e1;
+      max-width: 400px;
+      margin-bottom: 24px;
+    }
+
+    .btn-restart {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(239,68,68,0.5);
+      pointer-events: auto;
+    }
+
     #ui-fullscreen {
       position: absolute;
       bottom: 12px;
@@ -50,6 +190,7 @@ export class GameBundler {
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
+      z-index: 30;
     }
   </style>
   <script src="https://code.playcanvas.com/playcanvas-stable.min.js"></script>
@@ -59,12 +200,40 @@ export class GameBundler {
     <span style="color: #ff6600; font-weight: 700;">●</span>
     <span>${this.escapeHTML(title)}</span>
   </div>
+
+  <!-- 2D HUD Screen UI -->
+  <div id="hud-container">
+    <div id="hud-health-bar-wrap" style="display: none;">
+      <div id="hud-health-label-wrap">
+        <span id="hud-health-title">HP</span>
+        <span id="hud-health-num">100 / 100</span>
+      </div>
+      <div id="hud-health-track">
+        <div id="hud-health-fill"></div>
+      </div>
+    </div>
+
+    <div id="hud-score-counter" style="display: none;">
+      <span id="hud-score-text">Score: 0</span>
+    </div>
+
+    <div id="hud-crosshair" style="display: none;">●</div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen">
+    <div id="gameover-title">GAME OVER</div>
+    <div id="gameover-msg">Your health reached 0. Press Restart to try again.</div>
+    <button class="btn-restart" onclick="window.location.reload()">🔄 Restart Level</button>
+  </div>
+
   <button id="ui-fullscreen" onclick="document.documentElement.requestFullscreen()">⛶ Fullscreen</button>
   <canvas id="game-canvas"></canvas>
 
   <script>
-    // Embedded Scene Data
+    // Embedded Scene Data & Inlined Base64 Assets
     const SCENE_DATA = ${sceneJSON};
+    const EMBEDDED_ASSETS = ${JSON.stringify(assetRegistry)};
 
     // Initialize PlayCanvas Runtime
     const canvas = document.getElementById('game-canvas');
@@ -112,6 +281,35 @@ export class GameBundler {
       app.systems.rigidbody.gravity.set(...SCENE_DATA.gravity);
     }
 
+    // Setup 2D HUD Screen UI
+    const hudConfig = SCENE_DATA.hud || {};
+    if (hudConfig.health && hudConfig.health.enabled !== false) {
+      const barWrap = document.getElementById('hud-health-bar-wrap');
+      if (barWrap) {
+        barWrap.style.display = 'flex';
+        document.getElementById('hud-health-title').textContent = hudConfig.health.label || 'HP';
+        document.getElementById('hud-health-fill').style.background = hudConfig.health.color || '#ef4444';
+      }
+    }
+
+    if (hudConfig.score && hudConfig.score.enabled !== false) {
+      const scoreEl = document.getElementById('hud-score-counter');
+      if (scoreEl) {
+        scoreEl.style.display = 'block';
+        document.getElementById('hud-score-text').textContent = (hudConfig.score.label || 'Score:') + ' ' + (hudConfig.score.initial || 0);
+      }
+    }
+
+    if (hudConfig.crosshair && hudConfig.crosshair.enabled !== false) {
+      const chEl = document.getElementById('hud-crosshair');
+      if (chEl) {
+        chEl.style.display = 'block';
+        if (hudConfig.crosshair.style === 'cross') chEl.textContent = '┼';
+        else if (hudConfig.crosshair.style === 'circle') chEl.textContent = '◯';
+        else chEl.textContent = '●';
+      }
+    }
+
     // Build Scene Graph from Exported Data
     function buildNode(data, parent) {
       const ent = new pc.Entity(data.name);
@@ -122,7 +320,11 @@ export class GameBundler {
 
       // 3D GLB Model Asset Loading
       if (data.modelUrl) {
-        app.assets.loadFromUrl(data.modelUrl, 'container', (err, asset) => {
+        // Check for Base64 inlined asset
+        const embedded = EMBEDDED_ASSETS.find(a => a.name === data.modelUrl || a.dataUrl === data.modelUrl);
+        const urlToLoad = embedded ? embedded.dataUrl : data.modelUrl;
+
+        app.assets.loadFromUrl(urlToLoad, 'container', (err, asset) => {
           if (!err && asset && asset.resource) {
             const modelEntity = asset.resource.instantiateRenderEntity({
               castShadows: true,
@@ -248,7 +450,7 @@ export class GameBundler {
     window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
     window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-    const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character')) || app.root.children[0];
+    const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character') || n.name.toLowerCase().includes('hero') || n.name.toLowerCase().includes('warrior')) || app.root.children[0];
 
     app.on('update', dt => {
       // Execute embedded behaviors
@@ -325,6 +527,54 @@ export class GameBundler {
                 node.enabled = false;
               }
             }
+          } else if (b.type === 'health') {
+            if (b.properties.currentHp === undefined) b.properties.currentHp = b.properties.maxHp || 100;
+            if (!b._invincibleTimer) b._invincibleTimer = 0;
+            if (b._invincibleTimer > 0) b._invincibleTimer -= dt;
+
+            // Update 2D Screen HUD Health Bar
+            const maxHp = b.properties.maxHp || 100;
+            const curHp = b.properties.currentHp;
+            const pct = Math.max(0, Math.min(100, (curHp / maxHp) * 100));
+
+            const fillEl = document.getElementById('hud-health-fill');
+            const numEl = document.getElementById('hud-health-num');
+            if (fillEl) fillEl.style.width = pct + '%';
+            if (numEl) numEl.textContent = curHp + ' / ' + maxHp;
+
+            if (curHp <= 0) {
+              const goScreen = document.getElementById('gameover-screen');
+              if (goScreen) goScreen.style.display = 'flex';
+            }
+          } else if (b.type === 'damage_dealer') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 1.8;
+              const dmg = b.properties?.damage || 20;
+              if (dist < radius) {
+                const playerB = playerEntity._behaviors || [];
+                const healthB = playerB.find(hb => hb.type === 'health');
+                if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
+                  healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || healthB.properties.maxHp || 100) - dmg);
+                  healthB._invincibleTimer = b.properties?.cooldown || 1.0;
+                }
+              }
+            }
+          } else if (b.type === 'health_pickup') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 1.5;
+              const heal = b.properties?.healAmount || 25;
+              if (dist < radius) {
+                const playerB = playerEntity._behaviors || [];
+                const healthB = playerB.find(hb => hb.type === 'health');
+                if (healthB) {
+                  const maxHp = healthB.properties.maxHp || 100;
+                  healthB.properties.currentHp = Math.min(maxHp, (healthB.properties.currentHp || maxHp) + heal);
+                  node.enabled = false;
+                }
+              }
+            }
           }
         });
       });
@@ -355,6 +605,21 @@ export class GameBundler {
           const fireAction = () => {
             if (config.action === 'teleport' && config.targetPosition) {
               playerEntity.setPosition(...config.targetPosition);
+            } else if (config.action === 'damage_player') {
+              const playerB = playerEntity._behaviors || [];
+              const healthB = playerB.find(hb => hb.type === 'health');
+              if (healthB) {
+                const dmg = config.amount || 20;
+                healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || healthB.properties.maxHp || 100) - dmg);
+              }
+            } else if (config.action === 'heal_player') {
+              const playerB = playerEntity._behaviors || [];
+              const healthB = playerB.find(hb => hb.type === 'health');
+              if (healthB) {
+                const heal = config.amount || 25;
+                const maxHp = healthB.properties.maxHp || 100;
+                healthB.properties.currentHp = Math.min(maxHp, (healthB.properties.currentHp || maxHp) + heal);
+              }
             } else if (config.action === 'toggle_visibility' && config.targetEntity) {
               const target = app.root.findByName(config.targetEntity);
               if (target) target.enabled = !target.enabled;

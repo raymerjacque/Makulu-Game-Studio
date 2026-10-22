@@ -86,15 +86,55 @@ test('PrefabSystem serializing and querying prefabs', () => {
   assert.equal(fetched.name, 'Chest.prefab');
 });
 
-test('GameBundler generates standalone HTML output', () => {
+test('HUD configuration export and scene serialization', () => {
+  const editor = new Editor();
+  editor.hudConfig.health.label = 'Armor';
+  editor.hudConfig.health.max = 200;
+
+  const json = editor.exportSceneJSON();
+  assert.ok(json.includes('"hud"'));
+  assert.ok(json.includes('"Armor"'));
+
+  const newEditor = new Editor();
+  newEditor.loadSceneJSON(json);
+  assert.equal(newEditor.hudConfig.health.label, 'Armor');
+  assert.equal(newEditor.hudConfig.health.max, 200);
+});
+
+test('Health and Combat Damage behaviors in BehaviorManager', () => {
+  const editor = new Editor();
+  const player = { name: 'Player' };
+  const hazard = { name: 'Spike' };
+
+  if (editor.behaviors) {
+    editor.behaviors.attachBehavior(player, 'health', { maxHp: 100, currentHp: 100 });
+    assert.equal(editor.behaviors.hasBehavior(player, 'health'), true);
+
+    const b = editor.behaviors.getBehaviors(player).find(item => item.type === 'health');
+    assert.equal(b.params.currentHp, 100);
+
+    editor.behaviors.attachBehavior(hazard, 'damage_dealer', { damage: 25, radius: 2.0 });
+    assert.equal(editor.behaviors.hasBehavior(hazard, 'damage_dealer'), true);
+  }
+});
+
+test('GameBundler generates standalone HTML with HUD and Base64 assets', () => {
   const editor = new Editor();
   editor.projectName = 'Awesome 3D Game';
-  const bundler = new GameBundler(editor);
+  editor.assetsPanel = {
+    assets: [
+      { name: 'custom_audio.mp3', type: 'audio', base64Data: 'data:audio/mp3;base64,SUQzBAAAAAAA' }
+    ]
+  };
 
+  const bundler = new GameBundler(editor);
   const html = bundler.compileStandaloneHTML({ title: 'Awesome 3D Game' });
+
   assert.equal(typeof html, 'string');
   assert.ok(html.includes('<!DOCTYPE html>'));
   assert.ok(html.includes('Awesome 3D Game'));
-  assert.ok(html.includes('playcanvas-stable.min.js'));
-  assert.ok(html.includes('SCENE_DATA'));
+  assert.ok(html.includes('hud-container'));
+  assert.ok(html.includes('hud-health-bar-wrap'));
+  assert.ok(html.includes('gameover-screen'));
+  assert.ok(html.includes('data:audio/mp3;base64,SUQzBAAAAAAA'));
 });

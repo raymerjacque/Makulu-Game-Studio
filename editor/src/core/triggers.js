@@ -100,6 +100,33 @@ export class TriggerSystem {
     if (config.action === 'teleport' && playerEntity && config.targetPosition) {
       playerEntity.setPosition(config.targetPosition[0], config.targetPosition[1], config.targetPosition[2]);
       showToast('🌀 Player Teleported by Trigger Volume!', 'success');
+    } else if (config.action === 'damage_player' && playerEntity) {
+      const dmg = config.amount || 20;
+      if (this.editor.behaviors) {
+        const playerBehaviors = this.editor.behaviors.getBehaviors(playerEntity);
+        const healthB = playerBehaviors.find(b => b.type === 'health');
+        if (healthB) {
+          healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || healthB.params.maxHp || 100) - dmg);
+          showToast(`⚠️ Trigger Volume dealt ${dmg} damage to player! HP: ${healthB.params.currentHp}`, 'warn');
+        }
+      }
+    } else if (config.action === 'heal_player' && playerEntity) {
+      const heal = config.amount || 25;
+      if (this.editor.behaviors) {
+        const playerBehaviors = this.editor.behaviors.getBehaviors(playerEntity);
+        const healthB = playerBehaviors.find(b => b.type === 'health');
+        if (healthB) {
+          const maxHp = healthB.params.maxHp || 100;
+          healthB.params.currentHp = Math.min(maxHp, (healthB.params.currentHp || maxHp) + heal);
+          showToast(`💚 Trigger Volume healed player +${heal} HP! HP: ${healthB.params.currentHp}`, 'success');
+        }
+      }
+    } else if (config.action === 'add_score') {
+      const points = config.amount || 100;
+      if (this.editor.hudConfig && this.editor.hudConfig.score) {
+        this.editor.hudConfig.score.initial = (this.editor.hudConfig.score.initial || 0) + points;
+        showToast(`⭐ Score +${points}! Current Score: ${this.editor.hudConfig.score.initial}`, 'success');
+      }
     } else if (config.action === 'toggle_visibility' && config.targetEntity) {
       if (this.editor.runtime && this.editor.runtime.app) {
         const target = this.editor.runtime.app.root.findByName(config.targetEntity);

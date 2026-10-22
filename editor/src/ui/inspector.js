@@ -97,6 +97,9 @@ export class InspectorPanel {
     const hasCamFollow = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'camera_follow') : false;
     const hasBillboard = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'billboard') : false;
     const hasCollectible = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'collectible') : false;
+    const hasHealth = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'health') : false;
+    const hasDamage = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'damage_dealer') : false;
+    const hasHealthPickup = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'health_pickup') : false;
     const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
 
     body.innerHTML = `
@@ -276,6 +279,39 @@ export class InspectorPanel {
             </button>
           `}
 
+          ${hasHealth ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #f87171; font-weight: 600;">❤️ Health Component Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-health-behavior" title="Remove Health" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-health-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>❤️</span> <span>Add Health Component (100 HP)</span>
+            </button>
+          `}
+
+          ${hasDamage ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #ef4444; font-weight: 600;">⚔️ Damage Dealer Hazard Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-damage-behavior" title="Remove Damage" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-damage-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>⚔️</span> <span>Make Damage Dealer Hazard</span>
+            </button>
+          `}
+
+          ${hasHealthPickup ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #4ade80; font-weight: 600;">💚 Health Potion Pickup Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-hp-pickup-behavior" title="Remove Health Pickup" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-hp-pickup-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>💚</span> <span>Make Health Potion (+25 HP Pickup)</span>
+            </button>
+          `}
+
           <button class="btn" id="add-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>⚡</span> <span>Add Teleport Trigger Volume</span>
           </button>
@@ -356,6 +392,72 @@ export class InspectorPanel {
           this.editor.behaviors.attachBehavior(ent, 'spin', { speed: 45, axis: 'y' });
           showToast(`🔄 Attached Continuous Spin to ${ent.name}!`, 'success');
           this.inspect(ent);
+        }
+      });
+    }
+
+    // Health Behavior
+    const addHealthBtn = body.querySelector('#add-health-behavior');
+    if (addHealthBtn) {
+      addHealthBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'health', { maxHp: 100, currentHp: 100 });
+          showToast(`❤️ Attached Health Component (100 HP) to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remHealthBtn = body.querySelector('#remove-health-behavior');
+    if (remHealthBtn) {
+      remHealthBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'health');
+          showToast(`Removed Health Component from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Damage Dealer Behavior
+    const addDamageBtn = body.querySelector('#add-damage-behavior');
+    if (addDamageBtn) {
+      addDamageBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'damage_dealer', { damage: 20, radius: 1.8 });
+          showToast(`⚔️ Set ${ent.name} as Damage Dealer Hazard (20 Damage)!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remDamageBtn = body.querySelector('#remove-damage-behavior');
+    if (remDamageBtn) {
+      remDamageBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'damage_dealer');
+          showToast(`Removed Damage Dealer Hazard from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Health Pickup Behavior
+    const addHpPickupBtn = body.querySelector('#add-hp-pickup-behavior');
+    if (addHpPickupBtn) {
+      addHpPickupBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'health_pickup', { healAmount: 25, radius: 1.5 });
+          showToast(`💚 Set ${ent.name} as Health Potion Pickup (+25 HP)!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remHpPickupBtn = body.querySelector('#remove-hp-pickup-behavior');
+    if (remHpPickupBtn) {
+      remHpPickupBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'health_pickup');
+          showToast(`Removed Health Pickup from ${ent.name}.`, 'info');
+          this.updateView();
         }
       });
     }
