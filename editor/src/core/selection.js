@@ -1,3 +1,5 @@
+import * as pc from 'playcanvas';
+
 /**
  * Selection Manager
  * Manages active entity selection, multi-selection, and dispatches selection events.

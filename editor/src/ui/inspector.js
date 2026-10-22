@@ -940,6 +940,31 @@ export class InspectorPanel {
         </div>
       `;
 
+      card.querySelector('#particle-preset-select').addEventListener('change', (e) => {
+        const preset = e.target.value;
+        if (ent.particlesystem) {
+          if (preset === 'fire') {
+            ent.particlesystem.numParticles = 80;
+            ent.particlesystem.lifetime = 1.2;
+          } else if (preset === 'smoke') {
+            ent.particlesystem.numParticles = 40;
+            ent.particlesystem.lifetime = 2.5;
+          } else if (preset === 'sparks') {
+            ent.particlesystem.numParticles = 120;
+            ent.particlesystem.lifetime = 0.6;
+          } else if (preset === 'magic') {
+            ent.particlesystem.numParticles = 100;
+            ent.particlesystem.lifetime = 1.8;
+          }
+          const numInput = card.querySelector('#particle-num');
+          const lifeInput = card.querySelector('#particle-lifetime');
+          if (numInput) numInput.value = ent.particlesystem.numParticles;
+          if (lifeInput) lifeInput.value = ent.particlesystem.lifetime;
+          if (ent.particlesystem.rebuild) ent.particlesystem.rebuild();
+          showToast(`✨ Applied particle preset: ${preset}`, 'info');
+        }
+      });
+
       card.querySelector('#particle-num').addEventListener('input', (e) => {
         ent.particlesystem.numParticles = parseInt(e.target.value, 10);
         if (ent.particlesystem.rebuild) ent.particlesystem.rebuild();
