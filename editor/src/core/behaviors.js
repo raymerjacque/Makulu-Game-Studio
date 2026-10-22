@@ -72,7 +72,7 @@ export class BehaviorManager {
             const speed = b.params.speed || 8;
             const move = new pc.Vec3();
 
-            // Calculate planar forward and right directions (ignore camera/object tilt)
+            // Calculate planar forward and right directions
             const forward = new pc.Vec3(entity.forward.x, 0, entity.forward.z);
             if (forward.lengthSq() > 0.0001) forward.normalize();
             else forward.set(0, 0, -1);
@@ -81,19 +81,15 @@ export class BehaviorManager {
             if (right.lengthSq() > 0.0001) right.normalize();
             else right.set(1, 0, 0);
 
-            // Check W / Up Arrow / KeyW
             if (this.isKeyDown('w') || this.isKeyDown('arrowup') || this.isKeyDown('keyw')) {
               move.add(forward);
             }
-            // Check S / Down Arrow / KeyS
             if (this.isKeyDown('s') || this.isKeyDown('arrowdown') || this.isKeyDown('keys')) {
               move.sub(forward);
             }
-            // Check A / Left Arrow / KeyA
             if (this.isKeyDown('a') || this.isKeyDown('arrowleft') || this.isKeyDown('keya')) {
               move.sub(right);
             }
-            // Check D / Right Arrow / KeyD
             if (this.isKeyDown('d') || this.isKeyDown('arrowright') || this.isKeyDown('keyd')) {
               move.add(right);
             }
@@ -143,11 +139,67 @@ export class BehaviorManager {
 
             const moveX = b.state.dir * speed * dt;
             entity.translate(moveX, 0, 0);
+          } else if (b.type === 'moving_platform') {
+            const speed = b.params.speed || 2.5;
+            const distance = b.params.distance || 8;
+            const axis = b.params.axis || 'y';
+            if (!b.state) b.state = { startPos: entity.getPosition().clone(), dir: 1 };
+            const curPos = entity.getPosition();
+            if (axis === 'y') {
+              const d = curPos.y - b.state.startPos.y;
+              if (d > distance && b.state.dir > 0) b.state.dir = -1;
+              if (d < 0 && b.state.dir < 0) b.state.dir = 1;
+              entity.translate(0, b.state.dir * speed * dt, 0);
+            } else {
+              const d = curPos.x - b.state.startPos.x;
+              if (d > distance && b.state.dir > 0) b.state.dir = -1;
+              if (d < -distance && b.state.dir < 0) b.state.dir = 1;
+              entity.translate(b.state.dir * speed * dt, 0, 0);
+            }
+          } else if (b.type === 'interactive_door') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const entPos = entity.getPosition();
+              const plyPos = player.getPosition();
+              const distXZ = Math.hypot(entPos.x - plyPos.x, entPos.z - plyPos.z);
+              const radius = b.params.radius || 3.0;
+
+              if (!b.state) b.state = { isOpen: false, startY: entPos.y };
+              if (distXZ <= radius && !b.state.isOpen) {
+                b.state.isOpen = true;
+                entity.translate(0, 3, 0);
+                if (typeof showToast === 'function') showToast(`🚪 Interactive Door Opened for ${player.name}!`, 'info');
+              } else if (distXZ > radius && b.state.isOpen) {
+                b.state.isOpen = false;
+                entity.setPosition(entPos.x, b.state.startY, entPos.z);
+                if (typeof showToast === 'function') showToast(`🚪 Interactive Door Closed.`, 'info');
+              }
+            }
+          } else if (b.type === 'enemy_spawner') {
+            if (!b._timer) b._timer = 0;
+            b._timer -= dt;
+            if (b._timer <= 0) {
+              b._timer = b.params.interval || 6.0;
+              const enemy = new pc.Entity(`Spawned_Enemy_${Date.now()}`);
+              enemy.setPosition(entity.getPosition().clone().add(new pc.Vec3(0, 1, 0)));
+              enemy.setLocalScale(0.9, 1.8, 0.9);
+
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = new pc.Color(0.9, 0.1, 0.1);
+              mat.update();
+
+              enemy.addComponent('render', { type: 'capsule', material: mat });
+              this.attachBehavior(enemy, 'enemy_ai', { speed: 3, damage: 10 });
+              app.root.addChild(enemy);
+              if (typeof showToast === 'function') showToast(`👾 Enemy Spawner spawned new enemy AI!`, 'warn');
+            }
+          } else if (b.type === 'weapon_inventory') {
+            if (b.params.ammo === undefined) b.params.ammo = b.params.maxAmmo || 30;
           } else if (b.type === 'billboard') {
             const camera = app.root.find(node => node.camera);
             if (camera) {
               entity.lookAt(camera.getPosition());
-              entity.rotateLocal(0, 180, 0); // Face front to camera
+              entity.rotateLocal(0, 180, 0);
             }
           } else if (b.type === 'sine_float') {
             const amplitude = b.params.amplitude || 0.5;
@@ -187,7 +239,7 @@ export class BehaviorManager {
               const dist = entity.getPosition().distance(player.getPosition());
               if (dist < (b.params.radius || 1.5)) {
                 entity.enabled = false;
-                showToast(`✨ Collected item: ${entity.name}!`, 'success');
+                if (typeof showToast === 'function') showToast(`✨ Collected item: ${entity.name}!`, 'success');
               }
             }
           } else if (b.type === 'health') {
@@ -201,15 +253,14 @@ export class BehaviorManager {
               const radius = b.params.radius || 1.8;
               const dmg = b.params.damage || 20;
               if (dist < radius) {
-                // Find health behavior on player
                 const playerBehaviors = this.getBehaviors(player);
                 const healthB = playerBehaviors.find(hb => hb.type === 'health');
                 if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
                   healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || healthB.params.maxHp || 100) - dmg);
                   healthB._invincibleTimer = b.params.cooldown || 1.0;
-                  showToast(`⚠️ Player took ${dmg} damage from ${entity.name}! HP: ${healthB.params.currentHp}`, 'warn');
+                  if (typeof showToast === 'function') showToast(`⚠️ Player took ${dmg} damage from ${entity.name}! HP: ${healthB.params.currentHp}`, 'warn');
                   if (healthB.params.currentHp <= 0) {
-                    showToast(`💀 GAME OVER! ${player.name} was defeated.`, 'error');
+                    if (typeof showToast === 'function') showToast(`💀 GAME OVER! ${player.name} was defeated.`, 'error');
                   }
                 }
               }
@@ -227,7 +278,7 @@ export class BehaviorManager {
                   const maxHp = healthB.params.maxHp || 100;
                   healthB.params.currentHp = Math.min(maxHp, (healthB.params.currentHp || maxHp) + heal);
                   entity.enabled = false;
-                  showToast(`💚 Restored +${heal} HP! Current HP: ${healthB.params.currentHp}`, 'success');
+                  if (typeof showToast === 'function') showToast(`💚 Restored +${heal} HP! Current HP: ${healthB.params.currentHp}`, 'success');
                 }
               }
             }
@@ -242,7 +293,6 @@ export class BehaviorManager {
               const dist = pos.distance(targetPos);
 
               if (dist <= detectRadius) {
-                // Smoothly look at target position on floor
                 const lookPos = new pc.Vec3(targetPos.x, pos.y, targetPos.z);
                 entity.lookAt(lookPos);
 
@@ -250,7 +300,6 @@ export class BehaviorManager {
                   const dir = lookPos.sub(pos).normalize().mulScalar(speed * dt);
                   entity.translate(dir);
                 } else {
-                  // Attack player
                   if (!b._attackTimer) b._attackTimer = 0;
                   b._attackTimer -= dt;
                   if (b._attackTimer <= 0) {
@@ -259,8 +308,8 @@ export class BehaviorManager {
                     const healthB = playerBehaviors.find(hb => hb.type === 'health');
                     if (healthB) {
                       const dmg = b.params.damage || 15;
-                      healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - dmg);
-                      showToast(`⚔️ Enemy ${entity.name} attacked player for ${dmg} damage! HP: ${healthB.params.currentHp}`, 'warn');
+                      healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || healthB.params.maxHp || 100) - dmg);
+                      if (typeof showToast === 'function') showToast(`⚔️ Enemy ${entity.name} attacked player for ${dmg} damage! HP: ${healthB.params.currentHp}`, 'warn');
                     }
                   }
                 }
@@ -274,7 +323,6 @@ export class BehaviorManager {
             if (isTriggered && b._cooldown <= 0) {
               b._cooldown = b.params.cooldown || 0.3;
 
-              // Instantiate bullet
               const bullet = new pc.Entity(`Bullet_${Date.now()}`);
               bullet.setPosition(entity.getPosition().clone().add(entity.forward.clone().mulScalar(1.2)));
               bullet.setEulerAngles(entity.getEulerAngles());
@@ -288,9 +336,7 @@ export class BehaviorManager {
               bullet.addComponent('render', { type: 'sphere', material: mat });
               app.root.addChild(bullet);
 
-              // Bullet movement loop
               const bulletSpeed = b.params.speed || 30;
-              const dmg = b.params.damage || 35;
               let lifetime = b.params.lifetime || 2.0;
 
               const updateBullet = (bdt) => {
@@ -303,13 +349,12 @@ export class BehaviorManager {
 
                 bullet.translateLocal(0, 0, -bulletSpeed * bdt);
 
-                // Collision check against enemies
                 app.root.forEach(other => {
                   if (other !== bullet && other !== entity && other.enabled && other.parent) {
                     if (other.name.toLowerCase().includes('enemy') || other.name.toLowerCase().includes('monster') || other.name.toLowerCase().includes('target') || other.name.toLowerCase().includes('dummy')) {
                       const d = bullet.getPosition().distance(other.getPosition());
                       if (d < 1.5) {
-                        showToast(`💥 Bullet hit ${other.name}!`, 'success');
+                        if (typeof showToast === 'function') showToast(`💥 Bullet hit ${other.name}!`, 'success');
                         other.enabled = false;
                         lifetime = 0;
                       }
@@ -320,7 +365,6 @@ export class BehaviorManager {
               app.on('update', updateBullet);
             }
           } else if (b.type === 'mouse_look') {
-            // Allows player/camera to rotate with Arrow keys, Q/E, or mouse
             const rotSpeed = b.params.speed || 90;
             if (this.isKeyDown('arrowleft') || this.isKeyDown('q')) entity.rotate(0, rotSpeed * dt, 0);
             if (this.isKeyDown('arrowright') || this.isKeyDown('e')) entity.rotate(0, -rotSpeed * dt, 0);
@@ -340,7 +384,6 @@ export class BehaviorManager {
     }
 
     const list = this.activeBehaviors.get(entity);
-    // Don't add duplicate behavior of the same type
     const existing = list.find(b => b.type === behaviorType);
     if (existing) {
       existing.params = { ...existing.params, ...params };
