@@ -374,6 +374,26 @@ export class GameBundler {
       app.systems.rigidbody.gravity.set(...SCENE_DATA.gravity);
     }
 
+    // Apply Texture Compression & Hardware Filtering Pipeline
+    if (SCENE_DATA.textureCompression && app.graphicsDevice) {
+      if (SCENE_DATA.textureCompression.maxAnisotropy) {
+        app.graphicsDevice.maxAnisotropy = SCENE_DATA.textureCompression.maxAnisotropy;
+      }
+    }
+
+    // Execute Standalone Project Scripts
+    if (SCENE_DATA.scripts) {
+      Object.entries(SCENE_DATA.scripts).forEach(([scriptName, scriptCode]) => {
+        try {
+          const sTag = document.createElement('script');
+          sTag.textContent = scriptCode;
+          document.head.appendChild(sTag);
+        } catch (err) {
+          console.warn('Failed to load standalone script: ' + scriptName, err);
+        }
+      });
+    }
+
     // Setup 2D HUD Screen UI
     const hudConfig = SCENE_DATA.hud || {};
     if (hudConfig.health && hudConfig.health.enabled !== false) {
@@ -525,6 +545,33 @@ export class GameBundler {
           pitch: snd.pitch !== undefined ? snd.pitch : 1,
           loop: snd.loop !== false
         });
+      }
+
+      // Physics Joint Constraint Component
+      if (data.components && data.components.joint) {
+        ent.joint = data.components.joint;
+      }
+
+      // Visual Anim Graph State Machine
+      if (data.animGraph) {
+        ent._animGraph = data.animGraph;
+      }
+
+      // Script Component & Script Attributes Reflection
+      if (data.components && data.components.script) {
+        ent.addComponent('script');
+        if (data.components.script.attributes) {
+          ent.scriptData = data.components.script.attributes;
+          Object.entries(data.components.script.attributes).forEach(([scriptName, attrs]) => {
+            try {
+              if (app.scripts && app.scripts.has(scriptName)) {
+                ent.script.create(scriptName, { attributes: attrs });
+              }
+            } catch (err) {
+              console.warn('Could not instantiate standalone script: ' + scriptName, err);
+            }
+          });
+        }
       }
 
       // Behaviors
@@ -1011,6 +1058,63 @@ export class GameBundler {
         move.normalize().mulScalar(8 * dt);
         playerEntity.translate(move);
       }
+
+      // Evaluate Physics Joint Constraints
+      app.root.forEach(node => {
+        if (!node.enabled || !node.joint) return;
+        const j = node.joint;
+        if (j.targetEntity) {
+          const target = app.root.findByName(j.targetEntity);
+          if (target) {
+            const pivot = j.pivot ? new pc.Vec3(...j.pivot) : new pc.Vec3(0, 0, 0);
+            if (j.type === 'point_to_point') {
+              const desiredPos = target.getPosition().clone().add(pivot);
+              node.setPosition(desiredPos);
+            } else if (j.type === 'hinge') {
+              const anchor = target.getPosition().clone().add(pivot);
+              const cur = node.getPosition();
+              node.setPosition(anchor.x, cur.y, anchor.z);
+            }
+          }
+        }
+      });
+
+      // Evaluate Character Animation State Machine & Blending
+      app.root.forEach(node => {
+        if (!node.enabled || !node._animGraph) return;
+        const ag = node._animGraph;
+        if (!ag.states || !ag.transitions) return;
+
+        let curSpeed = 0;
+        if (node === playerEntity && move.lengthSq() > 0) {
+          curSpeed = 6.0;
+        }
+        ag.parameters = ag.parameters || {};
+        ag.parameters.speed = curSpeed;
+
+        let stateNow = node._currentAnimState || ag.defaultState || 'Idle';
+        for (const t of ag.transitions) {
+          if (t.from === stateNow) {
+            let matched = false;
+            if (t.condition.includes('speed >') && curSpeed > parseFloat(t.condition.split('>')[1])) matched = true;
+            if (t.condition.includes('speed <=') && curSpeed <= parseFloat(t.condition.split('<=')[1])) matched = true;
+            if (t.condition.includes('isGrounded == false') && !ag.parameters.isGrounded) matched = true;
+            if (t.condition.includes('isGrounded == true') && ag.parameters.isGrounded) matched = true;
+            if (t.condition.includes('isAttacking == true') && ag.parameters.isAttacking) matched = true;
+
+            if (matched && stateNow !== t.to) {
+              node._currentAnimState = t.to;
+              const targetState = ag.states.find(s => s.id === t.to);
+              if (targetState && node._animComp && node._animComp.play) {
+                try {
+                  node._animComp.play(targetState.name || targetState.clip || t.to);
+                } catch(e) {}
+              }
+              break;
+            }
+          }
+        }
+      });
 
       // Execute Triggers
       if (SCENE_DATA.triggers && playerEntity) {

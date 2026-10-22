@@ -179,6 +179,28 @@ export class ProjectSettingsModal {
   }
 
   open() {
+    if (this.editor && this.modal) {
+      const titleInput = this.modal.querySelector('#proj-title-input');
+      if (titleInput && this.editor.projectName) titleInput.value = this.editor.projectName;
+
+      const app = this.editor.getApp();
+      if (app && app.systems && app.systems.rigidbody) {
+        const gravInput = this.modal.querySelector('#proj-gravity-y');
+        if (gravInput) gravInput.value = app.systems.rigidbody.gravity.y;
+      }
+
+      if (this.editor.textureCompressionSettings) {
+        const s = this.editor.textureCompressionSettings;
+        const targetSelect = this.modal.querySelector('#proj-texture-target');
+        if (targetSelect && s.targetFormat) targetSelect.value = s.targetFormat;
+        const qualSelect = this.modal.querySelector('#proj-texture-quality');
+        if (qualSelect && s.qualityLevel) qualSelect.value = s.qualityLevel;
+        const anisoSelect = this.modal.querySelector('#proj-texture-aniso');
+        if (anisoSelect && s.maxAnisotropy) anisoSelect.value = s.maxAnisotropy;
+        const mipmapsCheck = this.modal.querySelector('#proj-texture-mipmaps');
+        if (mipmapsCheck && s.generateMipmaps !== undefined) mipmapsCheck.checked = s.generateMipmaps;
+      }
+    }
     this.modal.style.display = 'flex';
     this.isOpen = true;
   }

@@ -265,31 +265,30 @@ export class AnimBlendModal {
       `;
 
       // Drag node
-      let isDragging = false;
-      let startX, startY;
-
       nodeEl.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.clientX - state.x;
-        startY = e.clientY - state.y;
+        let isDragging = true;
+        const startX = e.clientX - state.x;
+        const startY = e.clientY - state.y;
         e.stopPropagation();
+
+        const onMouseMove = (moveEvt) => {
+          if (!isDragging) return;
+          state.x = Math.max(10, moveEvt.clientX - startX);
+          state.y = Math.max(10, moveEvt.clientY - startY);
+          nodeEl.style.left = `${state.x}px`;
+          nodeEl.style.top = `${state.y}px`;
+          this.renderLines();
+        };
+
+        const onMouseUp = () => {
+          isDragging = false;
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+        };
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
       });
-
-      const onMouseMove = (e) => {
-        if (!isDragging) return;
-        state.x = Math.max(10, e.clientX - startX);
-        state.y = Math.max(10, e.clientY - startY);
-        nodeEl.style.left = `${state.x}px`;
-        nodeEl.style.top = `${state.y}px`;
-        this.renderLines();
-      };
-
-      const onMouseUp = () => {
-        isDragging = false;
-      };
-
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
 
       container.appendChild(nodeEl);
     });

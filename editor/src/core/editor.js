@@ -455,6 +455,9 @@ export class Editor {
           axis: node.joint.axis || [0, 1, 0]
         };
       }
+      if (node.animGraph) {
+        data.animGraph = node.animGraph;
+      }
       if (node.particlesystem) {
         data.components.particlesystem = {
           numParticles: node.particlesystem.numParticles || 60,
@@ -518,6 +521,7 @@ export class Editor {
       atmosphere: this.runtime ? this.runtime.currentAtmosphere || 'day' : 'day',
       gravity: (app && app.systems && app.systems.rigidbody && app.systems.rigidbody.gravity) ? [app.systems.rigidbody.gravity.x, app.systems.rigidbody.gravity.y, app.systems.rigidbody.gravity.z] : [0, -9.8, 0],
       textureCompression: this.textureCompressionSettings || { targetFormat: 'auto', qualityLevel: 'normal', maxAnisotropy: 4, generateMipmaps: true },
+      animGraph: this.animGraph || null,
       hud: this.hudConfig,
       triggers: triggersData,
       scripts: scriptsData,
@@ -537,18 +541,20 @@ export class Editor {
       if (data.scene) this.activeSceneName = data.scene;
       if (data.hud) this.hudConfig = data.hud;
       if (data.textureCompression) this.textureCompressionSettings = data.textureCompression;
+      if (data.animGraph) this.animGraph = data.animGraph;
 
       const app = this.getApp();
-      if (!app || !app.root) return true;
+      const appRoot = app ? app.root : this.root;
+      if (!appRoot) return true;
 
       // Clear existing user entities (keep EditorGrid and EditorCamera)
       const toRemove = [];
-      app.root.children.forEach(c => {
+      appRoot.children.forEach(c => {
         if (c.name !== 'EditorGrid' && c.name !== 'EditorCamera') {
           toRemove.push(c);
         }
       });
-      toRemove.forEach(c => app.root.removeChild(c));
+      toRemove.forEach(c => appRoot.removeChild(c));
 
       const buildNode = (nodeData, parent) => {
         const ent = new pc.Entity(nodeData.name);
@@ -627,9 +633,16 @@ export class Editor {
               friction: rb.friction || 0.5
             });
           }
+          if (nodeData.animGraph) {
+            ent.animGraph = nodeData.animGraph;
+          }
           if (nodeData.components.joint) {
             ent.joint = nodeData.components.joint;
-            ent.addComponent('joint');
+            try {
+              ent.addComponent('joint');
+            } catch (e) {
+              // Virtual component handled in runtime helpers
+            }
           }
           if (nodeData.components.particlesystem) {
             ent.addComponent('particlesystem', {
@@ -668,7 +681,7 @@ export class Editor {
       };
 
       if (data.root && data.root.children) {
-        data.root.children.forEach(childData => buildNode(childData, app.root));
+        data.root.children.forEach(childData => buildNode(childData, appRoot));
       }
 
       // Restore atmosphere
@@ -677,7 +690,7 @@ export class Editor {
       }
 
       // Restore gravity
-      if (data.gravity && app.systems && app.systems.rigidbody) {
+      if (data.gravity && app && app.systems && app.systems.rigidbody) {
         app.systems.rigidbody.gravity.set(...data.gravity);
       }
 

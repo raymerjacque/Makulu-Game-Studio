@@ -477,6 +477,21 @@ export class InspectorPanel {
           <button class="btn" id="add-win-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>🏆</span> <span>Add Level Victory Trigger Volume</span>
           </button>
+
+          <button class="btn" id="btn-simple-anim-blend" style="justify-content: flex-start; gap: 8px;">
+            <span>🕺</span> <span>Visual Animation Blend Graph (States & Transitions)</span>
+          </button>
+
+          ${ent.joint ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #facc15; font-weight: 600;">⚙️ Joint (${ent.joint.type}) Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-simple-joint-btn" title="Remove Joint" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-simple-joint-btn" style="justify-content: flex-start; gap: 8px;">
+              <span>⚙️</span> <span>Attach Physics Joint (Door Hinge / Slider)</span>
+            </button>
+          `}
         </div>
       </div>
     `;
@@ -1151,6 +1166,37 @@ export class InspectorPanel {
           showToast(`⚡ Teleport Trigger registered on ${ent.name}!`, 'success');
           this.updateView();
         }
+      });
+    }
+
+    const simpleAnimBtn = body.querySelector('#btn-simple-anim-blend');
+    if (simpleAnimBtn) {
+      simpleAnimBtn.addEventListener('click', () => {
+        if (this.animBlendModal) {
+          this.animBlendModal.open(ent);
+        } else {
+          showToast('Animation Blend Graph Modal not available', 'info');
+        }
+      });
+    }
+
+    const addSimpleJointBtn = body.querySelector('#add-simple-joint-btn');
+    if (addSimpleJointBtn) {
+      addSimpleJointBtn.addEventListener('click', () => {
+        ent.joint = { type: 'hinge', targetEntity: '', pivot: [0, 1, 0], axis: [0, 1, 0] };
+        this.editor.addComponent(ent, 'joint');
+        showToast(`⚙️ Attached Physics Hinge Joint to ${ent.name}!`, 'success');
+        this.updateView();
+      });
+    }
+
+    const remSimpleJointBtn = body.querySelector('#remove-simple-joint-btn');
+    if (remSimpleJointBtn) {
+      remSimpleJointBtn.addEventListener('click', () => {
+        delete ent.joint;
+        this.editor.removeComponent(ent, 'joint');
+        showToast(`Removed Physics Joint from ${ent.name}.`, 'info');
+        this.updateView();
       });
     }
   }

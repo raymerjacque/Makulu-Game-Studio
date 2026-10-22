@@ -60,8 +60,8 @@ export function parseScriptAttributes(code) {
       attr.default = false;
     } else if (attr.type === 'number' || attr.type === 'float') {
       attr.default = 0;
-    } else if (attr.type === 'vec3' || attr.type === 'rgb') {
-      attr.default = [0, 0, 0];
+    } else if (attr.type === 'vec3' || attr.type === 'rgb' || attr.type === 'color') {
+      attr.default = [1, 1, 1];
     }
 
     // Min / Max / Step

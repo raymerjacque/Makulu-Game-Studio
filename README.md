@@ -242,6 +242,18 @@ Create reactive game mechanics through modular trigger volumes:
   * **High-Dynamic Range Bloom:** Adjustable bloom intensity and luminance threshold.
   * **Tone Mapping & Exposure:** Fine-tune exposure multiplier and HDR curve algorithms.
   * **Exponential Atmospheric Fog:** Custom fog color picker, fog density slider, and distance falloff.
+* **🖼️ Basis Universal & KTX2 Texture Compression Pipeline (`Settings ▾ -> ⚙️ Project Settings`):**
+  * **GPU Transcode Targets:** Auto (Hardware Best Fit), ASTC (Mobile / High Fidelity), DXT / BC1 / BC3 (Desktop PCs), ETC2 (Android Standard), BC7 (AAA High Detail), and RGBA Uncompressed.
+  * **Compression Quality:** Fast (Sub-second transcode), Normal (Balanced VRAM), High (Production), and Max (AAA Perfection).
+  * **Anisotropic Texture Filtering:** 1x, 4x, 8x, and 16x hardware anisotropic filtering control for ultra-sharp oblique angle textures.
+* **🕺 Visual Animation Blend Graph & State Machine Editor (`Tools ▾ -> 🕺 Visual Animation Blend Graph`):**
+  * **Interactive Node Canvas:** Visual state machine editor for skeletal character GLB animations (`Idle`, `Walk`, `Run`, `Jump`, `Attack`).
+  * **Condition & Transition Engine:** Create animated transition links with custom boolean and float conditions (`speed > 0.1`, `isGrounded == false`, `isAttacking == true`) and blend durations.
+  * **Live Parameter Simulator:** Test and verify transitions in real-time with speed sliders and grounded/attacking toggles before compiling.
+* **📜 Script Attribute Reflection Engine (`Script.attributes.add`):**
+  * **Live Code Parsing:** Introspects PlayCanvas script files to extract declared `Script.attributes.add()` definitions.
+  * **Dynamic Inspector GUI:** Automatically generates custom number sliders, boolean toggles, text boxes, and color pickers for any attached script.
+  * **Full Serialization & Runtime Binding:** Saves script attributes in scene JSON and passes them to script instances in standalone games.
 * **🌌 Dynamic Atmosphere & Sky Presets:**
   * Switch between **☀️ Clear Day**, **🌅 Sunset**, **🌆 Cyberpunk**, **🌫️ Foggy Valley**, and **🌙 Night** with real-time ambient lighting and exponential squared fog (`pc.FOG_EXP2`).
 * **🎬 Visual Animation Timeline & Keyframe Sequencer (`🎬 Timeline`):**
@@ -260,11 +272,13 @@ Create reactive game mechanics through modular trigger volumes:
   * **Light Range Gizmo:** Wireframe sphere matching point/spot light radius and color.
   * **Spatial Audio Gizmo:** Cyan wireframe sphere displaying audio maximum attenuation range.
   * **Physics Collision Gizmo:** Real-time green wireframe outlines displaying box, sphere, capsule, and cylinder collision bounds.
+  * **Physics Joint Constraint Gizmo:** Gold wireframe cylinder/sphere gizmos at joint pivot locations for visual anchor alignment.
 * **🧩 Advanced ECS Component Inspector:**
   * **🎥 Camera:** FOV, Near Clip, and Far Clip.
   * **💡 Light Source:** Real-time visual color wheel picker, Intensity, Range, Cone Angles, and Shadow cascades.
   * **🎯 Collision Shapes:** Box, Sphere, Capsule, Cylinder, and Mesh.
   * **⚡ Rigidbody Physics:** Dynamic, Kinematic, Static, Mass, Restitution (bounciness), and Friction controls.
+  * **⚙️ Physics Joint Constraints:** Hinge (doors, gates, wheels), Point-to-Point (chains, ropes), Slider (pistons, elevators), and Ball & Socket joints connecting rigidbodies across custom pivot offsets.
   * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust) with instant 1-click preset switching, particle count, rate, sorting, half-extents, and lifetime controls.
   * **🔊 3D Spatial Audio:** Audio asset URL configuration with in-editor playback preview, Volume, Pitch, and Loop toggles.
   * **⚡ Trigger Volumes:** Pro Mode addition and visual configuration of interactive proximity triggers.

@@ -225,4 +225,8 @@ test('GameBundler generates standalone HTML with Ammo.js physics, HUD, Victory s
   assert.ok(html.includes('jetpack'));
   assert.ok(html.includes('playProceduralSFX'));
   assert.ok(html.includes('data:audio/mp3;base64,SUQzBAAAAAAA'));
+  assert.ok(html.includes('data.components.joint'), 'GameBundler includes joint constraint parsing');
+  assert.ok(html.includes('data.components.script'), 'GameBundler includes script component attributes reflection');
+  assert.ok(html.includes('_animGraph'), 'GameBundler includes visual anim blend graph state machine evaluation');
+  assert.ok(html.includes('textureCompression'), 'GameBundler includes texture compression and hardware filtering');
 });
