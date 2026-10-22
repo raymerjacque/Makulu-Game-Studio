@@ -100,6 +100,9 @@ export class InspectorPanel {
     const hasHealth = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'health') : false;
     const hasDamage = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'damage_dealer') : false;
     const hasHealthPickup = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'health_pickup') : false;
+    const hasEnemyAI = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'enemy_ai') : false;
+    const hasShooter = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'projectile_shooter') : false;
+    const hasMouseLook = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'mouse_look') : false;
     const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
 
     body.innerHTML = `
@@ -312,8 +315,45 @@ export class InspectorPanel {
             </button>
           `}
 
+          ${hasEnemyAI ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #ef4444; font-weight: 600;">🤖 Enemy Chase AI Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-enemy-ai-behavior" title="Remove Enemy AI" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-enemy-ai-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🤖</span> <span>Make Enemy Chase AI Hostile</span>
+            </button>
+          `}
+
+          ${hasShooter ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234,179,8,0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #facc15; font-weight: 600;">🔫 Projectile Weapon Shooter Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-shooter-behavior" title="Remove Shooter" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-shooter-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔫</span> <span>Add Projectile Shooter (Press F / Space)</span>
+            </button>
+          `}
+
+          ${hasMouseLook ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #60a5fa; font-weight: 600;">👀 First/Third Person Rotation Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-mouselook-behavior" title="Remove Look" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-mouselook-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>👀</span> <span>Add Camera/Player Rotation Controls</span>
+            </button>
+          `}
+
           <button class="btn" id="add-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>⚡</span> <span>Add Teleport Trigger Volume</span>
+          </button>
+
+          <button class="btn" id="add-win-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
+            <span>🏆</span> <span>Add Level Victory Trigger Volume</span>
           </button>
         </div>
       </div>
@@ -392,6 +432,88 @@ export class InspectorPanel {
           this.editor.behaviors.attachBehavior(ent, 'spin', { speed: 45, axis: 'y' });
           showToast(`🔄 Attached Continuous Spin to ${ent.name}!`, 'success');
           this.inspect(ent);
+        }
+      });
+    }
+
+    const addWinTrigBtn = body.querySelector('#add-win-trigger-behavior');
+    if (addWinTrigBtn) {
+      addWinTrigBtn.addEventListener('click', () => {
+        if (this.editor.triggers) {
+          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+          this.editor.triggers.registerTrigger(ent.name, {
+            eventType: 'on_enter',
+            action: 'win_level',
+            victoryMessage: '🏆 VICTORY! You completed the level!'
+          });
+          showToast(`🏆 Victory Level Trigger registered on ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+
+    // Enemy AI Behavior
+    const addEnemyAiBtn = body.querySelector('#add-enemy-ai-behavior');
+    if (addEnemyAiBtn) {
+      addEnemyAiBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'enemy_ai', { speed: 3.5, detectRadius: 15, damage: 15 });
+          showToast(`🤖 Attached Enemy Chase AI to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remEnemyAiBtn = body.querySelector('#remove-enemy-ai-behavior');
+    if (remEnemyAiBtn) {
+      remEnemyAiBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'enemy_ai');
+          showToast(`Removed Enemy AI from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Shooter Behavior
+    const addShooterBtn = body.querySelector('#add-shooter-behavior');
+    if (addShooterBtn) {
+      addShooterBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'projectile_shooter', { speed: 30, damage: 35, cooldown: 0.3 });
+          showToast(`🔫 Attached Projectile Weapon Shooter to ${ent.name}! Press F / Space during ▶ Play!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remShooterBtn = body.querySelector('#remove-shooter-behavior');
+    if (remShooterBtn) {
+      remShooterBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'projectile_shooter');
+          showToast(`Removed Projectile Shooter from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Mouse Look Behavior
+    const addMouseLookBtn = body.querySelector('#add-mouselook-behavior');
+    if (addMouseLookBtn) {
+      addMouseLookBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'mouse_look', { speed: 90 });
+          showToast(`👀 Attached First/Third Person Rotation Controls to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remMouseLookBtn = body.querySelector('#remove-mouselook-behavior');
+    if (remMouseLookBtn) {
+      remMouseLookBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'mouse_look');
+          showToast(`Removed Rotation Controls from ${ent.name}.`, 'info');
+          this.updateView();
         }
       });
     }
@@ -1427,6 +1549,7 @@ export class InspectorPanel {
               <option value="add_score" ${trigConfig.action === 'add_score' ? 'selected' : ''}>⭐ Add Score</option>
               <option value="toggle_visibility" ${trigConfig.action === 'toggle_visibility' ? 'selected' : ''}>💡 Toggle Visibility</option>
               <option value="destroy" ${trigConfig.action === 'destroy' ? 'selected' : ''}>💥 Destroy Target Entity</option>
+              <option value="win_level" ${trigConfig.action === 'win_level' ? 'selected' : ''}>🏆 Level Victory</option>
               <option value="play_sound" ${trigConfig.action === 'play_sound' ? 'selected' : ''}>🔊 Play Sound</option>
             </select>
           </div>

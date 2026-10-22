@@ -231,6 +231,99 @@ export class BehaviorManager {
                 }
               }
             }
+          } else if (b.type === 'enemy_ai') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const speed = b.params.speed || 3.5;
+              const detectRadius = b.params.detectRadius || 15;
+              const attackRadius = b.params.attackRadius || 1.8;
+              const pos = entity.getPosition();
+              const targetPos = player.getPosition();
+              const dist = pos.distance(targetPos);
+
+              if (dist <= detectRadius) {
+                // Smoothly look at target position on floor
+                const lookPos = new pc.Vec3(targetPos.x, pos.y, targetPos.z);
+                entity.lookAt(lookPos);
+
+                if (dist > attackRadius) {
+                  const dir = lookPos.sub(pos).normalize().mulScalar(speed * dt);
+                  entity.translate(dir);
+                } else {
+                  // Attack player
+                  if (!b._attackTimer) b._attackTimer = 0;
+                  b._attackTimer -= dt;
+                  if (b._attackTimer <= 0) {
+                    b._attackTimer = b.params.attackRate || 1.0;
+                    const playerBehaviors = this.getBehaviors(player);
+                    const healthB = playerBehaviors.find(hb => hb.type === 'health');
+                    if (healthB) {
+                      const dmg = b.params.damage || 15;
+                      healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - dmg);
+                      showToast(`⚔️ Enemy ${entity.name} attacked player for ${dmg} damage! HP: ${healthB.params.currentHp}`, 'warn');
+                    }
+                  }
+                }
+              }
+            }
+          } else if (b.type === 'projectile_shooter') {
+            if (!b._cooldown) b._cooldown = 0;
+            if (b._cooldown > 0) b._cooldown -= dt;
+
+            const isTriggered = this.isKeyDown('f') || this.isKeyDown('keyf') || this.isKeyDown('e') || this.isKeyDown('space');
+            if (isTriggered && b._cooldown <= 0) {
+              b._cooldown = b.params.cooldown || 0.3;
+
+              // Instantiate bullet
+              const bullet = new pc.Entity(`Bullet_${Date.now()}`);
+              bullet.setPosition(entity.getPosition().clone().add(entity.forward.clone().mulScalar(1.2)));
+              bullet.setEulerAngles(entity.getEulerAngles());
+              bullet.setLocalScale(0.2, 0.2, 0.4);
+
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = new pc.Color(1, 0.2, 0);
+              mat.emissive = new pc.Color(1, 0.5, 0);
+              mat.update();
+
+              bullet.addComponent('render', { type: 'sphere', material: mat });
+              app.root.addChild(bullet);
+
+              // Bullet movement loop
+              const bulletSpeed = b.params.speed || 30;
+              const dmg = b.params.damage || 35;
+              let lifetime = b.params.lifetime || 2.0;
+
+              const updateBullet = (bdt) => {
+                lifetime -= bdt;
+                if (lifetime <= 0 || !bullet.parent) {
+                  app.off('update', updateBullet);
+                  if (bullet.parent) bullet.destroy();
+                  return;
+                }
+
+                bullet.translate(0, 0, -bulletSpeed * bdt);
+
+                // Collision check against enemies
+                app.root.forEach(other => {
+                  if (other !== bullet && other !== entity && other.enabled && other.parent) {
+                    if (other.name.toLowerCase().includes('enemy') || other.name.toLowerCase().includes('monster') || other.name.toLowerCase().includes('target') || other.name.toLowerCase().includes('dummy')) {
+                      const d = bullet.getPosition().distance(other.getPosition());
+                      if (d < 1.5) {
+                        showToast(`💥 Bullet hit ${other.name}!`, 'success');
+                        other.enabled = false;
+                        lifetime = 0;
+                      }
+                    }
+                  }
+                });
+              };
+              app.on('update', updateBullet);
+            }
+          } else if (b.type === 'mouse_look') {
+            // Allows player/camera to rotate with WASD or mouse movement
+            const rotSpeed = b.params.speed || 90;
+            if (this.isKeyDown('arrowleft')) entity.rotate(0, rotSpeed * dt, 0);
+            if (this.isKeyDown('arrowright')) entity.rotate(0, -rotSpeed * dt, 0);
           }
         }
       }

@@ -78,6 +78,27 @@ export class HUDModal {
             </div>
           </div>
 
+          <!-- Level Victory Screen Config -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 700; font-size: 12px; color: #10b981;">🏆 Victory / Level Complete Overlay</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="hud-victory-enabled" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px;">
+              <div>
+                <label style="color: var(--text-muted); display: block; margin-bottom: 4px;">Victory Title</label>
+                <input type="text" id="hud-victory-title" class="text-input" value="🏆 VICTORY!">
+              </div>
+              <div>
+                <label style="color: var(--text-muted); display: block; margin-bottom: 4px;">Victory Message</label>
+                <input type="text" id="hud-victory-msg" class="text-input" value="Congratulations! You completed the level!">
+              </div>
+            </div>
+          </div>
+
           <!-- Crosshair Config -->
           <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -155,6 +176,11 @@ export class HUDModal {
           enabled: this.container.querySelector('#hud-gameover-enabled').checked,
           title: this.container.querySelector('#hud-gameover-title').value.trim() || 'GAME OVER',
           message: this.container.querySelector('#hud-gameover-msg').value.trim() || 'Your health reached 0.'
+        },
+        victory: {
+          enabled: this.container.querySelector('#hud-victory-enabled').checked,
+          title: this.container.querySelector('#hud-victory-title').value.trim() || '🏆 VICTORY!',
+          message: this.container.querySelector('#hud-victory-msg').value.trim() || 'Congratulations! You completed the level!'
         }
       };
 
@@ -195,6 +221,12 @@ export class HUDModal {
       this.container.querySelector('#hud-gameover-enabled').checked = config.gameOver.enabled !== false;
       this.container.querySelector('#hud-gameover-title').value = config.gameOver.title || 'GAME OVER';
       this.container.querySelector('#hud-gameover-msg').value = config.gameOver.message || 'Your health reached 0.';
+    }
+
+    if (config.victory) {
+      this.container.querySelector('#hud-victory-enabled').checked = config.victory.enabled !== false;
+      this.container.querySelector('#hud-victory-title').value = config.victory.title || '🏆 VICTORY!';
+      this.container.querySelector('#hud-victory-msg').value = config.victory.message || 'Congratulations! You completed the level!';
     }
 
     this.container.style.display = 'flex';
