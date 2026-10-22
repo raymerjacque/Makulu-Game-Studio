@@ -165,6 +165,35 @@ test('Win Level Victory Trigger action registration and execution', () => {
   assert.equal(trig.victoryMessage, 'Level 1 Cleared!');
 });
 
+test('AAA No-Code Behaviors: First Person Controller, Target Health, Key Pickup, Locked Door, Jetpack, Level Portal', () => {
+  const editor = new Editor();
+  const player = { name: 'Player' };
+  const target = { name: 'Boss' };
+  const key = { name: 'GoldKey' };
+  const door = { name: 'VaultDoor' };
+  const portal = { name: 'ScenePortal' };
+
+  if (editor.behaviors) {
+    editor.behaviors.attachBehavior(player, 'first_person_controller', { speed: 10, rotSpeed: 90 });
+    assert.equal(editor.behaviors.hasBehavior(player, 'first_person_controller'), true);
+
+    editor.behaviors.attachBehavior(target, 'target_health', { maxHp: 200, currentHp: 200, scoreValue: 500 });
+    assert.equal(editor.behaviors.hasBehavior(target, 'target_health'), true);
+
+    editor.behaviors.attachBehavior(key, 'key_pickup', { keyName: 'Gold Key' });
+    assert.equal(editor.behaviors.hasBehavior(key, 'key_pickup'), true);
+
+    editor.behaviors.attachBehavior(door, 'locked_door', { requiredKey: 'Gold Key' });
+    assert.equal(editor.behaviors.hasBehavior(door, 'locked_door'), true);
+
+    editor.behaviors.attachBehavior(player, 'jetpack', { fuel: 100, thrust: 15 });
+    assert.equal(editor.behaviors.hasBehavior(player, 'jetpack'), true);
+
+    editor.behaviors.attachBehavior(portal, 'level_portal', { targetScene: 'Level_2' });
+    assert.equal(editor.behaviors.hasBehavior(portal, 'level_portal'), true);
+  }
+});
+
 test('GameBundler generates standalone HTML with Ammo.js physics, HUD, Victory screen, Base64 assets and new behaviors', () => {
   const editor = new Editor();
   editor.projectName = 'Awesome 3D Game';
@@ -190,5 +219,10 @@ test('GameBundler generates standalone HTML with Ammo.js physics, HUD, Victory s
   assert.ok(html.includes('moving_platform'));
   assert.ok(html.includes('interactive_door'));
   assert.ok(html.includes('enemy_spawner'));
+  assert.ok(html.includes('first_person_controller'));
+  assert.ok(html.includes('key_pickup'));
+  assert.ok(html.includes('locked_door'));
+  assert.ok(html.includes('jetpack'));
+  assert.ok(html.includes('playProceduralSFX'));
   assert.ok(html.includes('data:audio/mp3;base64,SUQzBAAAAAAA'));
 });

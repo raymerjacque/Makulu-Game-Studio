@@ -1,3 +1,5 @@
+import { PROCEDURAL_SFX_RUNTIME_CODE } from '../engine/procedural-sfx.js';
+
 /**
  * Standalone HTML5 Game Bundler & Compiler
  * Packages the active scene, entities, materials, behaviors, 2D HUD, Base64 assets, Ammo.js physics, particle emitters,
@@ -399,6 +401,9 @@ export class GameBundler {
       window._shakeTimer = duration || 0.3;
     };
 
+    // Inline Procedural Web Audio SFX Generator
+    ${PROCEDURAL_SFX_RUNTIME_CODE}
+
     // Build Scene Graph from Exported Data
     function buildNode(data, parent) {
       const ent = new pc.Entity(data.name);
@@ -785,6 +790,99 @@ export class GameBundler {
                     }
                   }
                 }
+              }
+            }
+          } else if (b.type === 'first_person_controller') {
+            const speed = b.properties?.speed || 10;
+            const rotSpeed = b.properties?.rotSpeed || 90;
+            const move = new pc.Vec3();
+
+            const forward = new pc.Vec3(node.forward.x, 0, node.forward.z);
+            if (forward.lengthSq() > 0.0001) forward.normalize();
+            const right = new pc.Vec3(node.right.x, 0, node.right.z);
+            if (right.lengthSq() > 0.0001) right.normalize();
+
+            if (keys['w'] || keys['arrowup']) move.add(forward);
+            if (keys['s'] || keys['arrowdown']) move.sub(forward);
+            if (keys['a']) move.sub(right);
+            if (keys['d']) move.add(right);
+
+            if (keys['q'] || keys['arrowleft']) node.rotate(0, rotSpeed * dt, 0);
+            if (keys['e'] || keys['arrowright']) node.rotate(0, -rotSpeed * dt, 0);
+
+            if (move.lengthSq() > 0.0001) {
+              move.normalize().mulScalar(speed * dt);
+              node.translate(move);
+            }
+
+            if (gameCamera) {
+              gameCamera.setPosition(node.getPosition().clone().add(new pc.Vec3(0, 1.6, 0)));
+              gameCamera.setEulerAngles(node.getEulerAngles());
+            }
+          } else if (b.type === 'target_health') {
+            if (b.properties.currentHp === undefined) b.properties.currentHp = b.properties.maxHp || 100;
+            if (b.properties.currentHp <= 0 && node.enabled) {
+              node.enabled = false;
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+              window.triggerScreenShake(0.5, 0.25);
+            }
+          } else if (b.type === 'key_pickup') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 1.8;
+              if (dist < radius) {
+                node.enabled = false;
+                if (!playerEntity._collectedKeys) playerEntity._collectedKeys = new Set();
+                const keyName = b.properties?.keyName || 'Gold Key';
+                playerEntity._collectedKeys.add(keyName);
+                if (window.playProceduralSFX) window.playProceduralSFX('coin');
+              }
+            }
+          } else if (b.type === 'locked_door') {
+            if (playerEntity) {
+              const nPos = node.getPosition();
+              const pPos = playerEntity.getPosition();
+              const distXZ = Math.hypot(nPos.x - pPos.x, nPos.z - pPos.z);
+              const radius = b.properties?.radius || 3.5;
+              const reqKey = b.properties?.requiredKey || 'Gold Key';
+
+              if (!b._state) b._state = { isOpen: false, startY: nPos.y };
+              const hasKey = Boolean(playerEntity._collectedKeys && playerEntity._collectedKeys.has(reqKey));
+
+              if (distXZ <= radius && !b._state.isOpen) {
+                if (hasKey) {
+                  b._state.isOpen = true;
+                  node.translate(0, 3.5, 0);
+                  if (window.playProceduralSFX) window.playProceduralSFX('door');
+                }
+              } else if (distXZ > radius && b._state.isOpen) {
+                b._state.isOpen = false;
+                node.setPosition(nPos.x, b._state.startY, nPos.z);
+              }
+            }
+          } else if (b.type === 'jetpack') {
+            if (b.properties.fuel === undefined) b.properties.fuel = b.properties.maxFuel || 100;
+            const thrustKey = keys['shift'] || keys['space'] || keys[' '];
+            if (thrustKey && b.properties.fuel > 0) {
+              b.properties.fuel = Math.max(0, b.properties.fuel - dt * 35);
+              const thrust = b.properties?.thrust || 12;
+              if (node.rigidbody) {
+                node.rigidbody.applyImpulse(0, thrust * dt, 0);
+              } else {
+                node.translate(0, thrust * dt * 0.5, 0);
+              }
+              if (window.playProceduralSFX) window.playProceduralSFX('boost', 0.2);
+            } else {
+              b.properties.fuel = Math.min(b.properties.maxFuel || 100, b.properties.fuel + dt * 20);
+            }
+          } else if (b.type === 'level_portal') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.0;
+              if (dist < radius) {
+                if (window.playProceduralSFX) window.playProceduralSFX('victory');
+                const vicScreen = document.getElementById('victory-screen');
+                if (vicScreen) vicScreen.style.display = 'flex';
               }
             }
           } else if (b.type === 'mouse_look') {

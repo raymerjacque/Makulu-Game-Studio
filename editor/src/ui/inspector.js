@@ -425,13 +425,19 @@ export class InspectorPanel {
         const g = parseInt(hex.slice(3, 5), 16) / 255;
         const b = parseInt(hex.slice(5, 7), 16) / 255;
 
-        if (ent.render) {
-          if (!ent.render.material) {
-            ent.render.material = new pc.StandardMaterial();
+        const applyColorNode = (node) => {
+          if (node.render) {
+            if (!node.render.material) {
+              node.render.material = new pc.StandardMaterial();
+            }
+            node.render.material.diffuse = new pc.Color(r, g, b);
+            node.render.material.update();
           }
-          ent.render.material.diffuse = new pc.Color(r, g, b);
-          ent.render.material.update();
-        }
+          if (node.children) node.children.forEach(applyColorNode);
+        };
+        applyColorNode(ent);
+        this.editor.events.emit('entity:component:changed', ent);
+        this.editor.events.emit('scene:changed');
       });
     });
 
@@ -1032,6 +1038,12 @@ export class InspectorPanel {
             <option value="trigger">Trigger Volume</option>
           </optgroup>
           <optgroup label="Gameplay Behaviors">
+            <option value="b_first_person_controller">👀 First-Person Controller</option>
+            <option value="b_target_health">🎯 Target/Enemy Health & Defeat</option>
+            <option value="b_key_pickup">🔑 Key Item Pickup</option>
+            <option value="b_locked_door">🔒 Locked Key Door</option>
+            <option value="b_jetpack">🚀 Jetpack & Double Jump</option>
+            <option value="b_level_portal">🌀 Level Transition Portal</option>
             <option value="b_enemy_ai">🤖 Enemy Chase AI</option>
             <option value="b_projectile_shooter">🔫 Projectile Weapon Shooter</option>
             <option value="b_mouse_look">👀 Mouse Look / Rotation</option>
@@ -1128,6 +1140,12 @@ export class InspectorPanel {
           const bType = type.replace('b_', '');
           if (this.editor.behaviors) {
             const defaults = {
+              first_person_controller: { speed: 10, rotSpeed: 90 },
+              target_health: { maxHp: 100, currentHp: 100, scoreValue: 100 },
+              key_pickup: { keyName: 'Gold Key', radius: 1.8 },
+              locked_door: { requiredKey: 'Gold Key', radius: 3.5 },
+              jetpack: { fuel: 100, maxFuel: 100, thrust: 12 },
+              level_portal: { targetScene: 'Level_2', radius: 2.0 },
               enemy_ai: { speed: 3.5, detectRadius: 15, damage: 15 },
               projectile_shooter: { speed: 30, damage: 35, cooldown: 0.3 },
               mouse_look: { speed: 90 },
@@ -1279,12 +1297,21 @@ export class InspectorPanel {
               this.matPreview.updateMaterial({ diffuse: [r, g, b], metalness, roughness });
             }
 
-            if (ent.render && ent.render.material) {
-              ent.render.material.diffuse = new pc.Color(r, g, b);
-              ent.render.material.metalness = metalness;
-              ent.render.material.roughness = roughness;
-              ent.render.material.update();
-            }
+            const applyMatNode = (node) => {
+              if (node.render) {
+                if (!node.render.material) {
+                  node.render.material = new pc.StandardMaterial();
+                }
+                node.render.material.diffuse = new pc.Color(r, g, b);
+                node.render.material.metalness = metalness;
+                node.render.material.roughness = roughness;
+                node.render.material.update();
+              }
+              if (node.children) node.children.forEach(applyMatNode);
+            };
+            applyMatNode(ent);
+            this.editor.events.emit('entity:component:changed', ent);
+            this.editor.events.emit('scene:changed');
           };
 
           diffuseInp.addEventListener('input', updateMat);

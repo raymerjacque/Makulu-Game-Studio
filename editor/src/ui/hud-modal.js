@@ -99,6 +99,34 @@ export class HUDModal {
             </div>
           </div>
 
+          <!-- Key Inventory Overlay Config -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 700; font-size: 12px; color: #facc15;">🔑 Key Inventory Display</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="hud-keys-enabled" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              Displays active key items (e.g. Gold Key, Red Key) collected by the player on screen.
+            </div>
+          </div>
+
+          <!-- Jetpack Fuel Gauge Config -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 700; font-size: 12px; color: #38bdf8;">🚀 Jetpack Fuel Gauge Overlay</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="hud-jetpack-enabled" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              Displays live jetpack boost fuel gauge for characters equipped with jetpack behavior.
+            </div>
+          </div>
+
           <!-- Crosshair Config -->
           <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -172,6 +200,12 @@ export class HUDModal {
           enabled: this.container.querySelector('#hud-crosshair-enabled').checked,
           style: this.container.querySelector('#hud-crosshair-style').value
         },
+        keys: {
+          enabled: this.container.querySelector('#hud-keys-enabled').checked
+        },
+        jetpack: {
+          enabled: this.container.querySelector('#hud-jetpack-enabled').checked
+        },
         gameOver: {
           enabled: this.container.querySelector('#hud-gameover-enabled').checked,
           title: this.container.querySelector('#hud-gameover-title').value.trim() || 'GAME OVER',
@@ -210,6 +244,14 @@ export class HUDModal {
       this.container.querySelector('#hud-score-enabled').checked = config.score.enabled !== false;
       this.container.querySelector('#hud-score-label').value = config.score.label || 'Score:';
       this.container.querySelector('#hud-score-initial').value = config.score.initial !== undefined ? config.score.initial : 0;
+    }
+
+    if (config.keys) {
+      this.container.querySelector('#hud-keys-enabled').checked = config.keys.enabled !== false;
+    }
+
+    if (config.jetpack) {
+      this.container.querySelector('#hud-jetpack-enabled').checked = config.jetpack.enabled !== false;
     }
 
     if (config.crosshair) {
