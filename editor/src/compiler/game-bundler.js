@@ -241,6 +241,36 @@ export class GameBundler {
               node.lookAt(cam.getPosition());
               node.rotateLocal(0, 180, 0);
             }
+          } else if (b.type === 'sine_float') {
+            const amplitude = b.properties?.amplitude || 0.5;
+            const frequency = b.properties?.frequency || 2.0;
+            if (!b._state) b._state = { initialY: node.getPosition().y, time: 0 };
+            b._state.time += dt * frequency;
+            const p = node.getPosition();
+            node.setPosition(p.x, b._state.initialY + Math.sin(b._state.time) * amplitude, p.z);
+          } else if (b.type === 'orbit') {
+            const speed = b.properties?.speed || 1.0;
+            const radius = b.properties?.radius || 5.0;
+            if (!b._state) {
+              b._state = {
+                angle: 0,
+                center: b.properties?.center ? new pc.Vec3(...b.properties.center) : new pc.Vec3(0, node.getPosition().y, 0)
+              };
+            }
+            b._state.angle += dt * speed;
+            const x = b._state.center.x + Math.cos(b._state.angle) * radius;
+            const z = b._state.center.z + Math.sin(b._state.angle) * radius;
+            node.setPosition(x, node.getPosition().y, z);
+          } else if (b.type === 'camera_follow') {
+            const cam = app.root.find(c => c.camera);
+            if (cam) {
+              const offset = b.properties?.offset || [0, 4, 8];
+              const targetPos = node.getPosition().clone().add(new pc.Vec3(...offset));
+              const curPos = cam.getPosition();
+              curPos.lerp(curPos, targetPos, Math.min(1.0, dt * 5.0));
+              cam.setPosition(curPos);
+              cam.lookAt(node.getPosition());
+            }
           } else if (b.type === 'collectible') {
             if (playerEntity) {
               const dist = node.getPosition().distance(playerEntity.getPosition());

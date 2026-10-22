@@ -138,6 +138,12 @@ Add interactive gameplay logic without writing a single line of JavaScript:
    Dynamically rotates entities to face the active camera at all times. Perfect for 2D sprites, health bars, nametags, and UI icons in 3D space.
 7. **💎 Collectible Item Pickups:**
    Detects proximity between player entities and items, triggering collection events, sound effects, and entity removal.
+8. **🌊 Sine Wave Floating:**
+   Oscillates entities vertically using smooth sinusoidal motion with adjustable amplitude and frequency. Perfect for hovering powerups, mystical relics, and floating platforms.
+9. **💫 Orbit Movement:**
+   Rotates entities circularly around a central point at a configurable speed and radius. Ideal for planetary bodies, circling drones, and magical shields.
+10. **🎥 Third-Person Camera Follow:**
+    Smoothly lerps the scene camera to track the target entity from a customizable offset vector, creating an instant third-person action game perspective.
 
 ---
 
@@ -158,8 +164,11 @@ Create reactive game mechanics through modular trigger volumes:
   * Live **3D Orbiting Sphere Preview** rendered via real-time WebGL.
   * Adjust Diffuse Color, Metallic, Roughness, Emissive Glow, and Opacity.
   * Direct 1-click **"Apply to Selected Object"** or **"Save as Asset"** to your project library.
+  * **🎨 PBR Preset Material Hub:** Integrated into the Model Store, featuring pre-tuned material presets (Gold, Cyber Neon, Rustic Wood, Cobblestone Brick, Mossy Stone, Molten Lava, Crystal Water) with 1-click apply and project saving.
   * **Drag-and-Drop Material Assignment:** Drag `.mat` material cards from the Asset Browser directly onto any 3D entity in the viewport to apply instantly.
   * **Double-Click Quick Apply:** Double-click any saved material in the asset browser to immediately dress the currently selected entity.
+  * **🖼️ Texture Diffuse Mapping:** Double-click image textures in the asset browser to assign them directly as diffuse texture maps.
+  * **🔊 Instant Audio Previews:** Double-click audio assets in the asset browser to preview playback on the fly.
 * **⚙️ Global Project & Physics Settings (`⚙️ Project`):**
   * **Physics Gravity Y:** Freely tune gravity between Earth (`-9.8 m/s²`), Moon (`-1.6 m/s²`), Zero-G (`0`), or high-gravity worlds.
   * **Tone Mapping Selection:** Choose between ACES Filmic, Linear Standard, and High Contrast Filmic.
@@ -178,7 +187,8 @@ Create reactive game mechanics through modular trigger volumes:
 
 ## 📦 3D Model Store, Procedural Terrain, Prefabs & ECS Engine
 
-* **📦 CC0 3D Model Store:** Integrated catalog of 19 authentic public-domain (CC0) 3D GLB models (Kenney, Khronos) ready for 1-click spawning: hero characters, armored warriors, ships, trees, rocks, barrels, chests, and gates. Also includes direct links to Poly Pizza, Quaternius, OpenGameArt, Sketchfab, and Mixamo, plus custom `.glb` drag-and-drop file import.
+* **📦 CC0 3D Model Store & Asset Hub:** Integrated catalog of 19 authentic public-domain (CC0) 3D GLB models (Kenney, Khronos) ready for 1-click spawning: hero characters, armored warriors, ships, trees, rocks, barrels, chests, and gates. Also includes direct links to **Poly Haven** (AAA CC0 HDRIs & textures), **ambientCG** (2,000+ seamless PBR maps), **Poly Pizza**, **Quaternius**, **CGTrader Free Models**, **OpenGameArt**, **Sketchfab**, and **Mixamo**, plus automatic asset registration for custom uploaded `.glb` files.
+* **🦴 Skeletal Animation Playback:** Inspector animation controller automatically traverses root and child hierarchies to trigger and control skeletal animations on complex imported models.
 * **📦 Prefab & Entity Template System:** Save any configured entity hierarchy as a reusable Prefab with 1-click **"Save Prefab"** in the Inspector. Re-instantiate prefabs into the scene with a single click or double-click from `/assets/prefabs`.
 * **🏔️ Procedural Terrain Sculptor:** Multi-octave Perlin noise heightmap mesh generator with customizable resolution (16×16 to 128×128 vertices), max altitude, roughness, seamless edge falloff, and elevation-based vertex coloring (beach sand, lush grass, mountain rock, and snow peak). Includes physics mesh collision.
 * **👁️ 3D Viewport Component Visual Wireframe Helpers:**

@@ -1,4 +1,5 @@
 import * as pc from 'playcanvas';
+import { showToast } from '../ui/toast.js';
 
 /**
  * Simple Mode Plug-and-Play Game Behaviors
@@ -186,9 +187,7 @@ export class BehaviorManager {
               const dist = entity.getPosition().distance(player.getPosition());
               if (dist < (b.params.radius || 1.5)) {
                 entity.enabled = false;
-                if (typeof window !== 'undefined' && window.showToast) {
-                  window.showToast(`✨ Collected item: ${entity.name}!`, 'success');
-                }
+                showToast(`✨ Collected item: ${entity.name}!`, 'success');
               }
             }
           }
