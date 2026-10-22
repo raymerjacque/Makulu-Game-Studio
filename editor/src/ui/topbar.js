@@ -130,6 +130,9 @@ export class TopBar {
               <div class="topbar-dropdown-item" id="menu-action-timeline">
                 <span class="item-label">🎬 Animation Timeline Sequencer...</span>
               </div>
+              <div class="topbar-dropdown-item" id="menu-action-anim-blend">
+                <span class="item-label">🕺 Visual Animation Blend Graph...</span>
+              </div>
               <div class="topbar-dropdown-item" id="menu-action-postfx">
                 <span class="item-label">✨ Post-Processing FX Pipeline...</span>
               </div>
@@ -549,6 +552,16 @@ export class TopBar {
     if (tlItem) {
       tlItem.addEventListener('click', () => {
         if (this.timelinePanel) this.timelinePanel.toggle();
+      });
+    }
+
+    // Visual Animation Blend Graph
+    const animBlendItem = this.container.querySelector('#menu-action-anim-blend');
+    if (animBlendItem) {
+      animBlendItem.addEventListener('click', () => {
+        if (this.extraModals && this.extraModals.animBlendModal) {
+          this.extraModals.animBlendModal.open();
+        }
       });
     }
 

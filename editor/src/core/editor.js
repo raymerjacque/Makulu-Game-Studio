@@ -36,6 +36,7 @@ export class Editor {
     this.selection = new SelectionManager(this);
     this.mode = 'simple'; // 'simple' or 'pro'
     this.runtime = null;
+    this.root = new pc.Entity('Root');
     this.projectName = 'Untitled Project';
     this.activeSceneName = 'Main Scene';
     this.scenes = new Map([[this.activeSceneName, null]]); // sceneName -> json string
@@ -80,10 +81,9 @@ export class Editor {
    */
   createEntity(options = {}) {
     const app = this.getApp();
-    if (!app) return null;
 
     const name = options.name || 'New Entity';
-    const parent = options.parent || app.root;
+    const parent = options.parent || (app ? app.root : this.root);
     const entity = new pc.Entity(name);
 
     // Apply transform if provided
@@ -132,7 +132,7 @@ export class Editor {
     const command = new Command(
       `Create Entity: ${name}`,
       () => {
-        parent.addChild(entity);
+        if (parent) parent.addChild(entity);
         this.selection.set(entity);
         this.events.emit('scene:changed');
         return entity;
@@ -331,16 +331,25 @@ export class Editor {
    * Add a Component
    */
   addComponent(entity, type, props = {}) {
+    if (!entity) return;
     if (entity.c && entity.c[type]) return; // already exists
 
     const command = new Command(
       `Add Component: ${type}`,
       () => {
-        entity.addComponent(type, props);
+        try {
+          entity.addComponent(type, props);
+        } catch (e) {
+          entity[type] = props || { enabled: true };
+        }
         this.events.emit('entity:component:changed', entity);
       },
       () => {
-        entity.removeComponent(type);
+        try {
+          entity.removeComponent(type);
+        } catch (e) {
+          delete entity[type];
+        }
         this.events.emit('entity:component:changed', entity);
       }
     );
@@ -438,6 +447,14 @@ export class Editor {
           friction: node.rigidbody.friction !== undefined ? node.rigidbody.friction : 0.5
         };
       }
+      if (node.joint) {
+        data.components.joint = {
+          type: node.joint.type || 'hinge',
+          targetEntity: node.joint.targetEntity || '',
+          pivot: node.joint.pivot || [0, 0, 0],
+          axis: node.joint.axis || [0, 1, 0]
+        };
+      }
       if (node.particlesystem) {
         data.components.particlesystem = {
           numParticles: node.particlesystem.numParticles || 60,
@@ -453,7 +470,8 @@ export class Editor {
       }
       if (node.script) {
         data.components.script = {
-          enabled: true
+          enabled: true,
+          attributes: node.scriptData || {}
         };
       }
 
@@ -493,15 +511,17 @@ export class Editor {
       }
     }
 
+    const rootNode = app ? app.root : this.root;
     const sceneData = {
       project: this.projectName,
       scene: this.activeSceneName,
       atmosphere: this.runtime ? this.runtime.currentAtmosphere || 'day' : 'day',
       gravity: (app && app.systems && app.systems.rigidbody && app.systems.rigidbody.gravity) ? [app.systems.rigidbody.gravity.x, app.systems.rigidbody.gravity.y, app.systems.rigidbody.gravity.z] : [0, -9.8, 0],
+      textureCompression: this.textureCompressionSettings || { targetFormat: 'auto', qualityLevel: 'normal', maxAnisotropy: 4, generateMipmaps: true },
       hud: this.hudConfig,
       triggers: triggersData,
       scripts: scriptsData,
-      root: app ? serializeNode(app.root) : { children: [] }
+      root: serializeNode(rootNode)
     };
 
     return JSON.stringify(sceneData, null, 2);
@@ -516,6 +536,7 @@ export class Editor {
       if (data.project) this.projectName = data.project;
       if (data.scene) this.activeSceneName = data.scene;
       if (data.hud) this.hudConfig = data.hud;
+      if (data.textureCompression) this.textureCompressionSettings = data.textureCompression;
 
       const app = this.getApp();
       if (!app || !app.root) return true;
@@ -606,6 +627,10 @@ export class Editor {
               friction: rb.friction || 0.5
             });
           }
+          if (nodeData.components.joint) {
+            ent.joint = nodeData.components.joint;
+            ent.addComponent('joint');
+          }
           if (nodeData.components.particlesystem) {
             ent.addComponent('particlesystem', {
               numParticles: nodeData.components.particlesystem.numParticles || 60,
@@ -621,6 +646,9 @@ export class Editor {
           }
           if (nodeData.components.script) {
             ent.addComponent('script');
+            if (nodeData.components.script.attributes) {
+              ent.scriptData = nodeData.components.script.attributes;
+            }
           }
         }
 

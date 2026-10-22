@@ -1,16 +1,18 @@
 import * as pc from 'playcanvas';
 import { MaterialPreviewRenderer } from './material-preview.js';
 import { showToast } from './toast.js';
+import { parseScriptAttributes } from '../core/script-attributes.js';
 
 /**
  * Entity & Component Inspector Panel
  * Dynamically switches between Beginner-Friendly Simple Mode and Technical Pro Mode.
  */
 export class InspectorPanel {
-  constructor(container, editor, codeEditorModal = null) {
+  constructor(container, editor, codeEditorModal = null, animBlendModal = null) {
     this.container = container;
     this.editor = editor;
     this.codeEditor = codeEditorModal;
+    this.animBlendModal = animBlendModal;
     this.currentEntity = null;
     this.matPreview = null;
 
@@ -1235,6 +1237,7 @@ export class InspectorPanel {
             <option value="camera">Camera</option>
             <option value="collision">Collision Shape</option>
             <option value="rigidbody">Rigidbody Physics</option>
+            <option value="joint">⚙️ Physics Joint Constraint</option>
             <option value="particlesystem">Particle Emitter</option>
             <option value="sound">3D Audio / Sound</option>
             <option value="anim">Animation Player</option>
@@ -1581,6 +1584,73 @@ export class InspectorPanel {
       stack.appendChild(card);
     }
 
+    // Physics Joint Constraint Card
+    if (ent.joint || ent.c?.joint) {
+      ent.joint = ent.joint || { type: 'hinge', targetEntity: '', pivot: [0, 0, 0], axis: [0, 1, 0] };
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.style.borderColor = 'var(--accent-gold)';
+      card.innerHTML = `
+        <div class="inspector-section-header" style="background: rgba(234, 179, 8, 0.15); color: #facc15;">
+          <span>⚙️ Physics Joint Constraint</span>
+          <button class="btn btn-remove-comp" data-comp="joint" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="prop-row">
+            <span class="prop-label">Joint Type</span>
+            <select class="select-input" id="joint-type-select">
+              <option value="hinge" ${ent.joint.type === 'hinge' ? 'selected' : ''}>Hinge (Door / Wheel)</option>
+              <option value="point_to_point" ${ent.joint.type === 'point_to_point' ? 'selected' : ''}>Point-to-Point (Rope / Chain)</option>
+              <option value="slider" ${ent.joint.type === 'slider' ? 'selected' : ''}>Slider (Piston / Rail)</option>
+              <option value="ball_and_socket" ${ent.joint.type === 'ball_and_socket' ? 'selected' : ''}>Ball & Socket (Ragdoll Limb)</option>
+            </select>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Target Body</span>
+            <input type="text" class="text-input" id="joint-target-entity" value="${ent.joint.targetEntity || ''}" placeholder="Connected Entity Name">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Pivot Offset</span>
+            <div class="vec3-group">
+              <div class="vec3-item x"><span class="vec3-prefix">X</span><input type="number" step="0.1" id="joint-pivot-x" class="vec3-input" value="${ent.joint.pivot ? ent.joint.pivot[0] : 0}"></div>
+              <div class="vec3-item y"><span class="vec3-prefix">Y</span><input type="number" step="0.1" id="joint-pivot-y" class="vec3-input" value="${ent.joint.pivot ? ent.joint.pivot[1] : 0}"></div>
+              <div class="vec3-item z"><span class="vec3-prefix">Z</span><input type="number" step="0.1" id="joint-pivot-z" class="vec3-input" value="${ent.joint.pivot ? ent.joint.pivot[2] : 0}"></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      card.querySelector('#joint-type-select').addEventListener('change', (e) => {
+        ent.joint.type = e.target.value;
+        this.editor.events.emit('scene:changed');
+      });
+
+      card.querySelector('#joint-target-entity').addEventListener('change', (e) => {
+        ent.joint.targetEntity = e.target.value;
+        this.editor.events.emit('scene:changed');
+      });
+
+      const updatePivot = () => {
+        const x = parseFloat(card.querySelector('#joint-pivot-x').value) || 0;
+        const y = parseFloat(card.querySelector('#joint-pivot-y').value) || 0;
+        const z = parseFloat(card.querySelector('#joint-pivot-z').value) || 0;
+        ent.joint.pivot = [x, y, z];
+        this.editor.events.emit('scene:changed');
+      };
+
+      ['joint-pivot-x', 'joint-pivot-y', 'joint-pivot-z'].forEach(id => {
+        card.querySelector(`#${id}`).addEventListener('input', updatePivot);
+      });
+
+      card.querySelector('.btn-remove-comp').addEventListener('click', () => {
+        delete ent.joint;
+        this.editor.removeComponent(ent, 'joint');
+        this.updateView();
+      });
+
+      stack.appendChild(card);
+    }
+
     // Camera Component Card
     if (ent.camera) {
       const card = document.createElement('div');
@@ -1722,6 +1792,9 @@ export class InspectorPanel {
             <button class="btn btn-primary" id="btn-anim-play" style="flex: 1; font-size: 11px;">▶ Play</button>
             <button class="btn" id="btn-anim-pause" style="flex: 1; font-size: 11px;">⏸ Pause</button>
           </div>
+          <button class="btn" id="btn-open-anim-blend-modal" style="font-size: 11px; color: #c084fc; border-color: #a855f7;">
+            🕺 Edit Animation Blend Graph
+          </button>
           <div class="prop-row">
             <span class="prop-label">Speed</span>
             <input type="range" min="0.1" max="2.0" step="0.1" class="text-input" id="anim-speed" value="${animComp.speed !== undefined ? animComp.speed : 1.0}">
@@ -1750,6 +1823,10 @@ export class InspectorPanel {
       card.querySelector('#anim-speed').addEventListener('input', (e) => {
         const speed = parseFloat(e.target.value);
         if (animComp) animComp.speed = speed;
+      });
+
+      card.querySelector('#btn-open-anim-blend-modal').addEventListener('click', () => {
+        if (this.animBlendModal) this.animBlendModal.open(animTarget);
       });
 
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
@@ -1904,25 +1981,124 @@ export class InspectorPanel {
     if (ent.script) {
       const card = document.createElement('div');
       card.className = 'inspector-section';
+
+      ent.scriptData = ent.scriptData || {};
+
+      let scriptSectionsHTML = '';
+      if (this.editor.scripts && this.editor.scripts.size > 0) {
+        for (const [scriptName, scriptCode] of this.editor.scripts.entries()) {
+          const parsedAttrs = parseScriptAttributes(scriptCode);
+          ent.scriptData[scriptName] = ent.scriptData[scriptName] || {};
+
+          let attrRows = '';
+          if (parsedAttrs.length > 0) {
+            attrRows = parsedAttrs.map(attr => {
+              const currentVal = ent.scriptData[scriptName][attr.name] !== undefined ? ent.scriptData[scriptName][attr.name] : attr.default;
+
+              if (attr.type === 'boolean') {
+                return `
+                  <div class="prop-row">
+                    <span class="prop-label">${attr.title}</span>
+                    <input type="checkbox" class="script-attr-input" data-script="${scriptName}" data-attr="${attr.name}" data-type="boolean" ${currentVal ? 'checked' : ''}>
+                  </div>
+                `;
+              } else if (attr.type === 'number' || attr.type === 'float') {
+                return `
+                  <div class="prop-row">
+                    <span class="prop-label">${attr.title}</span>
+                    <input type="number" step="${attr.step || '0.1'}" ${attr.min !== undefined ? `min="${attr.min}"` : ''} ${attr.max !== undefined ? `max="${attr.max}"` : ''} class="text-input script-attr-input" data-script="${scriptName}" data-attr="${attr.name}" data-type="number" value="${currentVal !== undefined ? currentVal : 0}">
+                  </div>
+                `;
+              } else if (attr.type === 'rgb' || attr.type === 'color') {
+                const hexVal = Array.isArray(currentVal) ? `#${Math.round(currentVal[0] * 255).toString(16).padStart(2, '0')}${Math.round(currentVal[1] * 255).toString(16).padStart(2, '0')}${Math.round(currentVal[2] * 255).toString(16).padStart(2, '0')}` : '#ffffff';
+                return `
+                  <div class="prop-row">
+                    <span class="prop-label">${attr.title}</span>
+                    <input type="color" class="script-attr-input" data-script="${scriptName}" data-attr="${attr.name}" data-type="color" value="${hexVal}" style="background: none; border: none; width: 40px; height: 24px; cursor: pointer;">
+                  </div>
+                `;
+              } else {
+                return `
+                  <div class="prop-row">
+                    <span class="prop-label">${attr.title}</span>
+                    <input type="text" class="text-input script-attr-input" data-script="${scriptName}" data-attr="${attr.name}" data-type="string" value="${currentVal !== undefined ? currentVal : ''}">
+                  </div>
+                `;
+              }
+            }).join('');
+          } else {
+            attrRows = '<div style="font-size: 10px; color: var(--text-muted); font-style: italic;">No Script.attributes declared</div>';
+          }
+
+          scriptSectionsHTML += `
+            <div style="background: var(--bg-darker); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px; margin-top: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 11px; color: var(--accent-orange); margin-bottom: 6px;">
+                <span>📜 ${scriptName}</span>
+                <button class="btn btn-sm btn-open-script-code" data-script="${scriptName}" style="font-size: 10px; padding: 2px 6px;">📝 Edit</button>
+              </div>
+              ${attrRows}
+            </div>
+          `;
+        }
+      } else {
+        scriptSectionsHTML = `<div style="font-size: 11px; color: var(--text-muted);">No script files registered. Open Script Code Studio to create one.</div>`;
+      }
+
       card.innerHTML = `
         <div class="inspector-section-header">
           <span>📜 Script Behavior</span>
           <button class="btn btn-remove-comp" data-comp="script" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
         </div>
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
-          <button class="btn btn-primary" id="btn-open-code-script" style="font-size: 11px; padding: 4px;">
-            📝 Edit Attached Script
+          ${scriptSectionsHTML}
+          <button class="btn btn-primary" id="btn-open-code-script" style="font-size: 11px; padding: 4px; margin-top: 4px;">
+            ➕ Open Script Code Studio
           </button>
         </div>
       `;
-      card.querySelector('#btn-open-code-script').addEventListener('click', () => {
-        if (this.codeEditor) {
-          this.codeEditor.open('customScript.js');
-        }
+
+      card.querySelectorAll('.btn-open-script-code').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (this.codeEditor) this.codeEditor.open(btn.dataset.script);
+        });
       });
+
+      card.querySelector('#btn-open-code-script').addEventListener('click', () => {
+        if (this.codeEditor) this.codeEditor.open('customScript.js');
+      });
+
+      card.querySelectorAll('.script-attr-input').forEach(input => {
+        const updateAttr = () => {
+          const sName = input.dataset.script;
+          const aName = input.dataset.attr;
+          const aType = input.dataset.type;
+
+          if (!ent.scriptData[sName]) ent.scriptData[sName] = {};
+
+          if (aType === 'boolean') {
+            ent.scriptData[sName][aName] = input.checked;
+          } else if (aType === 'number') {
+            ent.scriptData[sName][aName] = parseFloat(input.value) || 0;
+          } else if (aType === 'color') {
+            const hex = input.value;
+            const r = parseInt(hex.slice(1, 3), 16) / 255;
+            const g = parseInt(hex.slice(3, 5), 16) / 255;
+            const b = parseInt(hex.slice(5, 7), 16) / 255;
+            ent.scriptData[sName][aName] = [r, g, b];
+          } else {
+            ent.scriptData[sName][aName] = input.value;
+          }
+          this.editor.events.emit('scene:changed');
+        };
+
+        input.addEventListener('input', updateAttr);
+        input.addEventListener('change', updateAttr);
+      });
+
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'script');
       });
+
       stack.appendChild(card);
     }
 
