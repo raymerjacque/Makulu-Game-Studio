@@ -123,6 +123,21 @@ export class TopBar {
     // Scene Selector
     const sceneSelect = this.container.querySelector('#top-scene-select');
     if (sceneSelect) {
+      this.editor.events.on('scene:list:changed', (sceneNames) => {
+        sceneSelect.innerHTML = '';
+        sceneNames.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          if (name === this.editor.activeSceneName) opt.selected = true;
+          sceneSelect.appendChild(opt);
+        });
+        const createOpt = document.createElement('option');
+        createOpt.value = '__create_new__';
+        createOpt.textContent = '+ New Scene...';
+        sceneSelect.appendChild(createOpt);
+      });
+
       sceneSelect.addEventListener('change', (e) => {
         const val = e.target.value;
         if (val === '__create_new__') {

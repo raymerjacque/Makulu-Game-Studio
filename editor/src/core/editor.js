@@ -608,7 +608,7 @@ export class Editor {
     if (!sceneName || sceneName === this.activeSceneName) return;
 
     // 1. Snapshot and store the outgoing scene state
-    const currentSceneJSON = this.saveSceneJSON();
+    const currentSceneJSON = this.exportSceneJSON();
     this.scenes.set(this.activeSceneName, currentSceneJSON);
 
     // 2. Load target scene if previously stored
@@ -630,7 +630,8 @@ export class Editor {
         this.selection.clear();
         this.events.emit('scene:changed');
       }
-      this.scenes.set(sceneName, this.saveSceneJSON());
+      this.scenes.set(sceneName, this.exportSceneJSON());
     }
+    this.events.emit('scene:list:changed', Array.from(this.scenes.keys()));
   }
 }

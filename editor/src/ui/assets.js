@@ -1,3 +1,6 @@
+import * as pc from 'playcanvas';
+import { showToast } from './toast.js';
+
 /**
  * Bottom Asset Browser & File Manager
  */

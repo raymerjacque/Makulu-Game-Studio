@@ -131,6 +131,27 @@ export class GameBundler {
         });
       }
 
+      // Collision Component
+      if (data.components && data.components.collision) {
+        const col = data.components.collision;
+        ent.addComponent('collision', {
+          type: col.type || 'box',
+          radius: col.radius || 0.5,
+          height: col.height || 2
+        });
+      }
+
+      // Rigidbody Component
+      if (data.components && data.components.rigidbody) {
+        const rb = data.components.rigidbody;
+        ent.addComponent('rigidbody', {
+          type: rb.type || 'static',
+          mass: rb.mass || 1,
+          restitution: rb.restitution || 0.5,
+          friction: rb.friction || 0.5
+        });
+      }
+
       // Particle System Component
       if (data.components && data.components.particlesystem) {
         ent.addComponent('particlesystem', {

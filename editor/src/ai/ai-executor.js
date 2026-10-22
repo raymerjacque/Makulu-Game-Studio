@@ -1,3 +1,5 @@
+import * as pc from 'playcanvas';
+
 /**
  * AI Action Executor
  * Extracts JSON action commands from AI responses and executes them via the Editor Command Bus.
@@ -83,14 +85,59 @@ export class AIExecutor {
             let target = null;
             if (act.name === 'selected') {
               target = this.editor.selection.getActive();
-            } else {
+            } else if (this.editor.getApp() && this.editor.getApp().root) {
               target = this.editor.getApp().root.findByName(act.name);
             }
 
             if (target) {
               if (act.position) target.setPosition(...act.position);
+              if (act.rotation) target.setEulerAngles(...act.rotation);
               if (act.scale) target.setLocalScale(...act.scale);
               this.editor.events.emit('entity:transformed', target);
+              executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'attach_behavior': {
+            let target = act.target === 'selected' ? this.editor.selection.getActive() : null;
+            if (!target && act.target && this.editor.getApp() && this.editor.getApp().root) {
+              target = this.editor.getApp().root.findByName(act.target);
+            }
+            if (target && this.editor.behaviors && act.behavior) {
+              this.editor.behaviors.attachBehavior(target, act.behavior, act.properties || {});
+              executed.push({ action: act.action, target: `${act.behavior} -> ${target.name}` });
+            }
+            break;
+          }
+
+          case 'set_sky_atmosphere': {
+            if (this.editor.runtime && act.preset) {
+              this.editor.runtime.setAtmosphere(act.preset);
+              executed.push({ action: act.action, target: act.preset });
+            }
+            break;
+          }
+
+          case 'add_component': {
+            let target = act.target === 'selected' ? this.editor.selection.getActive() : null;
+            if (!target && act.target && this.editor.getApp() && this.editor.getApp().root) {
+              target = this.editor.getApp().root.findByName(act.target);
+            }
+            if (target && act.type) {
+              this.editor.addComponent(target, act.type, act.properties || {});
+              executed.push({ action: act.action, target: `${act.type} -> ${target.name}` });
+            }
+            break;
+          }
+
+          case 'delete_entity': {
+            let target = act.target === 'selected' ? this.editor.selection.getActive() : null;
+            if (!target && act.target && this.editor.getApp() && this.editor.getApp().root) {
+              target = this.editor.getApp().root.findByName(act.target);
+            }
+            if (target) {
+              this.editor.deleteEntity(target);
               executed.push({ action: act.action, target: target.name });
             }
             break;

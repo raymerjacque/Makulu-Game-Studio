@@ -1,3 +1,4 @@
+import * as pc from 'playcanvas';
 import { showToast } from './toast.js';
 
 /**
@@ -43,7 +44,6 @@ export class TimelinePanel {
           <button id="tl-btn-record" class="btn" style="padding: 2px 8px; color: var(--accent-red); font-weight: 700;">🔴 Add Keyframe</button>
           <span style="color: var(--text-muted); margin-left: 8px;">Time: <strong id="tl-time-disp" style="color: var(--text-primary);">0.0s</strong> / 10.0s</span>
         </div>
-        <div style="font-size: 10px; color: var(--accent-orange); font-weight: 600;">🎬 Animation Keyframe Sequencer</div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 10px; color: var(--accent-orange); font-weight: 600;">🎬 Animation Keyframe Sequencer</span>
           <button id="tl-btn-close" class="btn" style="padding: 1px 6px; font-size: 10px; border-radius: 4px;">✕</button>
@@ -200,18 +200,18 @@ export class TimelinePanel {
       const t = duration > 0 ? (this.currentTime - kf1.time) / duration : 0;
 
       // Lerp position
-      const pos = kf1.pos.clone().lerp(kf1.pos, kf2.pos, t);
+      const pos = new pc.Vec3().lerp(kf1.pos, kf2.pos, t);
       entity.setPosition(pos);
 
       // Lerp rotation
       if (kf1.rot && kf2.rot) {
-        const rot = kf1.rot.clone().lerp(kf1.rot, kf2.rot, t);
+        const rot = new pc.Vec3().lerp(kf1.rot, kf2.rot, t);
         entity.setEulerAngles(rot);
       }
 
       // Lerp scale
       if (kf1.scale && kf2.scale) {
-        const scale = kf1.scale.clone().lerp(kf1.scale, kf2.scale, t);
+        const scale = new pc.Vec3().lerp(kf1.scale, kf2.scale, t);
         entity.setLocalScale(scale);
       }
     });

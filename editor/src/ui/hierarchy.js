@@ -1,3 +1,5 @@
+import * as pc from 'playcanvas';
+
 /**
  * Scene Graph Hierarchy Panel
  */
