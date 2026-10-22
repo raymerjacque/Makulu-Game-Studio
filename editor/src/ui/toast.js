@@ -2,6 +2,7 @@
  * Editor Notification Toast Helper
  */
 export function showToast(message, type = 'info', duration = 3000) {
+  if (typeof document === 'undefined') return;
   let container = document.getElementById('toast-container');
   if (!container) {
     container = document.createElement('div');

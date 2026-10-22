@@ -83,6 +83,35 @@ export class GameBundler {
     app.scene.ambientLight = new pc.Color(0.25, 0.25, 0.28);
     app.scene.toneMapping = pc.TONEMAP_ACES;
 
+    // Set Atmosphere & Fog from Scene Data
+    const preset = SCENE_DATA.atmosphere || 'day';
+    if (preset === 'sunset') {
+      app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
+      app.scene.fog = pc.FOG_EXP2;
+      app.scene.fogColor = new pc.Color(0.8, 0.4, 0.2);
+      app.scene.fogDensity = 0.015;
+    } else if (preset === 'cyberpunk') {
+      app.scene.ambientLight = new pc.Color(0.05, 0.08, 0.18);
+      app.scene.fog = pc.FOG_EXP2;
+      app.scene.fogColor = new pc.Color(0.02, 0.05, 0.15);
+      app.scene.fogDensity = 0.02;
+    } else if (preset === 'foggy') {
+      app.scene.ambientLight = new pc.Color(0.3, 0.35, 0.4);
+      app.scene.fog = pc.FOG_EXP2;
+      app.scene.fogColor = new pc.Color(0.45, 0.5, 0.55);
+      app.scene.fogDensity = 0.035;
+    } else if (preset === 'night') {
+      app.scene.ambientLight = new pc.Color(0.02, 0.03, 0.08);
+      app.scene.fog = pc.FOG_NONE;
+    } else {
+      app.scene.ambientLight = new pc.Color(0.25, 0.25, 0.28);
+      app.scene.fog = pc.FOG_NONE;
+    }
+
+    if (SCENE_DATA.gravity && app.systems && app.systems.rigidbody) {
+      app.systems.rigidbody.gravity.set(...SCENE_DATA.gravity);
+    }
+
     // Build Scene Graph from Exported Data
     function buildNode(data, parent) {
       const ent = new pc.Entity(data.name);
@@ -90,6 +119,19 @@ export class GameBundler {
       if (data.rotation) ent.setEulerAngles(...data.rotation);
       if (data.scale) ent.setLocalScale(...data.scale);
       ent.enabled = data.enabled !== false;
+
+      // 3D GLB Model Asset Loading
+      if (data.modelUrl) {
+        app.assets.loadFromUrl(data.modelUrl, 'container', (err, asset) => {
+          if (!err && asset && asset.resource) {
+            const modelEntity = asset.resource.instantiateRenderEntity({
+              castShadows: true,
+              receiveShadows: true
+            });
+            ent.addChild(modelEntity);
+          }
+        });
+      }
 
       // Render Component & Material
       if (data.components && data.components.render) {
@@ -226,6 +268,11 @@ export class GameBundler {
               const base = b.properties?.baseIntensity || 2;
               node.light.intensity = Math.max(0.1, base + (Math.random() - 0.5) * variance);
             }
+          } else if (b.type === 'physics_impulse') {
+            if (node.rigidbody && (keys[' '] || keys['space'])) {
+              const force = b.properties?.force || 8;
+              node.rigidbody.applyImpulse(0, force, 0);
+            }
           } else if (b.type === 'patrol') {
             const speed = b.properties?.speed || 3;
             const distance = b.properties?.distance || 6;
@@ -292,6 +339,34 @@ export class GameBundler {
       if (move.lengthSq() > 0) {
         move.normalize().mulScalar(8 * dt);
         playerEntity.translate(move);
+      }
+
+      // Execute Triggers
+      if (SCENE_DATA.triggers && playerEntity) {
+        Object.entries(SCENE_DATA.triggers).forEach(([trigName, config]) => {
+          const trigEnt = app.root.findByName(trigName);
+          if (!trigEnt || !trigEnt.enabled) return;
+
+          const dist = trigEnt.getPosition().distance(playerEntity.getPosition());
+          const triggerDist = config.radius || 2.0;
+
+          if (dist < triggerDist) {
+            if (!config._triggered) {
+              config._triggered = true;
+              if (config.action === 'teleport' && config.targetPosition) {
+                playerEntity.setPosition(...config.targetPosition);
+              } else if (config.action === 'toggle_visibility' && config.targetEntity) {
+                const target = app.root.findByName(config.targetEntity);
+                if (target) target.enabled = !target.enabled;
+              } else if (config.action === 'destroy' && config.targetEntity) {
+                const target = app.root.findByName(config.targetEntity);
+                if (target && target.parent) target.parent.removeChild(target);
+              }
+            }
+          } else {
+            config._triggered = false;
+          }
+        });
       }
     });
 

@@ -9,11 +9,84 @@ export class TriggerSystem {
   constructor(editor) {
     this.editor = editor;
     this.triggers = new Map(); // entityName -> triggerConfig
+    this.activeStates = new Map(); // entityName -> boolean (isInside)
+
+    this.editor.events.on('game:play', () => {
+      this.activeStates.clear();
+      this.bindUpdateLoop();
+    });
   }
 
   registerTrigger(entityName, triggerConfig) {
-    this.triggers.set(entityName, triggerConfig);
+    const existing = this.triggers.get(entityName) || {};
+    const updated = {
+      eventType: 'on_enter',
+      action: 'teleport',
+      radius: 2.0,
+      targetPosition: [0, 2, 0],
+      targetEntity: '',
+      ...existing,
+      ...triggerConfig
+    };
+    this.triggers.set(entityName, updated);
+    this.editor.events.emit('scene:changed');
     showToast(`⚡ Registered Trigger Event on "${entityName}"`, 'info');
+  }
+
+  removeTrigger(entityName) {
+    this.triggers.delete(entityName);
+    this.activeStates.delete(entityName);
+    this.editor.events.emit('scene:changed');
+    showToast(`Removed Trigger from "${entityName}"`, 'info');
+  }
+
+  hasTrigger(entityName) {
+    return this.triggers.has(entityName);
+  }
+
+  getTrigger(entityName) {
+    return this.triggers.get(entityName);
+  }
+
+  bindUpdateLoop() {
+    const app = this.editor.getApp();
+    if (!app || this._updateBound) return;
+    this._updateBound = true;
+
+    app.on('update', () => {
+      if (!this.editor.isPlaying) return;
+
+      const player = app.root.find(node =>
+        node.name.toLowerCase().includes('player') ||
+        node.name.toLowerCase().includes('character') ||
+        node.name.toLowerCase().includes('hero') ||
+        node.name.toLowerCase().includes('warrior')
+      );
+
+      if (!player) return;
+
+      for (const [entityName, config] of this.triggers.entries()) {
+        const trigEntity = app.root.findByName(entityName);
+        if (!trigEntity || !trigEntity.enabled) continue;
+
+        const dist = trigEntity.getPosition().distance(player.getPosition());
+        const radius = config.radius || 2.0;
+        const wasInside = Boolean(this.activeStates.get(entityName));
+        const isInside = dist <= radius;
+
+        if (isInside && !wasInside) {
+          this.activeStates.set(entityName, true);
+          if (config.eventType === 'on_enter') {
+            this.fireTriggerEvent(entityName, 'on_enter', player);
+          }
+        } else if (!isInside && wasInside) {
+          this.activeStates.set(entityName, false);
+          if (config.eventType === 'on_exit') {
+            this.fireTriggerEvent(entityName, 'on_exit', player);
+          }
+        }
+      }
+    });
   }
 
   fireTriggerEvent(entityName, eventType, playerEntity = null) {
