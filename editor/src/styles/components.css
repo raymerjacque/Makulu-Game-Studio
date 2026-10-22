@@ -474,3 +474,99 @@ input:checked + .toggle-slider:before {
   background: rgba(255, 102, 0, 0.1) !important;
   border-color: rgba(255, 102, 0, 0.4) !important;
 }
+
+/* TopBar Dropdown Menu System */
+.topbar-menu-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  user-select: none;
+}
+
+.topbar-menu-item {
+  position: relative;
+}
+
+.topbar-menu-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar-menu-btn:hover,
+.topbar-menu-btn.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.topbar-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #18191f;
+  border: 1px solid var(--border-highlight);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65), 0 0 1px rgba(255, 255, 255, 0.15);
+  padding: 4px 0;
+  min-width: 220px;
+  z-index: 1050;
+  display: none;
+  animation: topbarMenuFade 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.topbar-dropdown-menu.open {
+  display: block;
+}
+
+@keyframes topbarMenuFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.topbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #d1d5db;
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+  gap: 12px;
+}
+
+.topbar-dropdown-item:hover {
+  background: var(--accent-orange);
+  color: #ffffff;
+}
+
+.topbar-dropdown-item .item-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.topbar-dropdown-item .item-shortcut {
+  font-size: 10px;
+  opacity: 0.6;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+}
+
+.topbar-dropdown-separator {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 0;
+}
+

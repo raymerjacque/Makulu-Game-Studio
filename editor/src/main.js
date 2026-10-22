@@ -67,7 +67,27 @@ async function bootstrap() {
   const behaviors = new BehaviorManager(editor);
   editor.behaviors = behaviors;
 
-  new TopBar(topBarContainer, editor, aiUI, templatesModal, publishModal, helpModal, guideModal, aiSettingsModal, projectSettingsModal, postProcessingModal, timelinePanel, hudModal);
+  new TopBar(
+    topBarContainer,
+    editor,
+    aiUI,
+    templatesModal,
+    publishModal,
+    helpModal,
+    guideModal,
+    aiSettingsModal,
+    projectSettingsModal,
+    postProcessingModal,
+    timelinePanel,
+    hudModal,
+    {
+      modelStore,
+      terrainModal,
+      materialModal,
+      codeEditor,
+      consoleDrawer
+    }
+  );
   new ToolStrip(toolStripContainer, editor);
   new HierarchyPanel(hierarchyContainer, editor);
   new InspectorPanel(inspectorContainer, editor, codeEditor);

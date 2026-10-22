@@ -50,7 +50,7 @@ The studio is organized into five unified subsystems:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ [M] MakuluLinux Studio | Scene: Main | 🎮 Templates | 🎬 Timeline | 📖 Guide | ❓ Help | ⚙️ AI Settings | ⚙️ Project     │
+│ [M] MakuluLinux Studio | File ▾ | Scene ▾ | Tools ▾ | Settings ▾ | Help ▾ | Scene: [Main Scene ▾] | [🌱 Simple / ⚡ Pro]  │
 ├─────────┬──────────────────────────────────────────────────────────────────────────────────────────────┬───────────────┤
 │ HIER-   │ 3D VIEWPORT                                                                                  │ INSPECTOR     │
 │ ARCHY   │                                                                                              │               │
@@ -71,7 +71,7 @@ The studio is organized into five unified subsystems:
 2. **Interactive 3D Viewport (Center):** High-DPI canvas with an infinite procedural floor grid, raycast picking, transform gizmos, live **Component Visual Wireframe Helpers** (light ranges, audio radius, collision bounding shapes), and real-time **Atmosphere & Fog Sky selector** with **✨ FX Post-Processing**.
 3. **Inspector Panel (Right):** Morphing property editor that automatically adapts based on whether you are in Simple or Pro Mode, with **1-click Prefab Creation** and complete ECS component stacks for Cameras, Collisions, Rigidbodies, Particles, Spatial Audio, and Scripts.
 4. **Asset Browser & Code Studio (Bottom):** Integrated project file explorer with dedicated `/assets/prefabs` support, authentic CC0 3D model importer, procedural Perlin terrain generator, visual PBR material studio, and Monaco-style script editor.
-5. **Top Navigation Bar:** Scene selector, Simple/Pro switcher, AI Quick Prompt bar, Play/Simulate mode, Templates, Animation Timeline Sequencer, Guide, Help, AI Settings, Project Physics Settings, Post-Processing FX, Scene Import/Export, and 1-Click Web Publishing.
+5. **Top Navigation & Menu Bar:** Streamlined, uncluttered desktop menu bar (`File ▾`, `Scene ▾`, `Tools ▾`, `Settings ▾`, `Help ▾`), Scene quick switcher, Simple/Pro switcher, AI Quick Prompt bar, Atmosphere selector, Post-Processing FX, Undo/Redo, Play/Simulate mode, and 1-Click Web Publishing.
 
 ---
 
