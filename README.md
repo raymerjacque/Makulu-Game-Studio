@@ -150,11 +150,14 @@ Add interactive gameplay logic without writing a single line of JavaScript:
 ## ⚡ Interactive Trigger System
 
 Create reactive game mechanics through modular trigger volumes:
+* **Visual Inspector Trigger Configurator:** Configure trigger volumes directly on any entity in both Simple Mode and Pro Mode.
+* **Dual Event Types:** Support for both **On Player Enter** (`on_enter`) and **On Player Exit** (`on_exit`) proximity triggers.
 * **🌀 Teleport:** Instantaneous entity relocation across the scene.
 * **💡 Toggle Visibility:** Dynamically reveal secret rooms, hidden passages, and puzzle clues.
 * **💥 Destroy Entity:** Remove destructible obstacles, defeated enemies, or consumed barriers.
 * **✨ Spawn Prefab:** Dynamically instantiate prefab templates (loot, enemies, hazards) upon entering trigger zones.
 * **🔊 Audio Playback:** Trigger spatial sounds, ambient stingers, and musical cues.
+* **Standalone Web Execution:** All trigger volume mechanics compile directly into standalone `.html` web games.
 
 ---
 
@@ -197,17 +200,20 @@ Create reactive game mechanics through modular trigger volumes:
   * **Physics Collision Gizmo:** Real-time green wireframe outlines displaying box, sphere, capsule, and cylinder collision bounds.
 * **🧩 Advanced ECS Component Inspector:**
   * **🎥 Camera:** FOV, Near Clip, and Far Clip.
+  * **💡 Light Source:** Real-time visual color wheel picker, Intensity, Range, Cone Angles, and Shadow cascades.
   * **🎯 Collision Shapes:** Box, Sphere, Capsule, Cylinder, and Mesh.
-  * **⚡ Rigidbody Physics:** Dynamic, Kinematic, Static, Mass, Restitution, and Friction.
-  * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust) with instant 1-click preset switching, particle count, and lifetime controls.
-  * **🔊 3D Spatial Audio:** Volume, Pitch, and Loop toggles.
+  * **⚡ Rigidbody Physics:** Dynamic, Kinematic, Static, Mass, Restitution (bounciness), and Friction controls.
+  * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust) with instant 1-click preset switching, particle count, rate, sorting, half-extents, and lifetime controls.
+  * **🔊 3D Spatial Audio:** Audio asset URL configuration with in-editor playback preview, Volume, Pitch, and Loop toggles.
+  * **⚡ Trigger Volumes:** Pro Mode addition and visual configuration of interactive proximity triggers.
   * **📜 Custom Scripting:** 1-click code editor attachment and execution.
 * **🗂️ Multi-Scene Management & Hierarchy Power Tools:**
   * **Multi-Scene Switcher:** Create and navigate between multiple levels (`Main Scene`, `Level_2`, etc.) with automatic background state retention and scene JSON snapshotting.
+  * **Scene Power Tools:** 1-click **Rename (`✏️`)**, **Duplicate (`📋`)**, and **Delete (`🗑️`)** scene actions directly in the TopBar.
   * **Entity Right-Click Context Menu:** Right-click any entity in the hierarchy tree to Rename, Frame (`F`), Duplicate (`Ctrl+D`), Add Child Entity, or Delete.
   * **Eye-Icon Visibility Toggles:** 1-click hide (`🙈`) or show (`👁️`) individual entities without deleting them.
   * **Drag & Drop Reparenting:** Organize complex scenes by dragging entities onto parents directly in the hierarchy tree.
-  * **📂 Scene Import & 💾 Export:** Save and load full scene graphs as portable JSON files with complete component and behavior state.
+  * **📂 Scene Import & 💾 Export:** Save and load full scene graphs as portable JSON files with complete component, model, trigger, and behavior state.
 
 ---
 
@@ -224,7 +230,7 @@ Test gameplay mechanics instantly using ready-to-play prototypes:
 ## 🚀 Game Compiling & Cloud Publishing
 
 Share games instantly across any platform:
-* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible), assets, PBR materials, lights with shadow casting, collision shapes, dynamic/static rigidbodies, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
+* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible, float, orbit, camera follow), 3D GLB models, PBR materials, lights with shadow casting, collision shapes, dynamic/static rigidbodies, atmosphere presets with exponential fog, interactive trigger volumes, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
 * **1-Click Makulu Cloud Web Hosting:** Click **🚀 Publish** to generate an instant live shareable web URL with clipboard copying and responsive touch controls.
 
 ---
@@ -271,13 +277,19 @@ cd editor
 npm install
 ```
 
-### 3. Launch Development Server
+### 3. Run Automated Tests
+```bash
+# Run unit test suite
+npm test
+```
+
+### 4. Launch Development Server
 ```bash
 # Start Vite local development server (runs on http://localhost:3000)
 npm run dev
 ```
 
-### 4. Launch Native Desktop App (Electron)
+### 5. Launch Native Desktop App (Electron)
 ```bash
 # Launch native desktop studio shell
 ./launch.sh
@@ -285,7 +297,7 @@ npm run dev
 npm run electron
 ```
 
-### 5. Build Standalone Linux Packages (AppImage & Debian)
+### 6. Build Standalone Linux Packages (AppImage & Debian)
 ```bash
 # Builds production bundle, universal AppImage, and Debian .deb
 npm run dist:linux

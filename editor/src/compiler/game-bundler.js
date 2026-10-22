@@ -349,22 +349,27 @@ export class GameBundler {
 
           const dist = trigEnt.getPosition().distance(playerEntity.getPosition());
           const triggerDist = config.radius || 2.0;
+          const isInside = dist <= triggerDist;
+          const wasInside = Boolean(config._wasInside);
 
-          if (dist < triggerDist) {
-            if (!config._triggered) {
-              config._triggered = true;
-              if (config.action === 'teleport' && config.targetPosition) {
-                playerEntity.setPosition(...config.targetPosition);
-              } else if (config.action === 'toggle_visibility' && config.targetEntity) {
-                const target = app.root.findByName(config.targetEntity);
-                if (target) target.enabled = !target.enabled;
-              } else if (config.action === 'destroy' && config.targetEntity) {
-                const target = app.root.findByName(config.targetEntity);
-                if (target && target.parent) target.parent.removeChild(target);
-              }
+          const fireAction = () => {
+            if (config.action === 'teleport' && config.targetPosition) {
+              playerEntity.setPosition(...config.targetPosition);
+            } else if (config.action === 'toggle_visibility' && config.targetEntity) {
+              const target = app.root.findByName(config.targetEntity);
+              if (target) target.enabled = !target.enabled;
+            } else if (config.action === 'destroy' && config.targetEntity) {
+              const target = app.root.findByName(config.targetEntity);
+              if (target && target.parent) target.parent.removeChild(target);
             }
-          } else {
-            config._triggered = false;
+          };
+
+          if (isInside && !wasInside) {
+            config._wasInside = true;
+            if (config.eventType !== 'on_exit') fireAction();
+          } else if (!isInside && wasInside) {
+            config._wasInside = false;
+            if (config.eventType === 'on_exit') fireAction();
           }
         });
       }

@@ -523,6 +523,19 @@ export class Editor {
         if (nodeData.scale) ent.setLocalScale(...nodeData.scale);
         ent.enabled = nodeData.enabled !== false;
 
+        if (nodeData.modelUrl) {
+          ent._modelUrl = nodeData.modelUrl;
+          app.assets.loadFromUrl(nodeData.modelUrl, 'container', (err, asset) => {
+            if (!err && asset && asset.resource) {
+              const modelEntity = asset.resource.instantiateRenderEntity({
+                castShadows: true,
+                receiveShadows: true
+              });
+              ent.addChild(modelEntity);
+            }
+          });
+        }
+
         if (nodeData.components) {
           if (nodeData.components.render) {
             ent.addComponent('render', {
@@ -615,6 +628,27 @@ export class Editor {
 
       if (data.root && data.root.children) {
         data.root.children.forEach(childData => buildNode(childData, app.root));
+      }
+
+      // Restore atmosphere
+      if (data.atmosphere && this.runtime && this.runtime.setAtmosphere) {
+        this.runtime.setAtmosphere(data.atmosphere);
+      }
+
+      // Restore gravity
+      if (data.gravity && app.systems && app.systems.rigidbody) {
+        app.systems.rigidbody.gravity.set(...data.gravity);
+      }
+
+      // Restore triggers
+      if (this.triggers) {
+        this.triggers.triggers.clear();
+        this.triggers.activeStates.clear();
+        if (data.triggers) {
+          for (const [entityName, config] of Object.entries(data.triggers)) {
+            this.triggers.registerTrigger(entityName, config);
+          }
+        }
       }
 
       this.selection.clear();

@@ -577,6 +577,7 @@ export class InspectorPanel {
             targetPosition: [0, 2, 0]
           });
           showToast(`⚡ Teleport Trigger registered on ${ent.name}!`, 'success');
+          this.updateView();
         }
       });
     }
@@ -667,6 +668,7 @@ export class InspectorPanel {
           <option value="sound">3D Audio / Sound</option>
           <option value="anim">Animation Player</option>
           <option value="script">Script Behavior</option>
+          <option value="trigger">Trigger Volume</option>
         </select>
       </div>
     `;
@@ -746,6 +748,21 @@ export class InspectorPanel {
     if (compSelect) {
       compSelect.addEventListener('change', () => {
         const type = compSelect.value;
+        if (type === 'trigger') {
+          if (this.editor.triggers) {
+            if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+            this.editor.triggers.registerTrigger(ent.name, {
+              eventType: 'on_enter',
+              action: 'teleport',
+              radius: 2.0,
+              targetPosition: [0, 2, 0]
+            });
+            showToast(`⚡ Trigger Volume added to ${ent.name}!`, 'success');
+            this.updateView();
+          }
+          compSelect.value = '';
+          return;
+        }
         if (type) {
           this.editor.addComponent(ent, type);
           compSelect.value = '';
