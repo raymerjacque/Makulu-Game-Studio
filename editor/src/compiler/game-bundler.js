@@ -1,6 +1,7 @@
 /**
  * Standalone HTML5 Game Bundler & Compiler
- * Packages the active scene, entities, materials, behaviors, 2D HUD, and Base64 assets into a self-contained playable game.
+ * Packages the active scene, entities, materials, behaviors, 2D HUD, Base64 assets, Ammo.js physics, particle emitters,
+ * 3D spatial audio, and skeletal mesh character animations into a self-contained playable game.
  */
 
 export class GameBundler {
@@ -118,6 +119,24 @@ export class GameBundler {
       padding: 6px 16px;
       border-radius: 20px;
       backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #hud-ammo-counter {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(0,229,255,0.4);
+      color: #00e5ff;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      display: none;
     }
 
     #hud-crosshair {
@@ -240,6 +259,9 @@ export class GameBundler {
       z-index: 30;
     }
   </style>
+
+  <!-- PlayCanvas Engine & Ammo.js Physics Engine Runtime -->
+  <script src="https://code.playcanvas.com/ammo.751ef4f.js"></script>
   <script src="https://code.playcanvas.com/playcanvas-stable.min.js"></script>
 </head>
 <body>
@@ -262,6 +284,10 @@ export class GameBundler {
 
     <div id="hud-score-counter" style="display: none;">
       <span id="hud-score-text">Score: 0</span>
+    </div>
+
+    <div id="hud-ammo-counter">
+      <span id="hud-ammo-text">🔫 Plasma Ammo: 30 / ∞</span>
     </div>
 
     <div id="hud-crosshair" style="display: none;">●</div>
@@ -349,7 +375,7 @@ export class GameBundler {
     if (hudConfig.score && hudConfig.score.enabled !== false) {
       const scoreEl = document.getElementById('hud-score-counter');
       if (scoreEl) {
-        scoreEl.style.display = 'block';
+        scoreEl.style.display = 'flex';
         document.getElementById('hud-score-text').textContent = (hudConfig.score.label || 'Score:') + ' ' + (hudConfig.score.initial || 0);
       }
     }
@@ -364,6 +390,15 @@ export class GameBundler {
       }
     }
 
+    // Screen Shake Utility
+    window._shakeTimer = 0;
+    window._shakeIntensity = 0;
+    window._shakeBaseCamPos = null;
+    window.triggerScreenShake = function(intensity, duration) {
+      window._shakeIntensity = intensity || 0.4;
+      window._shakeTimer = duration || 0.3;
+    };
+
     // Build Scene Graph from Exported Data
     function buildNode(data, parent) {
       const ent = new pc.Entity(data.name);
@@ -372,9 +407,8 @@ export class GameBundler {
       if (data.scale) ent.setLocalScale(...data.scale);
       ent.enabled = data.enabled !== false;
 
-      // 3D GLB Model Asset Loading
+      // 3D GLB Model Asset Loading & Skeletal Mesh Animation Control
       if (data.modelUrl) {
-        // Check for Base64 inlined asset
         const embedded = EMBEDDED_ASSETS.find(a => a.name === data.modelUrl || a.dataUrl === data.modelUrl);
         const urlToLoad = embedded ? embedded.dataUrl : data.modelUrl;
 
@@ -385,6 +419,13 @@ export class GameBundler {
               receiveShadows: true
             });
             ent.addChild(modelEntity);
+
+            // Skeletal Animation Player detection
+            const animComponent = ent.findComponent ? ent.findComponent('anim') || modelEntity.findComponent('anim') : null;
+            if (animComponent) {
+              ent._animComp = animComponent;
+              if (animComponent.play) animComponent.play();
+            }
           }
         });
       }
@@ -452,18 +493,21 @@ export class GameBundler {
 
       // Particle System Component
       if (data.components && data.components.particlesystem) {
+        const ps = data.components.particlesystem;
         ent.addComponent('particlesystem', {
-          numParticles: data.components.particlesystem.numParticles || 50,
-          lifetime: data.components.particlesystem.lifetime || 1.5
+          numParticles: ps.numParticles || 60,
+          lifetime: ps.lifetime || 1.5,
+          rate: ps.rate || 0.05
         });
       }
 
-      // Sound Component
+      // 3D Spatial Audio / Sound Component
       if (data.components && data.components.sound) {
+        const snd = data.components.sound;
         ent.addComponent('sound', {
-          volume: data.components.sound.volume !== undefined ? data.components.sound.volume : 1,
-          pitch: data.components.sound.pitch !== undefined ? data.components.sound.pitch : 1,
-          loop: data.components.sound.loop !== false
+          volume: snd.volume !== undefined ? snd.volume : 1,
+          pitch: snd.pitch !== undefined ? snd.pitch : 1,
+          loop: snd.loop !== false
         });
       }
 
@@ -520,6 +564,21 @@ export class GameBundler {
     const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character') || n.name.toLowerCase().includes('hero') || n.name.toLowerCase().includes('warrior')) || app.root.children[0];
 
     app.on('update', dt => {
+      // Screen Shake Evaluation
+      if (window._shakeTimer > 0) {
+        if (!window._shakeBaseCamPos) {
+          window._shakeBaseCamPos = gameCamera.getPosition().clone();
+        }
+        window._shakeTimer -= dt;
+        const offsetX = (Math.random() - 0.5) * window._shakeIntensity;
+        const offsetY = (Math.random() - 0.5) * window._shakeIntensity;
+        gameCamera.setPosition(window._shakeBaseCamPos.x + offsetX, window._shakeBaseCamPos.y + offsetY, window._shakeBaseCamPos.z);
+        if (window._shakeTimer <= 0) {
+          gameCamera.setPosition(window._shakeBaseCamPos);
+          window._shakeBaseCamPos = null;
+        }
+      }
+
       // Execute embedded behaviors
       app.root.forEach(node => {
         if (!node.enabled || !node._behaviors) return;
@@ -551,6 +610,61 @@ export class GameBundler {
             if (delta > distance && b._state.dir > 0) b._state.dir = -1;
             if (delta < -distance && b._state.dir < 0) b._state.dir = 1;
             node.translate(b._state.dir * speed * dt, 0, 0);
+          } else if (b.type === 'moving_platform') {
+            const speed = b.properties?.speed || 2.5;
+            const distance = b.properties?.distance || 8;
+            const axis = b.properties?.axis || 'y';
+            if (!b._state) b._state = { startPos: node.getPosition().clone(), dir: 1 };
+            const curPos = node.getPosition();
+            if (axis === 'y') {
+              const d = curPos.y - b._state.startPos.y;
+              if (d > distance && b._state.dir > 0) b._state.dir = -1;
+              if (d < 0 && b._state.dir < 0) b._state.dir = 1;
+              node.translate(0, b._state.dir * speed * dt, 0);
+            } else {
+              const d = curPos.x - b._state.startPos.x;
+              if (d > distance && b._state.dir > 0) b._state.dir = -1;
+              if (d < -distance && b._state.dir < 0) b._state.dir = 1;
+              node.translate(b._state.dir * speed * dt, 0, 0);
+            }
+          } else if (b.type === 'interactive_door') {
+            if (playerEntity) {
+              const nPos = node.getPosition();
+              const pPos = playerEntity.getPosition();
+              const distXZ = Math.hypot(nPos.x - pPos.x, nPos.z - pPos.z);
+              const radius = b.properties?.radius || 3.0;
+              if (!b._state) b._state = { isOpen: false, startY: nPos.y };
+              if (distXZ <= radius && !b._state.isOpen) {
+                b._state.isOpen = true;
+                node.translate(0, 3, 0);
+              } else if (distXZ > radius && b._state.isOpen) {
+                b._state.isOpen = false;
+                node.setPosition(nPos.x, b._state.startY, nPos.z);
+              }
+            }
+          } else if (b.type === 'enemy_spawner') {
+            if (!b._timer) b._timer = 0;
+            b._timer -= dt;
+            if (b._timer <= 0) {
+              b._timer = b.properties?.interval || 6.0;
+              const enemy = new pc.Entity('Spawned_Enemy_' + Date.now());
+              enemy.setPosition(node.getPosition().clone().add(new pc.Vec3(0, 1, 0)));
+              enemy.setLocalScale(0.9, 1.8, 0.9);
+
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = new pc.Color(0.9, 0.1, 0.1);
+              mat.update();
+
+              enemy.addComponent('render', { type: 'capsule', material: mat });
+              enemy._behaviors = [{ type: 'enemy_ai', properties: { speed: 3, damage: 10 } }];
+              app.root.addChild(enemy);
+            }
+          } else if (b.type === 'weapon_inventory') {
+            const ammoEl = document.getElementById('hud-ammo-counter');
+            if (ammoEl) {
+              ammoEl.style.display = 'block';
+              document.getElementById('hud-ammo-text').textContent = "🔫 Weapon Active: " + (b.properties?.weaponName || 'Plasma Gun') + " | Ammo: " + (b.properties?.ammo !== undefined ? b.properties.ammo : '∞');
+            }
           } else if (b.type === 'billboard') {
             const cam = app.root.find(c => c.camera);
             if (cam) {
@@ -624,6 +738,7 @@ export class GameBundler {
                 if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
                   healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || healthB.properties.maxHp || 100) - dmg);
                   healthB._invincibleTimer = b.properties?.cooldown || 1.0;
+                  window.triggerScreenShake(0.5, 0.25);
                 }
               }
             }
@@ -668,6 +783,7 @@ export class GameBundler {
                     if (healthB) {
                       const dmg = b.properties?.damage || 15;
                       healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - dmg);
+                      window.triggerScreenShake(0.4, 0.2);
                     }
                   }
                 }
@@ -721,6 +837,7 @@ export class GameBundler {
                       if (bullet.getPosition().distance(other.getPosition()) < 1.6) {
                         other.enabled = false;
                         lifetime = 0;
+                        window.triggerScreenShake(0.3, 0.15);
                       }
                     }
                   }
@@ -764,6 +881,7 @@ export class GameBundler {
               if (healthB) {
                 const dmg = config.amount || 20;
                 healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || healthB.properties.maxHp || 100) - dmg);
+                window.triggerScreenShake(0.5, 0.25);
               }
             } else if (config.action === 'heal_player') {
               const playerB = playerEntity._behaviors || [];

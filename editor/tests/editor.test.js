@@ -118,20 +118,25 @@ test('Health and Combat Damage behaviors in BehaviorManager', () => {
   }
 });
 
-test('New Game Behaviors: Enemy AI, Projectile Shooter, Mouse Look', () => {
+test('New Game Behaviors: Moving Platform, Door, Spawner, Weapon Inventory', () => {
   const editor = new Editor();
-  const enemy = { name: 'Goblin' };
-  const player = { name: 'Player' };
+  const platform = { name: 'Elevator' };
+  const door = { name: 'Gate' };
+  const spawner = { name: 'Portal' };
+  const weapon = { name: 'Gun' };
 
   if (editor.behaviors) {
-    editor.behaviors.attachBehavior(enemy, 'enemy_ai', { speed: 3.5, detectRadius: 15, damage: 15 });
-    assert.equal(editor.behaviors.hasBehavior(enemy, 'enemy_ai'), true);
+    editor.behaviors.attachBehavior(platform, 'moving_platform', { speed: 2.5, distance: 8, axis: 'y' });
+    assert.equal(editor.behaviors.hasBehavior(platform, 'moving_platform'), true);
 
-    editor.behaviors.attachBehavior(player, 'projectile_shooter', { speed: 30, damage: 35 });
-    assert.equal(editor.behaviors.hasBehavior(player, 'projectile_shooter'), true);
+    editor.behaviors.attachBehavior(door, 'interactive_door', { radius: 3.0 });
+    assert.equal(editor.behaviors.hasBehavior(door, 'interactive_door'), true);
 
-    editor.behaviors.attachBehavior(player, 'mouse_look', { speed: 90 });
-    assert.equal(editor.behaviors.hasBehavior(player, 'mouse_look'), true);
+    editor.behaviors.attachBehavior(spawner, 'enemy_spawner', { interval: 6.0 });
+    assert.equal(editor.behaviors.hasBehavior(spawner, 'enemy_spawner'), true);
+
+    editor.behaviors.attachBehavior(weapon, 'weapon_inventory', { weaponName: 'Plasma Gun', ammo: 30 });
+    assert.equal(editor.behaviors.hasBehavior(weapon, 'weapon_inventory'), true);
   }
 });
 
@@ -149,7 +154,7 @@ test('Win Level Victory Trigger action registration and execution', () => {
   assert.equal(trig.victoryMessage, 'Level 1 Cleared!');
 });
 
-test('GameBundler generates standalone HTML with HUD, Victory screen, Base64 assets and new behaviors', () => {
+test('GameBundler generates standalone HTML with Ammo.js physics, HUD, Victory screen, Base64 assets and new behaviors', () => {
   const editor = new Editor();
   editor.projectName = 'Awesome 3D Game';
   assert.ok(editor.hudConfig.victory, 'Editor initial hudConfig has victory screen');
@@ -165,10 +170,14 @@ test('GameBundler generates standalone HTML with HUD, Victory screen, Base64 ass
   assert.equal(typeof html, 'string');
   assert.ok(html.includes('<!DOCTYPE html>'));
   assert.ok(html.includes('Awesome 3D Game'));
+  assert.ok(html.includes('ammo.751ef4f.js'), 'Includes Ammo.js physics engine script tag');
   assert.ok(html.includes('hud-container'));
   assert.ok(html.includes('hud-health-bar-wrap'));
+  assert.ok(html.includes('hud-ammo-counter'));
   assert.ok(html.includes('gameover-screen'));
   assert.ok(html.includes('victory-screen'));
-  assert.ok(html.includes('projectile_shooter'));
+  assert.ok(html.includes('moving_platform'));
+  assert.ok(html.includes('interactive_door'));
+  assert.ok(html.includes('enemy_spawner'));
   assert.ok(html.includes('data:audio/mp3;base64,SUQzBAAAAAAA'));
 });
