@@ -592,6 +592,11 @@ export class GizmoManager {
   }
 
   updateGizmoVisibility() {
+    if (this.editor && this.editor.isPlaying) {
+      Object.values(this.gizmos).forEach(gizmo => gizmo.detach());
+      return;
+    }
+
     Object.entries(this.gizmos).forEach(([modeKey, gizmo]) => {
       if (this.targetEntity && this.mode === modeKey) {
         gizmo.attach([this.targetEntity]);

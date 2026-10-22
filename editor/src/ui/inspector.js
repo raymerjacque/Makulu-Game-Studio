@@ -1,5 +1,6 @@
 import * as pc from 'playcanvas';
 import { MaterialPreviewRenderer } from './material-preview.js';
+import { showToast } from './toast.js';
 
 /**
  * Entity & Component Inspector Panel
@@ -86,6 +87,11 @@ export class InspectorPanel {
   /* 🌱 SIMPLE / NOVICE MODE VIEW                                              */
   /* ========================================================================= */
   renderSimpleModeView(body, ent) {
+    const hasWasd = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'wasd') : false;
+    const hasSpin = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'spin') : false;
+    const hasFlicker = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'light_flicker') : false;
+    const hasImpulse = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'physics_impulse') : false;
+
     body.innerHTML = `
       <!-- Mode Banner -->
       <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 8px 10px; display: flex; align-items: center; justify-content: space-between;">
@@ -153,18 +159,50 @@ export class InspectorPanel {
           <span>⚡ No-Code Game Behaviors</span>
         </div>
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
-          <button class="btn" id="add-spin-behavior" style="justify-content: flex-start; gap: 8px;">
-            <span>🔄</span> <span>Add Continuous Spin</span>
-          </button>
-          <button class="btn" id="add-wasd-behavior" style="justify-content: flex-start; gap: 8px;">
-            <span>🎮</span> <span>Make Player WASD Controlled</span>
-          </button>
-          <button class="btn" id="add-flicker-behavior" style="justify-content: flex-start; gap: 8px;">
-            <span>💡</span> <span>Add Flame/Light Flicker</span>
-          </button>
-          <button class="btn" id="add-impulse-behavior" style="justify-content: flex-start; gap: 8px;">
-            <span>💥</span> <span>Add Spacebar Physics Jump</span>
-          </button>
+          ${hasWasd ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(16,185,129,0.15); border: 1px solid #10b981; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #10b981; font-weight: 600;">🎮 WASD Controller Active (WASD/Arrows)</span>
+              <button class="btn btn-icon btn-sm" id="remove-wasd-behavior" title="Remove Controller" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-wasd-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🎮</span> <span>Make Player WASD Controlled</span>
+            </button>
+          `}
+
+          ${hasSpin ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #60a5fa; font-weight: 600;">🔄 Continuous Spin Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-spin-behavior" title="Remove Spin" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-spin-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔄</span> <span>Add Continuous Spin</span>
+            </button>
+          `}
+
+          ${hasFlicker ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234,179,8,0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #facc15; font-weight: 600;">💡 Flame/Light Flicker Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-flicker-behavior" title="Remove Flicker" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-flicker-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>💡</span> <span>Add Flame/Light Flicker</span>
+            </button>
+          `}
+
+          ${hasImpulse ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #c084fc; font-weight: 600;">💥 Spacebar Jump Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-impulse-behavior" title="Remove Jump" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-impulse-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>💥</span> <span>Add Spacebar Physics Jump</span>
+            </button>
+          `}
+
           <button class="btn" id="add-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>⚡</span> <span>Add Teleport Trigger Volume</span>
           </button>
@@ -238,46 +276,106 @@ export class InspectorPanel {
     });
 
     // Behaviors
-    body.querySelector('#add-spin-behavior').addEventListener('click', () => {
-      if (this.editor.behaviors) {
-        this.editor.behaviors.attachBehavior(ent, 'spin', { speed: 45, axis: 'y' });
-        alert(`Attached Continuous Spin Behavior to ${ent.name}!`);
-      }
-    });
+    const addSpinBtn = body.querySelector('#add-spin-behavior');
+    if (addSpinBtn) {
+      addSpinBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'spin', { speed: 45, axis: 'y' });
+          showToast(`🔄 Attached Continuous Spin to ${ent.name}!`, 'success');
+          this.inspect(ent);
+        }
+      });
+    }
+    const remSpinBtn = body.querySelector('#remove-spin-behavior');
+    if (remSpinBtn) {
+      remSpinBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'spin');
+          showToast(`Removed Spin Behavior from ${ent.name}.`, 'info');
+          this.inspect(ent);
+        }
+      });
+    }
 
-    body.querySelector('#add-wasd-behavior').addEventListener('click', () => {
-      if (this.editor.behaviors) {
-        this.editor.behaviors.attachBehavior(ent, 'wasd', { speed: 8 });
-        alert(`Attached WASD Player Controller to ${ent.name}! Click ▶ Play to test!`);
-      }
-    });
+    const addWasdBtn = body.querySelector('#add-wasd-behavior');
+    if (addWasdBtn) {
+      addWasdBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'wasd', { speed: 8 });
+          showToast(`🎮 Attached WASD Player Controller to ${ent.name}! Press ▶ Play to test!`, 'success');
+          this.inspect(ent);
+        }
+      });
+    }
+    const remWasdBtn = body.querySelector('#remove-wasd-behavior');
+    if (remWasdBtn) {
+      remWasdBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'wasd');
+          showToast(`Removed WASD Controller from ${ent.name}.`, 'info');
+          this.inspect(ent);
+        }
+      });
+    }
 
-    body.querySelector('#add-flicker-behavior').addEventListener('click', () => {
-      if (this.editor.behaviors) {
-        this.editor.behaviors.attachBehavior(ent, 'light_flicker', { variance: 0.5 });
-        alert(`Attached Light Flicker Behavior to ${ent.name}!`);
-      }
-    });
+    const addFlickerBtn = body.querySelector('#add-flicker-behavior');
+    if (addFlickerBtn) {
+      addFlickerBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'light_flicker', { variance: 0.5 });
+          showToast(`💡 Attached Light Flicker Behavior to ${ent.name}!`, 'success');
+          this.inspect(ent);
+        }
+      });
+    }
+    const remFlickerBtn = body.querySelector('#remove-flicker-behavior');
+    if (remFlickerBtn) {
+      remFlickerBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'light_flicker');
+          showToast(`Removed Light Flicker from ${ent.name}.`, 'info');
+          this.inspect(ent);
+        }
+      });
+    }
 
-    body.querySelector('#add-impulse-behavior').addEventListener('click', () => {
-      if (this.editor.behaviors) {
-        if (!ent.rigidbody) this.editor.addComponent(ent, 'rigidbody', { type: 'dynamic' });
-        if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
-        this.editor.behaviors.attachBehavior(ent, 'physics_impulse', { force: 8 });
-        alert(`Attached Physics Jump Behavior to ${ent.name}! Press Spacebar during ▶ Play to jump!`);
-      }
-    });
+    const addImpulseBtn = body.querySelector('#add-impulse-behavior');
+    if (addImpulseBtn) {
+      addImpulseBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          if (!ent.rigidbody) this.editor.addComponent(ent, 'rigidbody', { type: 'dynamic' });
+          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+          this.editor.behaviors.attachBehavior(ent, 'physics_impulse', { force: 8 });
+          showToast(`💥 Attached Physics Jump to ${ent.name}! Press Spacebar during ▶ Play to jump!`, 'success');
+          this.inspect(ent);
+        }
+      });
+    }
+    const remImpulseBtn = body.querySelector('#remove-impulse-behavior');
+    if (remImpulseBtn) {
+      remImpulseBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'physics_impulse');
+          showToast(`Removed Physics Jump from ${ent.name}.`, 'info');
+          this.inspect(ent);
+        }
+      });
+    }
 
-    body.querySelector('#add-trigger-behavior').addEventListener('click', () => {
-      if (this.editor.triggers) {
-        if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
-        this.editor.triggers.registerTrigger(ent.name, {
-          eventType: 'on_enter',
-          action: 'teleport',
-          targetPosition: [0, 2, 0]
-        });
-      }
-    });
+    const addTrigBtn = body.querySelector('#add-trigger-behavior');
+    if (addTrigBtn) {
+      addTrigBtn.addEventListener('click', () => {
+        if (this.editor.triggers) {
+          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+          this.editor.triggers.registerTrigger(ent.name, {
+            eventType: 'on_enter',
+            action: 'teleport',
+            targetPosition: [0, 2, 0]
+          });
+          showToast(`⚡ Teleport Trigger registered on ${ent.name}!`, 'success');
+        }
+      });
+    }
   }
 
   /* ========================================================================= */

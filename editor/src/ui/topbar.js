@@ -199,6 +199,7 @@ export class TopBar {
 
     playBtn.addEventListener('click', () => {
       this.isPlaying = !this.isPlaying;
+      this.editor.isPlaying = this.isPlaying;
       let banner = document.getElementById('simulation-banner');
 
       if (this.isPlaying) {
@@ -234,6 +235,16 @@ export class TopBar {
           document.getElementById('viewport-container').appendChild(banner);
         }
 
+        // Hide gizmos during simulation so handles don't clutter the player
+        if (this.editor.runtime && this.editor.runtime.gizmoManager) {
+          this.editor.runtime.gizmoManager.updateGizmoVisibility();
+        }
+
+        // Focus canvas so key presses are registered immediately
+        if (this.editor.runtime && this.editor.runtime.canvas) {
+          this.editor.runtime.canvas.focus();
+        }
+
         this.editor.events.emit('game:play');
         showToast('▶ Game Simulation Active! Use WASD to control objects.', 'success');
       } else {
@@ -245,6 +256,12 @@ export class TopBar {
         if (banner) banner.remove();
 
         this.editor.events.emit('game:stop');
+
+        // Restore gizmo visibility after simulation
+        if (this.editor.runtime && this.editor.runtime.gizmoManager) {
+          this.editor.runtime.gizmoManager.updateGizmoVisibility();
+        }
+
         showToast('⏹ Simulation Stopped. Back to Editor mode.', 'info');
       }
     });

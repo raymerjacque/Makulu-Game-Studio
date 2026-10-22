@@ -51,6 +51,7 @@ export class Editor {
 
   setRuntime(runtime) {
     this.runtime = runtime;
+    this.events.emit('runtime:ready', runtime);
   }
 
   setEditorMode(mode) {
