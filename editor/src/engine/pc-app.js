@@ -24,15 +24,30 @@ export class EngineRuntime {
     });
 
     this.app.start();
-    this.app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+
+    // Editor viewport canvas sizing: Must use FILLMODE_NONE with exact container bounds
+    this.app.setCanvasFillMode(pc.FILLMODE_NONE);
     this.app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    const resizeCanvasToContainer = () => {
+      const container = this.canvas.parentElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          this.app.resizeCanvas(rect.width, rect.height);
+        }
+      }
+    };
+
+    window.addEventListener('resize', resizeCanvasToContainer);
+    if (window.ResizeObserver && this.canvas.parentElement) {
+      new ResizeObserver(resizeCanvasToContainer).observe(this.canvas.parentElement);
+    }
+    resizeCanvasToContainer();
 
     // Default lighting atmosphere
     this.app.scene.ambientLight = new pc.Color(0.22, 0.24, 0.28);
     this.app.scene.toneMapping = pc.TONEMAP_ACES;
-
-    // Handle Window Resizing
-    window.addEventListener('resize', () => this.app.resizeCanvas());
 
     // Register runtime reference on editor instance
     this.editor.runtime = this;
@@ -108,7 +123,7 @@ export class EngineRuntime {
       const dist = Math.hypot(e.clientX - mouseDownPos.x, e.clientY - mouseDownPos.y);
       if (dist > 4) return;
 
-      // Ignore if clicking gizmo handle
+      // Ignore if clicking gizmo handle or actively manipulating gizmo
       if (this.gizmoManager.isHovered || this.gizmoManager.isDragging) return;
 
       const rect = this.canvas.getBoundingClientRect();
@@ -137,21 +152,33 @@ export class EngineRuntime {
     let closestHit = null;
     let closestDist = Infinity;
 
+    const rayDir = end.clone().sub(start).normalize();
+    const ray = new pc.Ray(start, rayDir);
+
     const raycastNode = (node) => {
-      if (node === this.grid.entity || node === this.editorCamera.entity || node.name === 'GizmoRoot' || node.name === 'SelectionOutline') {
+      const lowerName = node.name.toLowerCase();
+      if (
+        node === this.grid.entity ||
+        node === this.editorCamera.entity ||
+        lowerName.startsWith('gizmo') ||
+        lowerName === 'selectionoutline' ||
+        lowerName === 'componentvisualhelpers'
+      ) {
         return;
       }
 
       if (node.render && node.enabled && node.parent) {
-        const bbox = node.render.meshInstances[0]?.aabb;
-        if (bbox) {
-          const ray = new pc.Ray(start, end.clone().sub(start).normalize());
+        const meshInstances = node.render.meshInstances;
+        if (meshInstances && meshInstances.length > 0) {
           const hitPoint = new pc.Vec3();
-          if (bbox.intersectsRay(ray, hitPoint)) {
-            const dist = start.distance(hitPoint);
-            if (dist < closestDist) {
-              closestDist = dist;
-              closestHit = node;
+          for (let i = 0; i < meshInstances.length; i++) {
+            const bbox = meshInstances[i].aabb;
+            if (bbox && bbox.intersectsRay(ray, hitPoint)) {
+              const dist = start.distance(hitPoint);
+              if (dist < closestDist) {
+                closestDist = dist;
+                closestHit = node;
+              }
             }
           }
         }
@@ -163,7 +190,21 @@ export class EngineRuntime {
     };
 
     this.app.root.children.forEach(raycastNode);
-    return closestHit;
+
+    // If we hit an entity that is a child of a model or compound prefab, bubble up to top selectable entity
+    if (closestHit) {
+      let selectable = closestHit;
+      while (
+        selectable.parent &&
+        selectable.parent !== this.app.root &&
+        !selectable.parent.name.toLowerCase().startsWith('gizmo')
+      ) {
+        selectable = selectable.parent;
+      }
+      return selectable;
+    }
+
+    return null;
   }
 
   setupCanvasDragAndDrop() {
@@ -180,17 +221,15 @@ export class EngineRuntime {
                 name: asset.name.replace(/\.[^/.]+$/, ""),
                 position: [0, 0, 0]
               });
-            } else {
-              this.editor.createEntity({
-                name: asset.name.replace(/\.[^/.]+$/, ""),
-                transform: { position: [0, 1, 0] },
-                components: [{ type: 'render', properties: { type: 'box' } }]
-              });
             }
+          } else if (asset.type === 'prefabs') {
+            this.editor.prefabs.instantiate(asset.data, {
+              position: [0, 0, 0]
+            });
           }
         }
       } catch (err) {
-        // Drop handled
+        console.error('Drag and drop error:', err);
       }
     });
   }
@@ -240,7 +279,7 @@ export class EditorCameraController {
     let targetPos = targetEntity.getPosition().clone();
 
     // Check mesh bounds if render component exists
-    if (targetEntity.render && targetEntity.render.meshInstances[0]) {
+    if (targetEntity.render && targetEntity.render.meshInstances && targetEntity.render.meshInstances[0]) {
       const bbox = targetEntity.render.meshInstances[0].aabb;
       targetPos = bbox.center.clone();
       const maxDim = Math.max(bbox.halfExtents.x, bbox.halfExtents.y, bbox.halfExtents.z);
@@ -304,6 +343,10 @@ export class EditorCameraController {
       lastY = e.clientY;
 
       if (e.button === 0 && !e.shiftKey) {
+        // Do not orbit if clicking a gizmo handle or dragging
+        if (this.editor?.runtime?.gizmoManager?.isHovered || this.editor?.runtime?.gizmoManager?.isDragging) {
+          return;
+        }
         isOrbiting = true;
       } else if (e.button === 2 || (e.button === 0 && e.shiftKey)) {
         isPanning = true;
@@ -311,6 +354,11 @@ export class EditorCameraController {
     });
 
     window.addEventListener('mousemove', (e) => {
+      if (this.editor?.runtime?.gizmoManager?.isDragging) {
+        isOrbiting = false;
+        return;
+      }
+
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
       lastX = e.clientX;
@@ -405,20 +453,28 @@ export class EditorGrid {
       primitiveType: pc.PRIMITIVE_LINES
     });
 
+    // Unlit material so directional sun or shadowing does not darken parts of the grid
     const material = new pc.StandardMaterial();
+    material.useLighting = false;
     material.useVertexColors = true;
+    material.cull = pc.CULLFACE_NONE;
     material.blendType = pc.BLEND_NORMAL;
+    material.depthWrite = false;
     material.update();
 
     const meshInstance = new pc.MeshInstance(mesh, material);
     this.entity.addComponent('render', {
-      meshInstances: [meshInstance]
+      meshInstances: [meshInstance],
+      castShadows: false,
+      castShadowsLightmap: false,
+      receiveShadows: false
     });
   }
 }
 
 /**
  * Interactive 3D Transform Gizmo Manager (Translate, Rotate, Scale)
+ * Powered by PlayCanvas official native Gizmo system (TranslateGizmo, RotateGizmo, ScaleGizmo).
  */
 export class GizmoManager {
   constructor(app, cameraController, editor) {
@@ -430,20 +486,81 @@ export class GizmoManager {
     this.coordSpace = 'world'; // 'world', 'local'
     this.snapEnabled = false;
     this.snapIncrement = 1.0;
+    this.targetEntity = null;
 
-    this.isHovered = false;
-    this.isDragging = false;
-    this.activeAxis = null; // 'x', 'y', 'z'
+    // Create a dedicated layer for rendering Gizmos
+    this.layer = pc.Gizmo.createLayer(this.app, 'GizmoLayer');
 
-    this.rootEntity = new pc.Entity('GizmoRoot');
-    this.app.root.addChild(this.rootEntity);
+    const camera = this.cameraController.entity.camera;
+    this.translateGizmo = new pc.TranslateGizmo(camera, this.layer);
+    this.rotateGizmo = new pc.RotateGizmo(camera, this.layer);
+    this.scaleGizmo = new pc.ScaleGizmo(camera, this.layer);
 
-    this.createGizmoMeshes();
-    this.bindEvents();
+    this.gizmos = {
+      translate: this.translateGizmo,
+      rotate: this.rotateGizmo,
+      scale: this.scaleGizmo
+    };
+
+    // Configure all gizmos: detach on boot, set default space and snap
+    Object.values(this.gizmos).forEach(gizmo => {
+      // Only permit Left Click (button 0) to manipulate gizmos
+      if (gizmo.mouseButtons) {
+        gizmo.mouseButtons[0] = true;
+        gizmo.mouseButtons[1] = false;
+        gizmo.mouseButtons[2] = false;
+      }
+
+      gizmo.coordSpace = this.coordSpace;
+      gizmo.snap = this.snapEnabled;
+      gizmo.snapIncrement = this.snapIncrement;
+      gizmo.detach();
+
+      let initialTransform = null;
+
+      gizmo.on('transform:start', () => {
+        if (this.targetEntity) {
+          initialTransform = {
+            initialPos: this.targetEntity.getPosition().clone(),
+            initialRot: this.targetEntity.getEulerAngles().clone(),
+            initialScale: this.targetEntity.getLocalScale().clone()
+          };
+        }
+      });
+
+      gizmo.on('transform:move', () => {
+        if (this.targetEntity) {
+          this.editor.events.emit('entity:transformed', this.targetEntity);
+        }
+      });
+
+      gizmo.on('transform:end', () => {
+        if (this.targetEntity && initialTransform) {
+          this.editor.commitEntityTransform(this.targetEntity, initialTransform);
+          initialTransform = null;
+        }
+      });
+    });
 
     this.editor.selection.subscribe((selected, active) => {
       this.updateGizmoTarget(active);
     });
+  }
+
+  get isDragging() {
+    return Boolean(
+      (this.translateGizmo && this.translateGizmo._dragging) ||
+      (this.rotateGizmo && this.rotateGizmo._dragging) ||
+      (this.scaleGizmo && this.scaleGizmo._dragging)
+    );
+  }
+
+  get isHovered() {
+    return Boolean(
+      (this.translateGizmo && this.translateGizmo._hoverAxis) ||
+      (this.rotateGizmo && this.rotateGizmo._hoverAxis) ||
+      (this.scaleGizmo && this.scaleGizmo._hoverAxis)
+    );
   }
 
   setMode(mode) {
@@ -453,11 +570,20 @@ export class GizmoManager {
 
   setCoordSpace(space) {
     this.coordSpace = space;
+    Object.values(this.gizmos).forEach(g => {
+      if (g) g.coordSpace = space;
+    });
   }
 
   setSnap(enabled, increment = 1.0) {
     this.snapEnabled = enabled;
     this.snapIncrement = increment;
+    Object.values(this.gizmos).forEach(g => {
+      if (g) {
+        g.snap = enabled;
+        g.snapIncrement = increment;
+      }
+    });
   }
 
   updateGizmoTarget(activeEntity) {
@@ -466,240 +592,13 @@ export class GizmoManager {
   }
 
   updateGizmoVisibility() {
-    if (!this.targetEntity || this.mode === 'none') {
-      this.rootEntity.enabled = false;
-      return;
-    }
-
-    this.rootEntity.enabled = true;
-    this.rootEntity.setPosition(this.targetEntity.getPosition());
-
-    if (this.coordSpace === 'local') {
-      this.rootEntity.setRotation(this.targetEntity.getRotation());
-    } else {
-      this.rootEntity.setEulerAngles(0, 0, 0);
-    }
-
-    // Scale gizmo so it stays constant size on screen
-    const camPos = this.cameraController.entity.getPosition();
-    const dist = camPos.distance(this.rootEntity.getPosition());
-    const scale = Math.max(0.2, dist * 0.12);
-    this.rootEntity.setLocalScale(scale, scale, scale);
-
-    this.translateGroup.enabled = this.mode === 'translate';
-    this.rotateGroup.enabled = this.mode === 'rotate';
-    this.scaleGroup.enabled = this.mode === 'scale';
-  }
-
-  createGizmoMeshes() {
-    this.translateGroup = new pc.Entity('GizmoTranslate');
-    this.rotateGroup = new pc.Entity('GizmoRotate');
-    this.scaleGroup = new pc.Entity('GizmoScale');
-
-    this.rootEntity.addChild(this.translateGroup);
-    this.rootEntity.addChild(this.rotateGroup);
-    this.rootEntity.addChild(this.scaleGroup);
-
-    // Build Translate Handles (X: Red, Y: Green, Z: Blue)
-    this.buildArrowHandle(this.translateGroup, 'x', [1, 0, 0], [0, 0, -90], [0.8, 0, 0]);
-    this.buildArrowHandle(this.translateGroup, 'y', [0, 1, 0], [0, 0, 0], [0, 0.8, 0]);
-    this.buildArrowHandle(this.translateGroup, 'z', [0, 0, 1], [90, 0, 0], [0, 0.4, 0.9]);
-
-    // Build Scale Handles
-    this.buildCubeHandle(this.scaleGroup, 'x', [0.8, 0, 0], [1, 0, 0]);
-    this.buildCubeHandle(this.scaleGroup, 'y', [0, 0.8, 0], [0, 1, 0]);
-    this.buildCubeHandle(this.scaleGroup, 'z', [0, 0, 0.8], [0, 0.4, 0.9]);
-
-    // Build Rotate Rings
-    this.buildRingHandle(this.rotateGroup, 'x', [90, 0, 0], [1, 0, 0]);
-    this.buildRingHandle(this.rotateGroup, 'y', [0, 0, 0], [0, 1, 0]);
-    this.buildRingHandle(this.rotateGroup, 'z', [0, 90, 0], [0, 0.4, 0.9]);
-
-    this.app.on('update', () => {
-      if (this.targetEntity && this.rootEntity.enabled) {
-        this.updateGizmoVisibility();
+    Object.entries(this.gizmos).forEach(([modeKey, gizmo]) => {
+      if (this.targetEntity && this.mode === modeKey) {
+        gizmo.attach([this.targetEntity]);
+      } else {
+        gizmo.detach();
       }
     });
-  }
-
-  buildArrowHandle(parent, axis, pos, rot, colorArr) {
-    const ent = new pc.Entity(`Gizmo_Arrow_${axis}`);
-    ent.setPosition(...pos);
-    ent.setEulerAngles(...rot);
-
-    const mat = new pc.StandardMaterial();
-    mat.diffuse = new pc.Color(...colorArr);
-    mat.useLighting = false;
-    mat.update();
-
-    ent.addComponent('render', { type: 'cone', material: mat });
-    ent.setLocalScale(0.12, 0.4, 0.12);
-    parent.addChild(ent);
-  }
-
-  buildCubeHandle(parent, axis, pos, colorArr) {
-    const ent = new pc.Entity(`Gizmo_Scale_${axis}`);
-    ent.setPosition(...pos);
-
-    const mat = new pc.StandardMaterial();
-    mat.diffuse = new pc.Color(...colorArr);
-    mat.useLighting = false;
-    mat.update();
-
-    ent.addComponent('render', { type: 'box', material: mat });
-    ent.setLocalScale(0.15, 0.15, 0.15);
-    parent.addChild(ent);
-  }
-
-  buildRingHandle(parent, axis, rot, colorArr) {
-    const ent = new pc.Entity(`Gizmo_Rotate_${axis}`);
-    ent.setEulerAngles(...rot);
-
-    const mat = new pc.StandardMaterial();
-    mat.diffuse = new pc.Color(...colorArr);
-    mat.useLighting = false;
-    mat.update();
-
-    ent.addComponent('render', { type: 'cylinder', material: mat });
-    ent.setLocalScale(1.4, 0.02, 1.4);
-    parent.addChild(ent);
-  }
-
-  bindEvents() {
-    let initialTransform = null;
-    let dragStartMouse = { x: 0, y: 0 };
-
-    const canvas = this.app.graphicsDevice.canvas;
-
-    canvas.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return; // Only left-click drags gizmos
-      if (!this.targetEntity || this.mode === 'none') return;
-
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.clientX - rect.left;
-      const clientY = e.clientY - rect.top;
-
-      const hitGizmo = this.pickGizmoAxis(clientX, clientY);
-      if (hitGizmo) {
-        this.isDragging = true;
-        this.activeAxis = hitGizmo;
-        dragStartMouse = { x: e.clientX, y: e.clientY };
-
-        initialTransform = {
-          initialPos: this.targetEntity.getPosition().clone(),
-          initialRot: this.targetEntity.getEulerAngles().clone(),
-          initialScale: this.targetEntity.getLocalScale().clone()
-        };
-      }
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      if (this.isDragging || !this.targetEntity || this.mode === 'none') return;
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.clientX - rect.left;
-      const clientY = e.clientY - rect.top;
-      this.pickGizmoAxis(clientX, clientY);
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!this.isDragging || !this.targetEntity) return;
-
-      const dx = (e.clientX - dragStartMouse.x) * 0.02;
-      const dy = -(e.clientY - dragStartMouse.y) * 0.02;
-
-      if (this.mode === 'translate') {
-        const delta = new pc.Vec3();
-        if (this.activeAxis === 'x') delta.x = dx;
-        if (this.activeAxis === 'y') delta.y = dy;
-        if (this.activeAxis === 'z') delta.z = dx;
-
-        if (this.snapEnabled) {
-          delta.x = Math.round(delta.x / this.snapIncrement) * this.snapIncrement;
-          delta.y = Math.round(delta.y / this.snapIncrement) * this.snapIncrement;
-          delta.z = Math.round(delta.z / this.snapIncrement) * this.snapIncrement;
-        }
-
-        const newPos = initialTransform.initialPos.clone().add(delta);
-        this.targetEntity.setPosition(newPos);
-        this.editor.events.emit('entity:transformed', this.targetEntity);
-
-      } else if (this.mode === 'rotate') {
-        const rotAmount = (dx + dy) * 30;
-        const newRot = initialTransform.initialRot.clone();
-        if (this.activeAxis === 'x') newRot.x += rotAmount;
-        if (this.activeAxis === 'y') newRot.y += rotAmount;
-        if (this.activeAxis === 'z') newRot.z += rotAmount;
-
-        this.targetEntity.setEulerAngles(newRot);
-        this.editor.events.emit('entity:transformed', this.targetEntity);
-
-      } else if (this.mode === 'scale') {
-        const scaleAmount = dx;
-        const newScale = initialTransform.initialScale.clone();
-        if (this.activeAxis === 'x') newScale.x = Math.max(0.05, newScale.x + scaleAmount);
-        if (this.activeAxis === 'y') newScale.y = Math.max(0.05, newScale.y + scaleAmount);
-        if (this.activeAxis === 'z') newScale.z = Math.max(0.05, newScale.z + scaleAmount);
-
-        this.targetEntity.setLocalScale(newScale);
-        this.editor.events.emit('entity:transformed', this.targetEntity);
-      }
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (this.isDragging && this.targetEntity && initialTransform) {
-        this.isDragging = false;
-        this.editor.commitEntityTransform(this.targetEntity, initialTransform);
-        initialTransform = null;
-      }
-    });
-  }
-
-  pickGizmoAxis(screenX, screenY) {
-    if (!this.rootEntity.enabled) return null;
-    const camera = this.cameraController.entity.camera;
-    if (!camera) return null;
-
-    const start = new pc.Vec3();
-    const end = new pc.Vec3();
-    camera.screenToWorld(screenX, screenY, camera.nearClip, start);
-    camera.screenToWorld(screenX, screenY, camera.farClip, end);
-
-    const rayDirection = end.clone().sub(start).normalize();
-
-    // Check collision against individual axis gizmo entities
-    let closestAxis = null;
-    let closestDist = Infinity;
-
-    const checkHandles = (group) => {
-      if (!group || !group.enabled) return;
-      group.children.forEach(handle => {
-        if (!handle.enabled || !handle.render || !handle.render.meshInstances[0]) return;
-        const bbox = handle.render.meshInstances[0].aabb;
-        const hitPoint = new pc.Vec3();
-        const ray = new pc.Ray(start, rayDirection);
-        if (bbox.intersectsRay(ray, hitPoint)) {
-          const dist = start.distance(hitPoint);
-          if (dist < closestDist) {
-            closestDist = dist;
-            if (handle.name.includes('_x')) closestAxis = 'x';
-            else if (handle.name.includes('_y')) closestAxis = 'y';
-            else if (handle.name.includes('_z')) closestAxis = 'z';
-          }
-        }
-      });
-    };
-
-    if (this.mode === 'translate') checkHandles(this.translateGroup);
-    else if (this.mode === 'rotate') checkHandles(this.rotateGroup);
-    else if (this.mode === 'scale') checkHandles(this.scaleGroup);
-
-    if (closestAxis) {
-      this.isHovered = true;
-      return closestAxis;
-    }
-
-    this.isHovered = false;
-    return null;
   }
 }
 
@@ -712,6 +611,7 @@ export class SelectionHighlighter {
     this.editor = editor;
 
     this.entity = new pc.Entity('SelectionOutline');
+    this.entity.enabled = false;
     this.app.root.addChild(this.entity);
 
     this.editor.selection.subscribe((selected, active) => {
@@ -748,6 +648,7 @@ export class ComponentVisualHelpers {
     this.editor = editor;
 
     this.helperEntity = new pc.Entity('ComponentVisualHelpers');
+    this.helperEntity.enabled = false;
     this.app.root.addChild(this.helperEntity);
 
     this.editor.selection.subscribe((selected, active) => {
@@ -769,7 +670,12 @@ export class ComponentVisualHelpers {
       child.destroy();
     }
 
-    if (!active || active === this.app.root) return;
+    if (!active || active === this.app.root) {
+      this.helperEntity.enabled = false;
+      return;
+    }
+
+    this.helperEntity.enabled = true;
 
     // Light Range Helper
     if (active.light && active.light.type !== 'directional') {
