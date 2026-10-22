@@ -161,6 +161,7 @@ export class Editor {
         });
 
         const rootEntity = new pc.Entity(name);
+        rootEntity._modelUrl = url;
         rootEntity.setPosition(...position);
         rootEntity.setEulerAngles(...rotation);
         rootEntity.setLocalScale(...scale);
@@ -376,6 +377,10 @@ export class Editor {
         children: []
       };
 
+      if (node._modelUrl) {
+        data.modelUrl = node._modelUrl;
+      }
+
       if (node.render) {
         data.components.render = {
           type: node.render.type,
@@ -418,8 +423,8 @@ export class Editor {
         data.components.rigidbody = {
           type: node.rigidbody.type || 'static',
           mass: node.rigidbody.mass || 1,
-          restitution: node.rigidbody.restitution || 0.5,
-          friction: node.rigidbody.friction || 0.5
+          restitution: node.rigidbody.restitution !== undefined ? node.rigidbody.restitution : 0.5,
+          friction: node.rigidbody.friction !== undefined ? node.rigidbody.friction : 0.5
         };
       }
       if (node.particlesystem) {
@@ -461,9 +466,29 @@ export class Editor {
       return data;
     };
 
+    // Serialize triggers
+    const triggersData = {};
+    if (this.triggers && this.triggers.triggers) {
+      for (const [entityName, config] of this.triggers.triggers.entries()) {
+        triggersData[entityName] = config;
+      }
+    }
+
+    // Serialize scripts
+    const scriptsData = {};
+    if (this.scripts) {
+      for (const [name, code] of this.scripts.entries()) {
+        scriptsData[name] = code;
+      }
+    }
+
     const sceneData = {
       project: this.projectName,
       scene: this.activeSceneName,
+      atmosphere: this.runtime ? this.runtime.currentAtmosphere || 'day' : 'day',
+      gravity: (app.systems && app.systems.rigidbody && app.systems.rigidbody.gravity) ? [app.systems.rigidbody.gravity.x, app.systems.rigidbody.gravity.y, app.systems.rigidbody.gravity.z] : [0, -9.8, 0],
+      triggers: triggersData,
+      scripts: scriptsData,
       root: serializeNode(app.root)
     };
 
@@ -633,5 +658,59 @@ export class Editor {
       this.scenes.set(sceneName, this.exportSceneJSON());
     }
     this.events.emit('scene:list:changed', Array.from(this.scenes.keys()));
+  }
+
+  /**
+   * Delete scene by name
+   */
+  deleteScene(sceneName) {
+    if (!sceneName || this.scenes.size <= 1) return false;
+    if (!this.scenes.has(sceneName)) return false;
+
+    this.scenes.delete(sceneName);
+
+    if (this.activeSceneName === sceneName) {
+      const remainingNames = Array.from(this.scenes.keys());
+      const nextScene = remainingNames[0];
+      this.activeSceneName = nextScene;
+      if (this.scenes.get(nextScene)) {
+        this.loadSceneJSON(this.scenes.get(nextScene));
+      }
+    }
+
+    this.events.emit('scene:list:changed', Array.from(this.scenes.keys()));
+    return true;
+  }
+
+  /**
+   * Rename scene
+   */
+  renameScene(oldName, newName) {
+    if (!oldName || !newName || oldName === newName) return false;
+    if (!this.scenes.has(oldName)) return false;
+
+    const data = this.scenes.get(oldName);
+    this.scenes.delete(oldName);
+    this.scenes.set(newName, data);
+
+    if (this.activeSceneName === oldName) {
+      this.activeSceneName = newName;
+    }
+
+    this.events.emit('scene:list:changed', Array.from(this.scenes.keys()));
+    return true;
+  }
+
+  /**
+   * Duplicate scene
+   */
+  duplicateScene(sceneName) {
+    const target = sceneName || this.activeSceneName;
+    const json = (target === this.activeSceneName) ? this.exportSceneJSON() : (this.scenes.get(target) || '{}');
+    const newName = `${target}_Copy`;
+
+    this.scenes.set(newName, json);
+    this.switchScene(newName);
+    return newName;
   }
 }

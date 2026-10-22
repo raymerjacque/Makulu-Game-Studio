@@ -90,12 +90,14 @@ export class InspectorPanel {
     const hasWasd = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'wasd') : false;
     const hasSpin = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'spin') : false;
     const hasFlicker = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'light_flicker') : false;
+    const hasPatrol = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'patrol') : false;
     const hasImpulse = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'physics_impulse') : false;
     const hasSine = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'sine_float') : false;
     const hasOrbit = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'orbit') : false;
     const hasCamFollow = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'camera_follow') : false;
     const hasBillboard = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'billboard') : false;
     const hasCollectible = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'collectible') : false;
+    const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
 
     body.innerHTML = `
       <!-- Mode Banner -->
@@ -194,6 +196,17 @@ export class InspectorPanel {
           ` : `
             <button class="btn" id="add-flicker-behavior" style="justify-content: flex-start; gap: 8px;">
               <span>💡</span> <span>Add Flame/Light Flicker</span>
+            </button>
+          `}
+
+          ${hasPatrol ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #c084fc; font-weight: 600;">🚶 Patrol Movement Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-patrol-behavior" title="Remove Patrol" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-patrol-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🚶</span> <span>Add Patrol Back-and-Forth Movement</span>
             </button>
           `}
 
@@ -384,7 +397,7 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.attachBehavior(ent, 'light_flicker', { variance: 0.5 });
           showToast(`💡 Attached Light Flicker Behavior to ${ent.name}!`, 'success');
-          this.inspect(ent);
+          this.updateView();
         }
       });
     }
@@ -394,7 +407,28 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.removeBehavior(ent, 'light_flicker');
           showToast(`Removed Light Flicker from ${ent.name}.`, 'info');
-          this.inspect(ent);
+          this.updateView();
+        }
+      });
+    }
+
+    const addPatrolBtn = body.querySelector('#add-patrol-behavior');
+    if (addPatrolBtn) {
+      addPatrolBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'patrol', { speed: 3, distance: 6 });
+          showToast(`🚶 Attached Patrol Behavior to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remPatrolBtn = body.querySelector('#remove-patrol-behavior');
+    if (remPatrolBtn) {
+      remPatrolBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'patrol');
+          showToast(`Removed Patrol Behavior from ${ent.name}.`, 'info');
+          this.updateView();
         }
       });
     }
@@ -846,6 +880,8 @@ export class InspectorPanel {
 
     // Light Component Card
     if (ent.light) {
+      const curColorHex = ent.light.color ? `#${Math.round(ent.light.color.r * 255).toString(16).padStart(2, '0')}${Math.round(ent.light.color.g * 255).toString(16).padStart(2, '0')}${Math.round(ent.light.color.b * 255).toString(16).padStart(2, '0')}` : '#ffffff';
+
       const card = document.createElement('div');
       card.className = 'inspector-section';
       card.innerHTML = `
@@ -863,6 +899,10 @@ export class InspectorPanel {
             </select>
           </div>
           <div class="prop-row">
+            <span class="prop-label">Color</span>
+            <input type="color" id="light-color-picker" value="${curColorHex}" style="background: none; border: none; width: 40px; height: 24px; cursor: pointer;">
+          </div>
+          <div class="prop-row">
             <span class="prop-label">Intensity</span>
             <input type="range" min="0" max="10" step="0.1" class="text-input" id="light-intensity" value="${ent.light.intensity}">
           </div>
@@ -872,6 +912,16 @@ export class InspectorPanel {
           </div>
         </div>
       `;
+      card.querySelector('#light-type-select').addEventListener('change', (e) => {
+        ent.light.type = e.target.value;
+      });
+      card.querySelector('#light-color-picker').addEventListener('input', (e) => {
+        const hex = e.target.value;
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        ent.light.color = new pc.Color(r, g, b);
+      });
       card.querySelector('#light-intensity').addEventListener('input', (e) => {
         ent.light.intensity = parseFloat(e.target.value);
       });
@@ -976,6 +1026,14 @@ export class InspectorPanel {
             <span class="prop-label">Mass (kg)</span>
             <input type="number" min="0.1" step="0.5" class="text-input" id="rigidbody-mass" value="${ent.rigidbody.mass || 1}">
           </div>
+          <div class="prop-row">
+            <span class="prop-label">Restitution (Bounciness)</span>
+            <input type="range" min="0" max="1" step="0.05" class="text-input" id="rigidbody-restitution" value="${ent.rigidbody.restitution !== undefined ? ent.rigidbody.restitution : 0.5}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Friction</span>
+            <input type="range" min="0" max="1" step="0.05" class="text-input" id="rigidbody-friction" value="${ent.rigidbody.friction !== undefined ? ent.rigidbody.friction : 0.5}">
+          </div>
         </div>
       `;
       card.querySelector('#rigidbody-type-select').addEventListener('change', (e) => {
@@ -983,6 +1041,12 @@ export class InspectorPanel {
       });
       card.querySelector('#rigidbody-mass').addEventListener('change', (e) => {
         ent.rigidbody.mass = parseFloat(e.target.value);
+      });
+      card.querySelector('#rigidbody-restitution').addEventListener('input', (e) => {
+        ent.rigidbody.restitution = parseFloat(e.target.value);
+      });
+      card.querySelector('#rigidbody-friction').addEventListener('input', (e) => {
+        ent.rigidbody.friction = parseFloat(e.target.value);
       });
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'rigidbody');
@@ -1059,6 +1123,10 @@ export class InspectorPanel {
         </div>
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
           <div class="prop-row">
+            <span class="prop-label">Audio File</span>
+            <input type="text" class="text-input" id="sound-url-input" value="${ent.sound.assetUrl || './models/wind.wav'}" placeholder="./path/to/sound.wav">
+          </div>
+          <div class="prop-row">
             <span class="prop-label">Volume</span>
             <input type="range" min="0" max="1" step="0.05" class="text-input" id="sound-volume" value="${ent.sound.volume || 1}">
           </div>
@@ -1070,8 +1138,15 @@ export class InspectorPanel {
             <span class="prop-label">Loop</span>
             <input type="checkbox" id="sound-loop" ${ent.sound.loop !== false ? 'checked' : ''}>
           </div>
+          <button class="btn btn-primary" id="btn-preview-audio" style="font-size: 11px; padding: 4px;">
+            ▶ Test Audio Playback
+          </button>
         </div>
       `;
+
+      card.querySelector('#sound-url-input').addEventListener('change', (e) => {
+        ent.sound.assetUrl = e.target.value;
+      });
 
       card.querySelector('#sound-volume').addEventListener('input', (e) => {
         ent.sound.volume = parseFloat(e.target.value);
@@ -1083,6 +1158,20 @@ export class InspectorPanel {
 
       card.querySelector('#sound-loop').addEventListener('change', (e) => {
         ent.sound.loop = e.target.checked;
+      });
+
+      card.querySelector('#btn-preview-audio').addEventListener('click', () => {
+        const url = card.querySelector('#sound-url-input').value.trim();
+        if (url) {
+          const audio = new Audio(url);
+          audio.volume = ent.sound.volume || 1;
+          audio.playbackRate = ent.sound.pitch || 1;
+          audio.play().then(() => {
+            showToast(`🔊 Playing preview for ${ent.name}!`, 'info');
+          }).catch(err => {
+            showToast(`Could not play audio file: ${err.message}`, 'warn');
+          });
+        }
       });
 
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
@@ -1187,6 +1276,99 @@ export class InspectorPanel {
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'script');
       });
+      stack.appendChild(card);
+    }
+
+    // Trigger Volume Logic Card
+    if (this.editor.triggers && this.editor.triggers.hasTrigger(ent.name)) {
+      const trigConfig = this.editor.triggers.getTrigger(ent.name);
+      const card = document.createElement('div');
+      card.className = 'inspector-section';
+      card.style.borderColor = 'var(--accent-cyan)';
+      card.innerHTML = `
+        <div class="inspector-section-header" style="background: rgba(0, 229, 255, 0.15); color: #00e5ff;">
+          <span>⚡ Interactive Trigger Volume</span>
+          <button class="btn btn-remove-trig" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="prop-row">
+            <span class="prop-label">Event Type</span>
+            <select class="select-input" id="trig-event-select">
+              <option value="on_enter" ${trigConfig.eventType === 'on_enter' ? 'selected' : ''}>On Player Enter</option>
+              <option value="on_exit" ${trigConfig.eventType === 'on_exit' ? 'selected' : ''}>On Player Exit</option>
+            </select>
+          </div>
+
+          <div class="prop-row">
+            <span class="prop-label">Action</span>
+            <select class="select-input" id="trig-action-select">
+              <option value="teleport" ${trigConfig.action === 'teleport' ? 'selected' : ''}>🌀 Teleport Player</option>
+              <option value="toggle_visibility" ${trigConfig.action === 'toggle_visibility' ? 'selected' : ''}>💡 Toggle Visibility</option>
+              <option value="destroy" ${trigConfig.action === 'destroy' ? 'selected' : ''}>💥 Destroy Target Entity</option>
+              <option value="play_sound" ${trigConfig.action === 'play_sound' ? 'selected' : ''}>🔊 Play Sound</option>
+            </select>
+          </div>
+
+          <div class="prop-row">
+            <span class="prop-label">Trigger Radius (m)</span>
+            <input type="range" min="0.5" max="10" step="0.5" class="text-input" id="trig-radius-slider" value="${trigConfig.radius || 2.0}">
+          </div>
+
+          <div class="prop-row" id="trig-target-entity-row" style="display: ${['toggle_visibility', 'destroy'].includes(trigConfig.action) ? 'flex' : 'none'};">
+            <span class="prop-label">Target Entity</span>
+            <input type="text" class="text-input" id="trig-target-entity-input" value="${trigConfig.targetEntity || ''}" placeholder="Entity Name">
+          </div>
+
+          <div class="prop-row" id="trig-target-pos-row" style="display: ${trigConfig.action === 'teleport' ? 'flex' : 'none'};">
+            <span class="prop-label">Teleport Pos</span>
+            <div class="vec3-group">
+              <div class="vec3-item x"><span class="vec3-prefix">X</span><input type="number" step="0.5" id="trig-pos-x" class="vec3-input" value="${trigConfig.targetPosition ? trigConfig.targetPosition[0] : 0}"></div>
+              <div class="vec3-item y"><span class="vec3-prefix">Y</span><input type="number" step="0.5" id="trig-pos-y" class="vec3-input" value="${trigConfig.targetPosition ? trigConfig.targetPosition[1] : 2}"></div>
+              <div class="vec3-item z"><span class="vec3-prefix">Z</span><input type="number" step="0.5" id="trig-pos-z" class="vec3-input" value="${trigConfig.targetPosition ? trigConfig.targetPosition[2] : 0}"></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const actionSelect = card.querySelector('#trig-action-select');
+      const targetEntityRow = card.querySelector('#trig-target-entity-row');
+      const targetPosRow = card.querySelector('#trig-target-pos-row');
+
+      actionSelect.addEventListener('change', (e) => {
+        const act = e.target.value;
+        trigConfig.action = act;
+        targetEntityRow.style.display = ['toggle_visibility', 'destroy'].includes(act) ? 'flex' : 'none';
+        targetPosRow.style.display = act === 'teleport' ? 'flex' : 'none';
+      });
+
+      card.querySelector('#trig-event-select').addEventListener('change', (e) => {
+        trigConfig.eventType = e.target.value;
+      });
+
+      card.querySelector('#trig-radius-slider').addEventListener('input', (e) => {
+        trigConfig.radius = parseFloat(e.target.value);
+      });
+
+      card.querySelector('#trig-target-entity-input').addEventListener('change', (e) => {
+        trigConfig.targetEntity = e.target.value;
+      });
+
+      const updatePos = () => {
+        const x = parseFloat(card.querySelector('#trig-pos-x').value) || 0;
+        const y = parseFloat(card.querySelector('#trig-pos-y').value) || 2;
+        const z = parseFloat(card.querySelector('#trig-pos-z').value) || 0;
+        trigConfig.targetPosition = [x, y, z];
+      };
+
+      ['trig-pos-x', 'trig-pos-y', 'trig-pos-z'].forEach(id => {
+        card.querySelector(`#${id}`).addEventListener('input', updatePos);
+      });
+
+      card.querySelector('.btn-remove-trig').addEventListener('click', () => {
+        this.editor.triggers.removeTrigger(ent.name);
+        this.updateView();
+      });
+
       stack.appendChild(card);
     }
   }

@@ -1,4 +1,5 @@
 import * as pc from 'playcanvas';
+import { TerrainGenerator } from '../engine/terrain-generator.js';
 
 /**
  * AI Action Executor
@@ -139,6 +140,68 @@ export class AIExecutor {
             if (target) {
               this.editor.deleteEntity(target);
               executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'spawn_model': {
+            if (act.url) {
+              const result = await this.editor.loadModel(act.url, {
+                name: act.name || 'AI_3D_Model',
+                position: act.position || [0, 0, 0],
+                scale: act.scale || [1, 1, 1],
+                rotation: act.rotation || [0, 0, 0]
+              });
+              executed.push({ action: act.action, target: act.name || 'AI_3D_Model' });
+            }
+            break;
+          }
+
+          case 'create_terrain': {
+            const gen = new TerrainGenerator(this.editor);
+            gen.generate({
+              name: act.name || 'Procedural Terrain',
+              width: act.width || 40,
+              depth: act.depth || 40,
+              maxHeight: act.maxHeight || 6,
+              roughness: act.roughness || 0.07,
+              seed: act.seed || 1234
+            });
+            executed.push({ action: act.action, target: act.name || 'Procedural Terrain' });
+            break;
+          }
+
+          case 'register_trigger': {
+            const trigName = act.target || act.name;
+            if (trigName && this.editor.triggers) {
+              this.editor.triggers.registerTrigger(trigName, act.config || {
+                eventType: act.eventType || 'on_enter',
+                action: act.triggerAction || 'teleport',
+                targetPosition: act.targetPosition || [0, 2, 0],
+                targetEntity: act.targetEntity || ''
+              });
+              executed.push({ action: act.action, target: trigName });
+            }
+            break;
+          }
+
+          case 'create_prefab': {
+            let target = act.target === 'selected' ? this.editor.selection.getActive() : null;
+            if (!target && act.target && this.editor.getApp() && this.editor.getApp().root) {
+              target = this.editor.getApp().root.findByName(act.target);
+            }
+            if (target && this.editor.prefabs) {
+              this.editor.prefabs.createPrefabFromEntity(target);
+              executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'set_physics_gravity': {
+            const app = this.editor.getApp();
+            if (app && app.systems && app.systems.rigidbody && act.gravity) {
+              app.systems.rigidbody.gravity.set(...act.gravity);
+              executed.push({ action: act.action, target: `Gravity: ${act.gravity.join(',')}` });
             }
             break;
           }

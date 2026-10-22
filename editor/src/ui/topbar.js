@@ -37,6 +37,9 @@ export class TopBar {
             <option value="Main Scene">Main Scene</option>
             <option value="__create_new__">+ New Scene...</option>
           </select>
+          <button id="btn-rename-scene" class="btn" title="Rename Active Scene" style="padding: 2px 6px; font-size: 10px;">✏️</button>
+          <button id="btn-dup-scene" class="btn" title="Duplicate Active Scene" style="padding: 2px 6px; font-size: 10px;">📋</button>
+          <button id="btn-delete-scene" class="btn" title="Delete Active Scene" style="padding: 2px 6px; font-size: 10px; color: #ef4444;">🗑️</button>
           <button id="btn-open-templates" class="btn" style="background: rgba(255,102,0,0.18); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 3px 8px; font-size: 11px;" title="1-Click Genre Starter Templates">🎮 Templates</button>
           <button id="btn-open-timeline" class="btn" style="background: rgba(251, 146, 60, 0.16); border-color: #fb923c; color: #fb923c; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Animation Timeline & Keyframe Sequencer">🎬 Timeline</button>
           <button id="btn-open-guide" class="btn" style="background: rgba(0, 229, 255, 0.16); border-color: #00e5ff; color: #00e5ff; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Beginner's Step-by-Step Game Creation Masterclass">📖 Guide</button>
@@ -154,6 +157,41 @@ export class TopBar {
           showToast(`Switched active scene to "${val}"`, 'info');
         }
       });
+
+      const renameBtn = this.container.querySelector('#btn-rename-scene');
+      if (renameBtn) {
+        renameBtn.addEventListener('click', () => {
+          const current = this.editor.activeSceneName;
+          const newName = prompt('Enter new name for scene:', current);
+          if (newName && newName.trim() && newName.trim() !== current) {
+            this.editor.renameScene(current, newName.trim());
+            showToast(`Renamed scene to "${newName.trim()}"`, 'success');
+          }
+        });
+      }
+
+      const dupBtn = this.container.querySelector('#btn-dup-scene');
+      if (dupBtn) {
+        dupBtn.addEventListener('click', () => {
+          const newName = this.editor.duplicateScene(this.editor.activeSceneName);
+          showToast(`📋 Duplicated scene -> "${newName}"`, 'success');
+        });
+      }
+
+      const delBtn = this.container.querySelector('#btn-delete-scene');
+      if (delBtn) {
+        delBtn.addEventListener('click', () => {
+          if (this.editor.scenes.size <= 1) {
+            showToast('Cannot delete the last remaining scene in project', 'warn');
+            return;
+          }
+          if (confirm(`Are you sure you want to delete scene "${this.editor.activeSceneName}"?`)) {
+            const toDel = this.editor.activeSceneName;
+            this.editor.deleteScene(toDel);
+            showToast(`Deleted scene "${toDel}"`, 'info');
+          }
+        });
+      }
     }
 
     // Open AI Settings
