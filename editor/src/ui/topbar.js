@@ -145,12 +145,6 @@ export class TopBar {
           if (name && name.trim()) {
             const cleanName = name.trim();
             this.editor.switchScene(cleanName);
-            // Add option to select
-            const opt = document.createElement('option');
-            opt.value = cleanName;
-            opt.textContent = cleanName;
-            sceneSelect.insertBefore(opt, sceneSelect.lastElementChild);
-            sceneSelect.value = cleanName;
             showToast(`✨ Created and switched to scene "${cleanName}"!`, 'success');
           } else {
             sceneSelect.value = this.editor.activeSceneName;

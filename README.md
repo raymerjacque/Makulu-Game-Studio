@@ -109,6 +109,15 @@ Users can configure their own API keys (Bring-Your-Own-Key) with local, private 
 * **🌐 OpenRouter:** Multi-model gateway (`openrouter/auto`, `deepseek/deepseek-chat`, etc.).
 * **💻 Custom / Local AI (Offline):** Connect directly to local **Ollama**, **LM Studio**, or **vLLM** (`http://localhost:11434/v1/chat/completions`).
 
+### 🛠️ Autonomous AI Action Capabilities
+The AI Executor translates intent into direct engine modifications with full undo history:
+* **Scene Construction:** Spawn primitives, GLB 3D models, procedural terrains, and lights.
+* **Transform Operations:** Translate, rotate (Euler angles), and scale entities.
+* **Behavior Injection:** Attach interactive WASD, Spin, Flicker, Patrol, Billboard, or Collectible behaviors.
+* **Atmosphere Control:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) via AI prompts.
+* **Component Engineering:** Dynamically attach Rigidbody, Collision, Light, Render, Audio, and Particle components.
+* **Entity Management:** Select, frame, reparent, duplicate, and delete scene nodes on command.
+
 ---
 
 ## ⚡ Plug & Play Behavior Engine
@@ -180,7 +189,7 @@ Create reactive game mechanics through modular trigger volumes:
   * **🎥 Camera:** FOV, Near Clip, and Far Clip.
   * **🎯 Collision Shapes:** Box, Sphere, Capsule, Cylinder, and Mesh.
   * **⚡ Rigidbody Physics:** Dynamic, Kinematic, Static, Mass, Restitution, and Friction.
-  * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust) with particle count and lifetime controls.
+  * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust) with instant 1-click preset switching, particle count, and lifetime controls.
   * **🔊 3D Spatial Audio:** Volume, Pitch, and Loop toggles.
   * **📜 Custom Scripting:** 1-click code editor attachment and execution.
 * **🗂️ Multi-Scene Management & Hierarchy Power Tools:**
@@ -205,7 +214,7 @@ Test gameplay mechanics instantly using ready-to-play prototypes:
 ## 🚀 Game Compiling & Cloud Publishing
 
 Share games instantly across any platform:
-* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible), assets, PBR materials, lights with shadow casting, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
+* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible), assets, PBR materials, lights with shadow casting, collision shapes, dynamic/static rigidbodies, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
 * **1-Click Makulu Cloud Web Hosting:** Click **🚀 Publish** to generate an instant live shareable web URL with clipboard copying and responsive touch controls.
 
 ---

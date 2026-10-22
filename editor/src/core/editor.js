@@ -38,7 +38,7 @@ export class Editor {
     this.runtime = null;
     this.projectName = 'Untitled Project';
     this.activeSceneName = 'Main Scene';
-    this.scenes = new Map(); // sceneName -> json string
+    this.scenes = new Map([[this.activeSceneName, null]]); // sceneName -> json string
 
     // Materials and Assets registry
     this.materials = new Map();
