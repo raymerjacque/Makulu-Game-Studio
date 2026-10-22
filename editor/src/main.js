@@ -19,6 +19,7 @@ import { ProjectSettingsModal } from './ui/project-settings-modal.js';
 import { PostProcessingModal } from './ui/postprocessing-modal.js';
 import { TimelinePanel } from './ui/timeline.js';
 import { HUDModal } from './ui/hud-modal.js';
+import { AnimBlendModal } from './ui/anim-blend-modal.js';
 import { ConsoleDrawer } from './ui/console-drawer.js';
 import { BehaviorManager } from './core/behaviors.js';
 
@@ -62,6 +63,7 @@ async function bootstrap() {
   const postProcessingModal = new PostProcessingModal(editor);
   const timelinePanel = new TimelinePanel(editor);
   const hudModal = new HUDModal(editor);
+  const animBlendModal = new AnimBlendModal(editor);
   const consoleDrawer = new ConsoleDrawer(document.body, editor, aiUI);
 
   const behaviors = new BehaviorManager(editor);
@@ -85,12 +87,13 @@ async function bootstrap() {
       terrainModal,
       materialModal,
       codeEditor,
-      consoleDrawer
+      consoleDrawer,
+      animBlendModal
     }
   );
   new ToolStrip(toolStripContainer, editor);
   new HierarchyPanel(hierarchyContainer, editor);
-  new InspectorPanel(inspectorContainer, editor, codeEditor);
+  new InspectorPanel(inspectorContainer, editor, codeEditor, animBlendModal);
   new AssetsPanel(assetsContainer, editor, modelStore, terrainModal, codeEditor, materialModal);
 
   // Initialize PlayCanvas 3D Engine Runtime

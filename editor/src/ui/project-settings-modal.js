@@ -78,6 +78,47 @@ export class ProjectSettingsModal {
             </select>
           </div>
 
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 10px; margin-top: 4px;">
+            <div style="font-weight: 700; font-size: 11px; color: var(--accent-orange); margin-bottom: 8px;">🖼️ Basis Universal & KTX2 Texture Compression Pipeline</div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 140px;">Transcode Target</span>
+              <select class="select-input" id="proj-texture-target" style="flex: 1;">
+                <option value="auto">Auto (Hardware Best Fit)</option>
+                <option value="astc">ASTC (Mobile / High Fidelity)</option>
+                <option value="dxt">DXT / BC1 / BC3 (Desktop PCs)</option>
+                <option value="etc2">ETC2 (Android Standard)</option>
+                <option value="bc7">BC7 (AAA High Detail)</option>
+                <option value="uncompressed">RGBA Uncompressed</option>
+              </select>
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 140px;">Compression Quality</span>
+              <select class="select-input" id="proj-texture-quality" style="flex: 1;">
+                <option value="normal">Normal (Balanced Speed & VRAM)</option>
+                <option value="fast">Fast (Sub-second Transcode)</option>
+                <option value="high">High Quality (Production)</option>
+                <option value="max">Maximum (AAA Perfection)</option>
+              </select>
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 140px;">Anisotropic Filter</span>
+              <select class="select-input" id="proj-texture-aniso" style="flex: 1;">
+                <option value="4">4x Balanced</option>
+                <option value="8">8x High Detail</option>
+                <option value="16">16x Max Sharpness</option>
+                <option value="1">1x Off</option>
+              </select>
+            </div>
+
+            <div class="prop-row">
+              <span class="prop-label" style="width: 140px;">Generate Mipmaps</span>
+              <input type="checkbox" id="proj-texture-mipmaps" checked>
+            </div>
+          </div>
+
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
             <button id="btn-save-project-settings" class="btn btn-primary" style="padding: 8px 18px; font-size: 12px; font-weight: 700;">
               💾 Apply Project Settings
@@ -106,7 +147,19 @@ export class ProjectSettingsModal {
       const gravityY = parseFloat(this.modal.querySelector('#proj-gravity-y').value) || -9.8;
       const tonemap = this.modal.querySelector('#proj-tonemap-select').value;
 
+        const texTarget = this.modal.querySelector('#proj-texture-target').value;
+        const texQuality = this.modal.querySelector('#proj-texture-quality').value;
+        const texAniso = parseInt(this.modal.querySelector('#proj-texture-aniso').value, 10);
+        const texMipmaps = this.modal.querySelector('#proj-texture-mipmaps').checked;
+
       if (title) this.editor.projectName = title;
+
+        this.editor.textureCompressionSettings = {
+          targetFormat: texTarget,
+          qualityLevel: texQuality,
+          maxAnisotropy: texAniso,
+          generateMipmaps: texMipmaps
+        };
 
       const app = this.editor.getApp();
       if (app) {
@@ -120,7 +173,7 @@ export class ProjectSettingsModal {
         }
       }
 
-      showToast(`⚙️ Updated Project & Physics Settings! Gravity Y: ${gravityY} m/s²`, 'success');
+        showToast(`⚙️ Updated Project, Physics & Texture Compression Settings!`, 'success');
       this.close();
     });
   }

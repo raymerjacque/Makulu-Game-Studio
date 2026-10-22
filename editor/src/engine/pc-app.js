@@ -766,5 +766,22 @@ export class ComponentVisualHelpers {
       colEntity.addComponent('render', { type: meshType, material: mat });
       this.helperEntity.addChild(colEntity);
     }
+
+    // Physics Joint Constraint Gizmo Helper
+    if (active.joint) {
+      const joint = active.joint;
+      const jointEntity = new pc.Entity('JointConstraintGizmo');
+      const pivot = joint.pivot ? new pc.Vec3(...joint.pivot) : new pc.Vec3(0, 0, 0);
+      jointEntity.setPosition(active.getPosition().clone().add(pivot));
+
+      const mat = new pc.StandardMaterial();
+      mat.diffuse = new pc.Color(1.0, 0.8, 0.0); // Gold wireframe
+      mat.wireframe = true;
+      mat.update();
+
+      jointEntity.setLocalScale(0.6, 0.6, 0.6);
+      jointEntity.addComponent('render', { type: joint.type === 'hinge' ? 'cylinder' : 'sphere', material: mat });
+      this.helperEntity.addChild(jointEntity);
+    }
   }
 }
