@@ -427,47 +427,47 @@ export class EditorGrid {
   }
 
   createGridMesh() {
-    const size = 30;
+    const size = 50;
     const step = 1;
     const lines = [];
     const colors = [];
 
-    const mainColor = new pc.Color(0.22, 0.28, 0.35, 0.6);
-    const axisXColor = new pc.Color(0.9, 0.25, 0.25, 1);
-    const axisZColor = new pc.Color(0.25, 0.5, 0.9, 1);
+    // Authentic AutoCAD / 3D CAD Grid Styling
+    const minorColor = new pc.Color(0.20, 0.26, 0.34, 0.40); // Subtle secondary grid lines
+    const majorColor = new pc.Color(0.35, 0.45, 0.58, 0.85); // Prominent major grid lines every 5m
+    const axisXColor = new pc.Color(0.95, 0.25, 0.25, 1.0);  // Bold Red X axis
+    const axisZColor = new pc.Color(0.25, 0.55, 1.0, 1.0);   // Bold Blue Z axis
 
     for (let i = -size; i <= size; i += step) {
       // Lines along Z
       lines.push(i, 0, -size, i, 0, size);
-      const colorZ = i === 0 ? axisZColor : mainColor;
-      colors.push(colorZ.r, colorZ.g, colorZ.b, colorZ.a, colorZ.r, colorZ.g, colorZ.b, colorZ.a);
+      const colZ = i === 0 ? axisZColor : (i % 5 === 0 ? majorColor : minorColor);
+      colors.push(colZ.r, colZ.g, colZ.b, colZ.a, colZ.r, colZ.g, colZ.b, colZ.a);
 
       // Lines along X
       lines.push(-size, 0, i, size, 0, i);
-      const colorX = i === 0 ? axisXColor : mainColor;
-      colors.push(colorX.r, colorX.g, colorX.b, colorX.a, colorX.r, colorX.g, colorX.b, colorX.a);
+      const colX = i === 0 ? axisXColor : (i % 5 === 0 ? majorColor : minorColor);
+      colors.push(colX.r, colX.g, colX.b, colX.a, colX.r, colX.g, colX.b, colX.a);
     }
 
-    const mesh = pc.createMesh(this.app.graphicsDevice, lines, {
-      colors: colors,
-      primitiveType: pc.PRIMITIVE_LINES
-    });
+    const mesh = new pc.Mesh(this.app.graphicsDevice);
+    mesh.setPositions(lines);
+    mesh.setColors(colors);
+    mesh.update(pc.PRIMITIVE_LINES);
+    if (mesh.primitive && mesh.primitive[0]) {
+      mesh.primitive[0].type = pc.PRIMITIVE_LINES;
+    }
 
-    // Unlit material so directional sun or shadowing does not darken parts of the grid
     const material = new pc.StandardMaterial();
-    material.useLighting = false;
     material.useVertexColors = true;
-    material.cull = pc.CULLFACE_NONE;
     material.blendType = pc.BLEND_NORMAL;
+    material.cull = pc.CULLFACE_NONE;
     material.depthWrite = false;
     material.update();
 
     const meshInstance = new pc.MeshInstance(mesh, material);
     this.entity.addComponent('render', {
-      meshInstances: [meshInstance],
-      castShadows: false,
-      castShadowsLightmap: false,
-      receiveShadows: false
+      meshInstances: [meshInstance]
     });
   }
 }
