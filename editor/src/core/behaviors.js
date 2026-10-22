@@ -125,6 +125,34 @@ export class BehaviorManager {
               const force = b.params.force || 8;
               entity.rigidbody.applyImpulse(0, force, 0);
             }
+          } else if (b.type === 'patrol') {
+            const speed = b.params.speed || 3;
+            const distance = b.params.distance || 6;
+            if (!b.state) {
+              b.state = { startX: entity.getPosition().x, dir: 1 };
+            }
+            const currentX = entity.getPosition().x;
+            const delta = currentX - b.state.startX;
+            if (delta > distance && b.state.dir > 0) b.state.dir = -1;
+            if (delta < -distance && b.state.dir < 0) b.state.dir = 1;
+
+            const moveX = b.state.dir * speed * dt;
+            entity.translate(moveX, 0, 0);
+          } else if (b.type === 'billboard') {
+            const camera = app.root.find(node => node.camera);
+            if (camera) {
+              entity.lookAt(camera.getPosition());
+              entity.rotateLocal(0, 180, 0); // Face front to camera
+            }
+          } else if (b.type === 'collectible') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist < (b.params.radius || 1.5)) {
+                entity.enabled = false;
+                showToast(`✨ Collected item: ${entity.name}!`, 'success');
+              }
+            }
           }
         }
       }

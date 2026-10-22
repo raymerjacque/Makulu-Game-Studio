@@ -35,6 +35,22 @@ export class TriggerSystem {
           showToast(`💡 Toggled visibility on ${config.targetEntity}`, 'info');
         }
       }
+    } else if (config.action === 'destroy' && config.targetEntity) {
+      if (this.editor.runtime && this.editor.runtime.app) {
+        const target = this.editor.runtime.app.root.findByName(config.targetEntity);
+        if (target && target.parent) {
+          target.parent.removeChild(target);
+          showToast(`💥 Entity Destroyed: ${config.targetEntity}`, 'info');
+        }
+      }
+    } else if (config.action === 'spawn' && config.prefabName) {
+      if (this.editor.prefabs) {
+        const prefab = this.editor.prefabs.prefabs.get(config.prefabName);
+        if (prefab) {
+          this.editor.prefabs.instantiatePrefab(prefab, { position: config.spawnPosition || [0, 2, 0] });
+          showToast(`✨ Spawned Prefab: ${config.prefabName}`, 'success');
+        }
+      }
     } else if (config.action === 'play_sound' && config.soundAsset) {
       showToast(`🔊 Triggering Audio Playback: ${config.soundAsset}`, 'info');
     }

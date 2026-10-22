@@ -200,6 +200,16 @@ export class MaterialEditorModal {
     const saveAssetBtn = this.modal.querySelector('#btn-save-mat-asset');
     saveAssetBtn.addEventListener('click', () => {
       this.editor.materials.set(this.currentMaterialProps.name, this.currentMaterialProps);
+      if (this.editor.assetsPanel) {
+        this.editor.assetsPanel.addAsset({
+          id: Date.now().toString(),
+          name: `${this.currentMaterialProps.name}.mat`,
+          type: 'materials',
+          icon: '🎨',
+          size: '2.0 KB',
+          materialData: this.currentMaterialProps
+        });
+      }
       showToast(`💾 Saved PBR Material "${this.currentMaterialProps.name}" to Project Library!`, 'success');
       this.close();
     });
