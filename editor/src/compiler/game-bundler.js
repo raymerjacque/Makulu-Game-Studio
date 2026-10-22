@@ -620,6 +620,11 @@ export class GameBundler {
                 const maxHp = healthB.properties.maxHp || 100;
                 healthB.properties.currentHp = Math.min(maxHp, (healthB.properties.currentHp || maxHp) + heal);
               }
+            } else if (config.action === 'add_score') {
+              const pts = config.amount || 100;
+              window._currentScore = (window._currentScore !== undefined ? window._currentScore : (SCENE_DATA.hud?.score?.initial || 0)) + pts;
+              const scEl = document.getElementById('hud-score-counter');
+              if (scEl) scEl.textContent = (SCENE_DATA.hud?.score?.label || 'Score:') + ' ' + window._currentScore;
             } else if (config.action === 'toggle_visibility' && config.targetEntity) {
               const target = app.root.findByName(config.targetEntity);
               if (target) target.enabled = !target.enabled;

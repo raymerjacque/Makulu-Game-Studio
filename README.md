@@ -144,6 +144,23 @@ Add interactive gameplay logic without writing a single line of JavaScript:
    Rotates entities circularly around a central point at a configurable speed and radius. Ideal for planetary bodies, circling drones, and magical shields.
 10. **🎥 Third-Person Camera Follow:**
     Smoothly lerps the scene camera to track the target entity from a customizable offset vector, creating an instant third-person action game perspective.
+11. **❤️ Health Component:**
+    Assigns health points (HP) to player or entity characters with damage invincibility frames, automated HUD health bar syncing, and Game Over triggers upon reaching 0 HP.
+12. **⚔️ Damage Dealer Hazard:**
+    Transforms entities into dangerous enemies, spikes, or lava traps that inflict contact damage onto player characters within an adjustable radius.
+13. **💚 Health Potion Pickup:**
+    Creates restorative item drops that heal the player's health points upon contact, up to the maximum HP cap.
+
+---
+
+## 📺 2D Screen UI & HUD Designer
+
+Design and customize responsive screen UI overlays directly from the TopBar (`📺 HUD`):
+* **❤️ Health Bar Overlay:** Toggleable health bar with customizable label, max health, custom fill colors, and animated depletion.
+* **⭐ Score Counter:** Dynamic score counter with prefix label and live updates from collectible coins and trigger points.
+* **🎯 Center Screen Crosshair:** Toggleable aiming reticle with multiple styles (**● Dot**, **┼ Crosshair**, **◯ Circle**).
+* **💀 Game Over Screen:** High-impact overlay with custom death messages and a 1-click **Restart** button that triggers on player defeat.
+* **Seamless Standalone Compilation:** All HUD elements compile natively into standalone single-file `.html` web games.
 
 ---
 
@@ -153,6 +170,9 @@ Create reactive game mechanics through modular trigger volumes:
 * **Visual Inspector Trigger Configurator:** Configure trigger volumes directly on any entity in both Simple Mode and Pro Mode.
 * **Dual Event Types:** Support for both **On Player Enter** (`on_enter`) and **On Player Exit** (`on_exit`) proximity triggers.
 * **🌀 Teleport:** Instantaneous entity relocation across the scene.
+* **⚔️ Damage Player:** Inflict direct numeric damage onto the player's health points.
+* **💚 Heal Player:** Restore health points to the player character upon entering zones.
+* **⭐ Add Score:** Reward points directly to the screen UI HUD score counter.
 * **💡 Toggle Visibility:** Dynamically reveal secret rooms, hidden passages, and puzzle clues.
 * **💥 Destroy Entity:** Remove destructible obstacles, defeated enemies, or consumed barriers.
 * **✨ Spawn Prefab:** Dynamically instantiate prefab templates (loot, enemies, hazards) upon entering trigger zones.
@@ -230,7 +250,7 @@ Test gameplay mechanics instantly using ready-to-play prototypes:
 ## 🚀 Game Compiling & Cloud Publishing
 
 Share games instantly across any platform:
-* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible, float, orbit, camera follow), 3D GLB models, PBR materials, lights with shadow casting, collision shapes, dynamic/static rigidbodies, atmosphere presets with exponential fog, interactive trigger volumes, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
+* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible, float, orbit, camera follow, health, damage, potions), 2D Screen UI HUD overlays (health bar, score counter, crosshair, game over screen), Base64 inlined offline assets (audio, textures, models), PBR materials, lights with shadow casting, collision shapes, dynamic/static rigidbodies, atmosphere presets with exponential fog, interactive trigger volumes, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
 * **1-Click Makulu Cloud Web Hosting:** Click **🚀 Publish** to generate an instant live shareable web URL with clipboard copying and responsive touch controls.
 
 ---

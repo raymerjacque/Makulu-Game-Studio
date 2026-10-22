@@ -1422,6 +1422,9 @@ export class InspectorPanel {
             <span class="prop-label">Action</span>
             <select class="select-input" id="trig-action-select">
               <option value="teleport" ${trigConfig.action === 'teleport' ? 'selected' : ''}>🌀 Teleport Player</option>
+              <option value="damage_player" ${trigConfig.action === 'damage_player' ? 'selected' : ''}>⚔️ Damage Player</option>
+              <option value="heal_player" ${trigConfig.action === 'heal_player' ? 'selected' : ''}>💚 Heal Player</option>
+              <option value="add_score" ${trigConfig.action === 'add_score' ? 'selected' : ''}>⭐ Add Score</option>
               <option value="toggle_visibility" ${trigConfig.action === 'toggle_visibility' ? 'selected' : ''}>💡 Toggle Visibility</option>
               <option value="destroy" ${trigConfig.action === 'destroy' ? 'selected' : ''}>💥 Destroy Target Entity</option>
               <option value="play_sound" ${trigConfig.action === 'play_sound' ? 'selected' : ''}>🔊 Play Sound</option>
@@ -1431,6 +1434,11 @@ export class InspectorPanel {
           <div class="prop-row">
             <span class="prop-label">Trigger Radius (m)</span>
             <input type="range" min="0.5" max="10" step="0.5" class="text-input" id="trig-radius-slider" value="${trigConfig.radius || 2.0}">
+          </div>
+
+          <div class="prop-row" id="trig-amount-row" style="display: ${['damage_player', 'heal_player', 'add_score'].includes(trigConfig.action) ? 'flex' : 'none'};">
+            <span class="prop-label">Amount</span>
+            <input type="number" class="text-input" id="trig-amount-input" value="${trigConfig.amount !== undefined ? trigConfig.amount : 20}">
           </div>
 
           <div class="prop-row" id="trig-target-entity-row" style="display: ${['toggle_visibility', 'destroy'].includes(trigConfig.action) ? 'flex' : 'none'};">
@@ -1452,13 +1460,22 @@ export class InspectorPanel {
       const actionSelect = card.querySelector('#trig-action-select');
       const targetEntityRow = card.querySelector('#trig-target-entity-row');
       const targetPosRow = card.querySelector('#trig-target-pos-row');
+      const amountRow = card.querySelector('#trig-amount-row');
 
       actionSelect.addEventListener('change', (e) => {
         const act = e.target.value;
         trigConfig.action = act;
         targetEntityRow.style.display = ['toggle_visibility', 'destroy'].includes(act) ? 'flex' : 'none';
         targetPosRow.style.display = act === 'teleport' ? 'flex' : 'none';
+        if (amountRow) amountRow.style.display = ['damage_player', 'heal_player', 'add_score'].includes(act) ? 'flex' : 'none';
       });
+
+      const amountInput = card.querySelector('#trig-amount-input');
+      if (amountInput) {
+        amountInput.addEventListener('input', (e) => {
+          trigConfig.amount = parseFloat(e.target.value) || 0;
+        });
+      }
 
       card.querySelector('#trig-event-select').addEventListener('change', (e) => {
         trigConfig.eventType = e.target.value;
