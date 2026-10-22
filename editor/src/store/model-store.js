@@ -207,6 +207,20 @@ export const MODEL_CATALOG = [
 
 export const FREE_MODEL_RESOURCES = [
   {
+    name: 'Poly Haven',
+    url: 'https://polyhaven.com/models',
+    desc: '100% CC0 public domain 3D models, PBR textures, and HDRIs. Uncompromised AAA photorealistic quality.',
+    icon: '🌌',
+    tags: ['CC0 Public Domain', 'AAA PBR Textures', 'HDRIs & Models']
+  },
+  {
+    name: 'ambientCG',
+    url: 'https://ambientcg.com',
+    desc: 'Over 2,000+ free CC0 public domain PBR materials, textures, terrain heightmaps, and 3D assets.',
+    icon: '🎨',
+    tags: ['CC0 License', 'Seamless PBR Maps', 'Heightmaps & Terrains']
+  },
+  {
     name: 'Poly Pizza',
     url: 'https://poly.pizza',
     desc: 'Over 10,000+ free CC0 low-poly 3D models with 1-click GLB downloads. Search characters, monsters, items, architecture.',
@@ -226,6 +240,13 @@ export const FREE_MODEL_RESOURCES = [
     desc: 'Massive packs of animated characters, monsters, vehicles, buildings, and weapons with clean topology.',
     icon: '⚔️',
     tags: ['CC0 License', 'Rigged & Animated', 'Fantasy & Sci-Fi']
+  },
+  {
+    name: 'CGTrader (Free 3D Models)',
+    url: 'https://www.cgtrader.com/free-3d-models',
+    desc: 'Thousands of free downloadable 3D models filterable by GLTF/GLB and polygon count.',
+    icon: '🏛️',
+    tags: ['Free GLTF/GLB', 'Architectural & Props', 'High & Low Poly']
   },
   {
     name: 'OpenGameArt.org',

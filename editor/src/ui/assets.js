@@ -16,9 +16,9 @@ export class AssetsPanel {
     this.activeFolder = 'all';
 
     this.assets = [
-      { id: '1', name: 'Character_Hero.glb', type: 'models', icon: '🧍', size: '128 KB', url: 'models/character_hero.glb' },
-      { id: '2', name: 'Pine_Tree.glb', type: 'models', icon: '🌲', size: '13 KB', url: 'models/pine_tree.glb' },
-      { id: '3', name: 'Treasure_Chest.glb', type: 'models', icon: '📦', size: '16 KB', url: 'models/chest.glb' },
+      { id: '1', name: 'Character_Hero.glb', type: 'models', icon: '🧍', size: '128 KB', url: './models/character_hero.glb' },
+      { id: '2', name: 'Pine_Tree.glb', type: 'models', icon: '🌲', size: '13 KB', url: './models/pine_tree.glb' },
+      { id: '3', name: 'Treasure_Chest.glb', type: 'models', icon: '📦', size: '16 KB', url: './models/chest.glb' },
       { id: '4', name: 'Default_Grid.png', type: 'textures', icon: '🖼️', size: '128 KB' },
       { id: '5', name: 'PBR_Gold.mat', type: 'materials', icon: '🟡', size: '2 KB' },
       { id: '6', name: 'RotateBehavior.js', type: 'scripts', icon: '📜', size: '1.2 KB' },
@@ -156,6 +156,40 @@ export class AssetsPanel {
         } else if (asset.type === 'scripts') {
           if (this.codeEditor) {
             this.codeEditor.open(asset.name);
+          }
+        } else if (asset.type === 'audio') {
+          if (asset.url) {
+            const audio = new Audio(asset.url);
+            audio.play().then(() => {
+              showToast(`🔊 Previewing audio: "${asset.name}"`, 'info');
+            }).catch(err => {
+              showToast(`Could not play audio preview: ${err.message}`, 'warn');
+            });
+          } else {
+            showToast(`🔊 Audio file: ${asset.name}`, 'info');
+          }
+        } else if (asset.type === 'textures') {
+          const selected = this.editor.selection.getActive();
+          if (selected && selected.render && selected.render.material) {
+            if (asset.url) {
+              const app = this.editor.getApp();
+              if (app) {
+                app.assets.loadFromUrl(asset.url, 'texture', (err, texAsset) => {
+                  if (!err && texAsset && texAsset.resource) {
+                    selected.render.material.diffuseMap = texAsset.resource;
+                    selected.render.material.update();
+                    this.editor.events.emit('entity:component:changed', selected);
+                    showToast(`🖼️ Applied texture "${asset.name}" to ${selected.name}!`, 'success');
+                  } else {
+                    showToast(`Failed to load texture map "${asset.name}"`, 'error');
+                  }
+                });
+              }
+            } else {
+              showToast(`Selected texture map: ${asset.name}. Import a image file to apply as material diffuse texture.`, 'info');
+            }
+          } else {
+            showToast(`Select an entity with a 3D Render mesh to apply texture map "${asset.name}"`, 'info');
           }
         }
       });

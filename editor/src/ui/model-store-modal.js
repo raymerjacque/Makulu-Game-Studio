@@ -1,5 +1,16 @@
+import * as pc from 'playcanvas';
 import { MODEL_CATALOG, FREE_MODEL_RESOURCES } from '../store/model-store.js';
 import { showToast } from './toast.js';
+
+export const PBR_MATERIAL_PRESETS = [
+  { id: 'gold', name: 'PBR Gold', icon: '🟡', diffuse: [1.0, 0.84, 0.0], metalness: 0.95, roughness: 0.15 },
+  { id: 'cyber', name: 'Cyber Neon Circuit', icon: '⚡', diffuse: [0.0, 0.9, 1.0], metalness: 0.2, roughness: 0.2, opacity: 0.9 },
+  { id: 'wood', name: 'Rustic Wood', icon: '🪵', diffuse: [0.55, 0.35, 0.18], metalness: 0.05, roughness: 0.75 },
+  { id: 'brick', name: 'Cobblestone Brick', icon: '🧱', diffuse: [0.7, 0.3, 0.25], metalness: 0.1, roughness: 0.8 },
+  { id: 'moss_stone', name: 'Mossy Ancient Stone', icon: '🪨', diffuse: [0.35, 0.45, 0.3], metalness: 0.0, roughness: 0.85 },
+  { id: 'lava', name: 'Molten Lava Crust', icon: '🔥', diffuse: [0.95, 0.25, 0.05], metalness: 0.1, roughness: 0.4 },
+  { id: 'water', name: 'Crystal Water', icon: '💧', diffuse: [0.1, 0.5, 0.85], metalness: 0.1, roughness: 0.1, opacity: 0.65 }
+];
 
 /**
  * Free 3D Model Store & Asset Library Modal
@@ -7,7 +18,7 @@ import { showToast } from './toast.js';
 export class ModelStoreModal {
   constructor(editor) {
     this.editor = editor;
-    this.activeView = 'library'; // 'library', 'resources', 'upload'
+    this.activeView = 'library'; // 'library', 'pbr', 'resources', 'upload'
     this.activeCategory = 'all';
     this.searchQuery = '';
     this.isOpen = false;
@@ -57,6 +68,9 @@ export class ModelStoreModal {
             <button class="btn view-tab active" data-view="library" style="font-size: 12px; font-weight: 600; padding: 5px 14px;">
               📦 3D Model Library (${MODEL_CATALOG.length})
             </button>
+            <button class="btn view-tab" data-view="pbr" style="font-size: 12px; font-weight: 600; padding: 5px 14px; background: rgba(234,179,8,0.15); border-color: #eab308; color: #facc15;">
+              🎨 PBR Material Hub
+            </button>
             <button class="btn view-tab" data-view="resources" style="font-size: 12px; font-weight: 600; padding: 5px 14px;">
               🌐 Free 3D Model Websites
             </button>
@@ -101,6 +115,9 @@ export class ModelStoreModal {
     if (this.activeView === 'library') {
       subcats.style.display = 'flex';
       this.renderLibrary(content);
+    } else if (this.activeView === 'pbr') {
+      subcats.style.display = 'none';
+      this.renderPbrMaterials(content);
     } else if (this.activeView === 'resources') {
       subcats.style.display = 'none';
       this.renderResources(content);
@@ -155,6 +172,85 @@ export class ModelStoreModal {
         const model = MODEL_CATALOG.find(m => m.id === id);
         if (model) {
           this.spawnModel(model);
+        }
+      });
+    });
+  }
+
+  renderPbrMaterials(container) {
+    container.innerHTML = `
+      <div style="margin-bottom: 18px;">
+        <h3 style="margin: 0 0 6px 0; color: #fff; font-size: 16px;">🎨 PBR Preset Material Library Hub</h3>
+        <p style="margin: 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
+          Instantly apply pre-configured physically-based materials (Metallic, Roughness, Opacity) to the currently selected 3D entity or save them to your project asset browser!
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px;">
+        ${PBR_MATERIAL_PRESETS.map(mat => `
+          <div class="card" style="padding: 16px; background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+            <div style="font-size: 38px;">${mat.icon}</div>
+            <div style="font-weight: 700; font-size: 13px; color: #fff;">${mat.name}</div>
+            <div style="display: flex; gap: 4px; font-size: 10px; color: var(--text-muted);">
+              <span>Metal: ${mat.metalness}</span> • <span>Rough: ${mat.roughness}</span>
+            </div>
+            <div style="display: flex; gap: 6px; width: 100%; margin-top: 6px;">
+              <button class="btn btn-primary btn-apply-pbr" data-id="${mat.id}" style="flex: 1; font-size: 10.5px; padding: 6px;">
+                🎨 Apply Selected
+              </button>
+              <button class="btn btn-save-pbr-asset" data-id="${mat.id}" style="font-size: 10.5px; padding: 6px;" title="Add to Asset Browser">
+                💾 Save
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    container.querySelectorAll('.btn-apply-pbr').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const matPreset = PBR_MATERIAL_PRESETS.find(m => m.id === id);
+        if (matPreset) {
+          const selected = this.editor.selection.getActive();
+          if (selected && selected.render) {
+            const mat = new pc.StandardMaterial();
+            if (matPreset.diffuse) mat.diffuse = new pc.Color(...matPreset.diffuse);
+            if (matPreset.metalness !== undefined) {
+              mat.metalness = matPreset.metalness;
+              mat.useMetalness = true;
+            }
+            if (matPreset.roughness !== undefined) mat.roughness = matPreset.roughness;
+            if (matPreset.opacity !== undefined) {
+              mat.opacity = matPreset.opacity;
+              if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
+            }
+            mat.update();
+            selected.render.material = mat;
+            this.editor.events.emit('entity:component:changed', selected);
+            showToast(`✨ Applied "${matPreset.name}" material to ${selected.name}!`, 'success');
+            this.close();
+          } else {
+            showToast('Select an entity with a 3D Render component first', 'warn');
+          }
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-save-pbr-asset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const matPreset = PBR_MATERIAL_PRESETS.find(m => m.id === id);
+        if (matPreset && this.editor.assetsPanel) {
+          this.editor.assetsPanel.addAsset({
+            id: Date.now().toString(),
+            name: `${matPreset.name.replace(/\s+/g, '_')}.mat`,
+            type: 'materials',
+            icon: matPreset.icon,
+            size: '2 KB',
+            materialData: matPreset
+          });
+          showToast(`💾 Saved "${matPreset.name}" to Asset Browser under Materials!`, 'success');
         }
       });
     });
@@ -273,6 +369,20 @@ export class ModelStoreModal {
       showToast(`Loading 3D model ${file.name}...`, 'info');
       const blobUrl = URL.createObjectURL(file);
       const cleanName = file.name.replace(/\.[^/.]+$/, "");
+
+      // Register asset in AssetsPanel grid if available
+      if (this.editor.assetsPanel) {
+        this.editor.assetsPanel.addAsset({
+          id: Date.now().toString(),
+          name: file.name,
+          type: 'models',
+          icon: '📦',
+          size: `${Math.round(file.size / 1024)} KB`,
+          url: blobUrl,
+          file: file
+        });
+      }
+
       await this.editor.loadModel(blobUrl, {
         name: cleanName,
         position: [0, 0, 0],

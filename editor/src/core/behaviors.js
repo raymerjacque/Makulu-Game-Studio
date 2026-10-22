@@ -148,13 +148,47 @@ export class BehaviorManager {
               entity.lookAt(camera.getPosition());
               entity.rotateLocal(0, 180, 0); // Face front to camera
             }
+          } else if (b.type === 'sine_float') {
+            const amplitude = b.params.amplitude || 0.5;
+            const frequency = b.params.frequency || 2.0;
+            if (!b.state) {
+              b.state = { initialY: entity.getPosition().y, time: 0 };
+            }
+            b.state.time += dt * frequency;
+            const pos = entity.getPosition();
+            entity.setPosition(pos.x, b.state.initialY + Math.sin(b.state.time) * amplitude, pos.z);
+          } else if (b.type === 'orbit') {
+            const speed = b.params.speed || 1.0;
+            const radius = b.params.radius || 5.0;
+            if (!b.state) {
+              b.state = {
+                angle: 0,
+                center: b.params.center ? new pc.Vec3(...b.params.center) : new pc.Vec3(0, entity.getPosition().y, 0)
+              };
+            }
+            b.state.angle += dt * speed;
+            const x = b.state.center.x + Math.cos(b.state.angle) * radius;
+            const z = b.state.center.z + Math.sin(b.state.angle) * radius;
+            entity.setPosition(x, entity.getPosition().y, z);
+          } else if (b.type === 'camera_follow') {
+            const camera = app.root.find(node => node.camera);
+            if (camera) {
+              const offset = b.params.offset || [0, 4, 8];
+              const targetPos = entity.getPosition().clone().add(new pc.Vec3(...offset));
+              const curPos = camera.getPosition();
+              curPos.lerp(curPos, targetPos, Math.min(1.0, dt * 5.0));
+              camera.setPosition(curPos);
+              camera.lookAt(entity.getPosition());
+            }
           } else if (b.type === 'collectible') {
-            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character'));
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
             if (player) {
               const dist = entity.getPosition().distance(player.getPosition());
               if (dist < (b.params.radius || 1.5)) {
                 entity.enabled = false;
-                showToast(`✨ Collected item: ${entity.name}!`, 'success');
+                if (typeof window !== 'undefined' && window.showToast) {
+                  window.showToast(`✨ Collected item: ${entity.name}!`, 'success');
+                }
               }
             }
           }
