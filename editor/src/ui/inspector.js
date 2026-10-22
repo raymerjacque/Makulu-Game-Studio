@@ -107,6 +107,12 @@ export class InspectorPanel {
     const hasInteractiveDoor = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'interactive_door') : false;
     const hasEnemySpawner = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'enemy_spawner') : false;
     const hasWeaponInventory = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'weapon_inventory') : false;
+    const hasFirstPerson = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'first_person_controller') : false;
+    const hasTargetHealth = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'target_health') : false;
+    const hasKeyPickup = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'key_pickup') : false;
+    const hasLockedDoor = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'locked_door') : false;
+    const hasJetpack = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'jetpack') : false;
+    const hasLevelPortal = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'level_portal') : false;
     const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
 
     body.innerHTML = `
@@ -396,6 +402,72 @@ export class InspectorPanel {
             </button>
           `}
 
+          ${hasFirstPerson ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(14,165,233,0.15); border: 1px solid #0ea5e9; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #38bdf8; font-weight: 600;">👀 First-Person Controller Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-fps-behavior" title="Remove FPS" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-fps-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>👀</span> <span>Make First-Person Player (WASD + Look)</span>
+            </button>
+          `}
+
+          ${hasTargetHealth ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #f87171; font-weight: 600;">🎯 Destructible Target / Boss Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-target-health-behavior" title="Remove Target" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-target-health-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🎯</span> <span>Make Destructible Boss / Target (+100 PTS)</span>
+            </button>
+          `}
+
+          ${hasKeyPickup ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(250,204,21,0.15); border: 1px solid #facc15; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #fde047; font-weight: 600;">🔑 Collectible Key Item Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-key-pickup-behavior" title="Remove Key" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-key-pickup-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔑</span> <span>Make Collectible Key Item</span>
+            </button>
+          `}
+
+          ${hasLockedDoor ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #c084fc; font-weight: 600;">🔒 Locked Key Door Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-locked-door-behavior" title="Remove Locked Door" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-locked-door-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔒</span> <span>Make Locked Key Door (Requires Key)</span>
+            </button>
+          `}
+
+          ${hasJetpack ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(56,189,248,0.15); border: 1px solid #38bdf8; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #38bdf8; font-weight: 600;">🚀 Jetpack Thruster Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-jetpack-behavior" title="Remove Jetpack" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-jetpack-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🚀</span> <span>Attach Jetpack Thruster (Hold Space)</span>
+            </button>
+          `}
+
+          ${hasLevelPortal ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(16,185,129,0.15); border: 1px solid #10b981; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #34d399; font-weight: 600;">🌀 Level Transition Portal Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-level-portal-behavior" title="Remove Portal" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-level-portal-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🌀</span> <span>Make Level Transition Portal</span>
+            </button>
+          `}
+
           <button class="btn" id="add-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>⚡</span> <span>Add Teleport Trigger Volume</span>
           </button>
@@ -655,6 +727,138 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.removeBehavior(ent, 'weapon_inventory');
           showToast(`Removed Weapon Inventory from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // First-Person Controller Behavior
+    const addFpsBtn = body.querySelector('#add-fps-behavior');
+    if (addFpsBtn) {
+      addFpsBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'first_person_controller', { speed: 10, rotSpeed: 90 });
+          showToast(`👀 Attached First-Person Controller to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remFpsBtn = body.querySelector('#remove-fps-behavior');
+    if (remFpsBtn) {
+      remFpsBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'first_person_controller');
+          showToast(`Removed First-Person Controller from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Target Health Behavior
+    const addTargetHealthBtn = body.querySelector('#add-target-health-behavior');
+    if (addTargetHealthBtn) {
+      addTargetHealthBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'target_health', { maxHp: 100, currentHp: 100, scoreValue: 100 });
+          showToast(`🎯 Attached Destructible Target Health to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remTargetHealthBtn = body.querySelector('#remove-target-health-behavior');
+    if (remTargetHealthBtn) {
+      remTargetHealthBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'target_health');
+          showToast(`Removed Target Health from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Key Pickup Behavior
+    const addKeyBtn = body.querySelector('#add-key-pickup-behavior');
+    if (addKeyBtn) {
+      addKeyBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'key_pickup', { keyName: 'Gold Key', radius: 1.8 });
+          showToast(`🔑 Attached Key Pickup to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remKeyBtn = body.querySelector('#remove-key-pickup-behavior');
+    if (remKeyBtn) {
+      remKeyBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'key_pickup');
+          showToast(`Removed Key Pickup from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Locked Door Behavior
+    const addLockedDoorBtn = body.querySelector('#add-locked-door-behavior');
+    if (addLockedDoorBtn) {
+      addLockedDoorBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'locked_door', { requiredKey: 'Gold Key', radius: 3.5 });
+          showToast(`🔒 Attached Locked Door to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remLockedDoorBtn = body.querySelector('#remove-locked-door-behavior');
+    if (remLockedDoorBtn) {
+      remLockedDoorBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'locked_door');
+          showToast(`Removed Locked Door from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Jetpack Behavior
+    const addJetpackBtn = body.querySelector('#add-jetpack-behavior');
+    if (addJetpackBtn) {
+      addJetpackBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'jetpack', { fuel: 100, maxFuel: 100, thrust: 12 });
+          showToast(`🚀 Attached Jetpack Thruster to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remJetpackBtn = body.querySelector('#remove-jetpack-behavior');
+    if (remJetpackBtn) {
+      remJetpackBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'jetpack');
+          showToast(`Removed Jetpack from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Level Portal Behavior
+    const addPortalBtn = body.querySelector('#add-level-portal-behavior');
+    if (addPortalBtn) {
+      addPortalBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'level_portal', { targetScene: 'Level_2', radius: 2.0 });
+          showToast(`🌀 Attached Level Transition Portal to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remPortalBtn = body.querySelector('#remove-level-portal-behavior');
+    if (remPortalBtn) {
+      remPortalBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'level_portal');
+          showToast(`Removed Level Portal from ${ent.name}.`, 'info');
           this.updateView();
         }
       });

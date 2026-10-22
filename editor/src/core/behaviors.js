@@ -390,10 +390,26 @@ export class BehaviorManager {
                     if (other.name.toLowerCase().includes('enemy') || other.name.toLowerCase().includes('monster') || other.name.toLowerCase().includes('target') || other.name.toLowerCase().includes('dummy')) {
                       const d = bullet.getPosition().distance(other.getPosition());
                       if (d < 1.5) {
-                        this.triggerScreenShake(0.3, 0.15);
-                        proceduralSFX.play('explosion');
-                        if (typeof showToast === 'function') showToast(`💥 Bullet hit ${other.name}!`, 'success');
-                        other.enabled = false;
+                        const otherBehaviors = this.getBehaviors(other);
+                        const targetB = otherBehaviors.find(tb => tb.type === 'target_health');
+                        if (targetB) {
+                          targetB.params.currentHp = Math.max(0, (targetB.params.currentHp || targetB.params.maxHp || 100) - (b.params.damage || 35));
+                          if (targetB.params.currentHp <= 0) {
+                            other.enabled = false;
+                            this.triggerScreenShake(0.5, 0.25);
+                            proceduralSFX.play('explosion');
+                            if (typeof showToast === 'function') showToast(`💥 Defeated target ${other.name}!`, 'success');
+                          } else {
+                            this.triggerScreenShake(0.2, 0.1);
+                            proceduralSFX.play('hurt');
+                            if (typeof showToast === 'function') showToast(`🎯 Hit ${other.name}! HP: ${targetB.params.currentHp}`, 'info');
+                          }
+                        } else {
+                          other.enabled = false;
+                          this.triggerScreenShake(0.3, 0.15);
+                          proceduralSFX.play('explosion');
+                          if (typeof showToast === 'function') showToast(`💥 Bullet hit ${other.name}!`, 'success');
+                        }
                         lifetime = 0;
                       }
                     }

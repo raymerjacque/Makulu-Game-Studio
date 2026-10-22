@@ -292,6 +292,17 @@ export class GameBundler {
       <span id="hud-ammo-text">🔫 Plasma Ammo: 30 / ∞</span>
     </div>
 
+    <div id="hud-keys-container" style="display: none; position: absolute; top: 70px; left: 20px; background: rgba(0,0,0,0.65); border: 1px solid rgba(250,204,21,0.4); padding: 4px 12px; border-radius: 12px; color: #facc15; font-size: 11px; font-weight: 700;">
+      <span id="hud-keys-text">🔑 Keys: None</span>
+    </div>
+
+    <div id="hud-jetpack-container" style="display: none; position: absolute; bottom: 65px; left: 20px; width: 140px; background: rgba(0,0,0,0.65); border: 1px solid rgba(56,189,248,0.4); padding: 6px; border-radius: 8px;">
+      <div style="font-size: 10px; color: #38bdf8; font-weight: 700; margin-bottom: 2px;">🚀 JETPACK FUEL</div>
+      <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+        <div id="hud-jetpack-fill" style="width: 100%; height: 100%; background: #38bdf8; transition: width 0.08s linear;"></div>
+      </div>
+    </div>
+
     <div id="hud-crosshair" style="display: none;">●</div>
   </div>
 
@@ -810,6 +821,12 @@ export class GameBundler {
             if (keys['q'] || keys['arrowleft']) node.rotate(0, rotSpeed * dt, 0);
             if (keys['e'] || keys['arrowright']) node.rotate(0, -rotSpeed * dt, 0);
 
+            if (mouseDeltaX !== 0) {
+              const sens = b.properties?.sensitivity || 0.15;
+              node.rotate(0, -mouseDeltaX * sens, 0);
+              mouseDeltaX = 0;
+            }
+
             if (move.lengthSq() > 0.0001) {
               move.normalize().mulScalar(speed * dt);
               node.translate(move);
@@ -836,6 +853,12 @@ export class GameBundler {
                 const keyName = b.properties?.keyName || 'Gold Key';
                 playerEntity._collectedKeys.add(keyName);
                 if (window.playProceduralSFX) window.playProceduralSFX('coin');
+                const keysEl = document.getElementById('hud-keys-container');
+                if (keysEl) {
+                  keysEl.style.display = 'block';
+                  const keyText = document.getElementById('hud-keys-text');
+                  if (keyText) keyText.textContent = "🔑 Keys: " + Array.from(playerEntity._collectedKeys).join(', ');
+                }
               }
             }
           } else if (b.type === 'locked_door') {
@@ -874,6 +897,13 @@ export class GameBundler {
               if (window.playProceduralSFX) window.playProceduralSFX('boost', 0.2);
             } else {
               b.properties.fuel = Math.min(b.properties.maxFuel || 100, b.properties.fuel + dt * 20);
+            }
+
+            const jpEl = document.getElementById('hud-jetpack-container');
+            if (jpEl) {
+              jpEl.style.display = 'block';
+              const fill = document.getElementById('hud-jetpack-fill');
+              if (fill) fill.style.width = Math.max(0, Math.min(100, (b.properties.fuel / (b.properties.maxFuel || 100)) * 100)) + '%';
             }
           } else if (b.type === 'level_portal') {
             if (playerEntity) {
@@ -942,9 +972,23 @@ export class GameBundler {
                     const name = (other.name || '').toLowerCase();
                     if (name.includes('enemy') || name.includes('monster') || name.includes('target') || name.includes('dummy')) {
                       if (bullet.getPosition().distance(other.getPosition()) < 1.6) {
-                        other.enabled = false;
+                        const targetB = (other._behaviors || []).find(tb => tb.type === 'target_health');
+                        if (targetB) {
+                          targetB.properties.currentHp = Math.max(0, (targetB.properties.currentHp || 100) - (b.properties?.damage || 35));
+                          if (targetB.properties.currentHp <= 0) {
+                            other.enabled = false;
+                            if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                            window.triggerScreenShake(0.5, 0.25);
+                          } else {
+                            if (window.playProceduralSFX) window.playProceduralSFX('hurt');
+                            window.triggerScreenShake(0.2, 0.1);
+                          }
+                        } else {
+                          other.enabled = false;
+                          if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                          window.triggerScreenShake(0.3, 0.15);
+                        }
                         lifetime = 0;
-                        window.triggerScreenShake(0.3, 0.15);
                       }
                     }
                   }

@@ -164,6 +164,32 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Periodically spawns hostile Enemy AI entities at timed intervals, dynamically populating combat arenas, dungeons, and waves.
 20. **🎒 Weapon Inventory & Ammo Counter:**
     Manages player equipment loadouts and live ammunition reserves on the 2D screen HUD, depleting ammo as projectiles are fired.
+21. **👀 First-Person Controller:**
+    Locks camera to character head height with responsive WASD navigation and mouse pointer-lock / Q-E rotation for authentic FPS perspectives.
+22. **🎯 Target / Boss Health:**
+    Equips destructible targets, breakable obstacles, or enemy bosses with multi-hit health points, screen shake on hit, and explosion + score upon defeat.
+23. **🔑 Key Item Pickup:**
+    Spawns collectible keys (Gold Key, Silver Key, etc.) that automatically add to the player's key inventory and appear on the 2D HUD.
+24. **🔒 Locked Key Door:**
+    Secures corridors and gates, verifying the player holds the required key before automatically swinging open.
+25. **🚀 Jetpack Thruster:**
+    Provides vertical propulsion and rocket jumping on `Spacebar` or `Shift`, complete with live fuel depletion and automatic recharge.
+26. **🌀 Level Transition Portal:**
+    Proximity gateway volume that transitions the game to a target scene (e.g. `Level_2`, `Boss_Arena`) or triggers victory.
+
+---
+
+## 🎵 Built-in Procedural Audio Synthesizer
+
+MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthesizer** (`proceduralSFX`) that generates game audio on the fly without needing external audio files:
+* **🔫 Laser / Shoot:** Rapid frequency sweep for projectile weapons and plasma blasters.
+* **💥 Explosion & Impact:** Filtered low-pass noise burst for bullet hits, destructible targets, and hazards.
+* **🪙 Coin & Pickup:** Dual-tone sine chime for collectibles, powerups, and score pickups.
+* **🚀 Jump & Jetpack Boost:** Square-wave pitch climb for impulses and jetpack thrusting.
+* **🔓 Door Unlock:** Triangle-wave harmonic chord for sliding proximity doors.
+* **💔 Hurt & Damage:** Sawtooth drop tone for player and enemy combat damage.
+* **🏆 Victory Fanfare:** Ascending celebratory arpeggio for level complete and portal triggers.
+* **Universal Compilation:** Inlined directly into compiled standalone `.html` games for instant audio on any device.
 
 ---
 
