@@ -504,6 +504,19 @@ export class GameBundler {
     window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
     window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
+    // Mouse Look / Pointer Lock
+    let mouseDeltaX = 0;
+    canvas.addEventListener('click', () => {
+      if (document.pointerLockElement !== canvas) {
+        canvas.requestPointerLock?.();
+      }
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (document.pointerLockElement === canvas) {
+        mouseDeltaX += e.movementX;
+      }
+    });
+
     const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character') || n.name.toLowerCase().includes('hero') || n.name.toLowerCase().includes('warrior')) || app.root.children[0];
 
     app.on('update', dt => {
@@ -662,8 +675,59 @@ export class GameBundler {
             }
           } else if (b.type === 'mouse_look') {
             const rotSpeed = b.properties?.speed || 90;
-            if (keys['arrowleft']) node.rotate(0, rotSpeed * dt, 0);
-            if (keys['arrowright']) node.rotate(0, -rotSpeed * dt, 0);
+            if (keys['arrowleft'] || keys['q']) node.rotate(0, rotSpeed * dt, 0);
+            if (keys['arrowright'] || keys['e']) node.rotate(0, -rotSpeed * dt, 0);
+            if (mouseDeltaX !== 0) {
+              const sens = b.properties?.sensitivity || 0.15;
+              node.rotate(0, -mouseDeltaX * sens, 0);
+              mouseDeltaX = 0;
+            }
+          } else if (b.type === 'projectile_shooter') {
+            if (!b._cooldown) b._cooldown = 0;
+            if (b._cooldown > 0) b._cooldown -= dt;
+            const shootKey = keys['f'] || keys['keyf'] || keys['e'] || keys[' '];
+            if (shootKey && b._cooldown <= 0) {
+              b._cooldown = b.properties?.cooldown || 0.3;
+              const bullet = new pc.Entity('Bullet_' + Date.now());
+              bullet.setPosition(node.getPosition().clone().add(node.forward.clone().mulScalar(1.2)));
+              bullet.setEulerAngles(node.getEulerAngles());
+              bullet.setLocalScale(0.2, 0.2, 0.4);
+
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = new pc.Color(1, 0.3, 0);
+              mat.emissive = new pc.Color(1, 0.6, 0);
+              mat.update();
+
+              bullet.addComponent('render', { type: 'sphere', material: mat });
+              app.root.addChild(bullet);
+
+              const bulletSpeed = b.properties?.speed || 30;
+              let lifetime = b.properties?.lifetime || 2.0;
+
+              const updateBullet = (bdt) => {
+                lifetime -= bdt;
+                if (lifetime <= 0 || !bullet.parent) {
+                  app.off('update', updateBullet);
+                  if (bullet.parent) bullet.destroy();
+                  return;
+                }
+                bullet.translateLocal(0, 0, -bulletSpeed * bdt);
+
+                // Collision check against hostile entities
+                app.root.forEach(other => {
+                  if (other !== bullet && other !== node && other.enabled && other.parent) {
+                    const name = (other.name || '').toLowerCase();
+                    if (name.includes('enemy') || name.includes('monster') || name.includes('target') || name.includes('dummy')) {
+                      if (bullet.getPosition().distance(other.getPosition()) < 1.6) {
+                        other.enabled = false;
+                        lifetime = 0;
+                      }
+                    }
+                  }
+                });
+              };
+              app.on('update', updateBullet);
+            }
           }
         });
       });

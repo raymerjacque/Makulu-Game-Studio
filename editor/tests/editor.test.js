@@ -152,6 +152,7 @@ test('Win Level Victory Trigger action registration and execution', () => {
 test('GameBundler generates standalone HTML with HUD, Victory screen, Base64 assets and new behaviors', () => {
   const editor = new Editor();
   editor.projectName = 'Awesome 3D Game';
+  assert.ok(editor.hudConfig.victory, 'Editor initial hudConfig has victory screen');
   editor.assetsPanel = {
     assets: [
       { name: 'custom_audio.mp3', type: 'audio', base64Data: 'data:audio/mp3;base64,SUQzBAAAAAAA' }
@@ -168,5 +169,6 @@ test('GameBundler generates standalone HTML with HUD, Victory screen, Base64 ass
   assert.ok(html.includes('hud-health-bar-wrap'));
   assert.ok(html.includes('gameover-screen'));
   assert.ok(html.includes('victory-screen'));
+  assert.ok(html.includes('projectile_shooter'));
   assert.ok(html.includes('data:audio/mp3;base64,SUQzBAAAAAAA'));
 });

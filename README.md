@@ -150,14 +150,23 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Transforms entities into dangerous enemies, spikes, or lava traps that inflict contact damage onto player characters within an adjustable radius.
 13. **💚 Health Potion Pickup:**
     Creates restorative item drops that heal the player's health points upon contact, up to the maximum HP cap.
+14. **🤖 Hostile Enemy Chase AI:**
+    Equips monsters and NPCs with automated path-chase intelligence. Detects player presence within an adjustable vision radius, turns to face them, charges, and executes timed melee attacks.
+15. **🔫 Projectile Weapon Shooter:**
+    Equips characters or defense turrets with ballistic weapons. Fires glowing plasma projectile spheres on `F`, `E`, or `Spacebar` with adjustable speed, cooldown, and damage, eliminating hostile enemies on impact.
+16. **👀 3D Mouse Look & Smooth Rotation:**
+    Enables first-person and third-person camera/player steering via pointer lock mouse look and `Q` / `E` / Arrow rotation with configurable sensitivity.
 
 ---
 
 ## 📺 2D Screen UI & HUD Designer
 
-Design and customize responsive screen UI overlays directly from the TopBar (`📺 HUD`):
+Design and customize responsive screen UI overlays directly from the TopBar (`Tools ▾ -> 📺 HUD`):
 * **❤️ Health Bar Overlay:** Toggleable health bar with customizable label, max health, custom fill colors, and animated depletion.
 * **⭐ Score Counter:** Dynamic score counter with prefix label and live updates from collectible coins and trigger points.
+* **🎯 Reticle & Crosshair:** Visual center aim reticle (dot, cross, circle) for aiming and interaction.
+* **💀 Game Over Screen:** Atmospheric dark screen with death message and 1-click level restart upon player defeat.
+* **🏆 Victory / Level Complete Screen:** Celebration overlay with victory badge, level complete summary, and "Play Again" button triggered by victory trigger volumes.
 * **🎯 Center Screen Crosshair:** Toggleable aiming reticle with multiple styles (**● Dot**, **┼ Crosshair**, **◯ Circle**).
 * **💀 Game Over Screen:** High-impact overlay with custom death messages and a 1-click **Restart** button that triggers on player defeat.
 * **Seamless Standalone Compilation:** All HUD elements compile natively into standalone single-file `.html` web games.

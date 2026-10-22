@@ -882,17 +882,27 @@ export class InspectorPanel {
       <!-- Add Component Dropdown -->
       <div style="margin-top: 8px;">
         <select id="add-component-select" class="select-input" style="padding: 6px; font-weight: 600; text-align: center; border-color: var(--accent-orange); color: var(--accent-orange);">
-          <option value="">+ Add Component</option>
-          <option value="render">Render / Mesh</option>
-          <option value="light">Light Source</option>
-          <option value="camera">Camera</option>
-          <option value="collision">Collision Shape</option>
-          <option value="rigidbody">Rigidbody Physics</option>
-          <option value="particlesystem">Particle Emitter</option>
-          <option value="sound">3D Audio / Sound</option>
-          <option value="anim">Animation Player</option>
-          <option value="script">Script Behavior</option>
-          <option value="trigger">Trigger Volume</option>
+          <option value="">+ Add Component / Behavior</option>
+          <optgroup label="Engine Components">
+            <option value="render">Render / Mesh</option>
+            <option value="light">Light Source</option>
+            <option value="camera">Camera</option>
+            <option value="collision">Collision Shape</option>
+            <option value="rigidbody">Rigidbody Physics</option>
+            <option value="particlesystem">Particle Emitter</option>
+            <option value="sound">3D Audio / Sound</option>
+            <option value="anim">Animation Player</option>
+            <option value="script">Script Behavior</option>
+            <option value="trigger">Trigger Volume</option>
+          </optgroup>
+          <optgroup label="Gameplay Behaviors">
+            <option value="b_enemy_ai">🤖 Enemy Chase AI</option>
+            <option value="b_projectile_shooter">🔫 Projectile Weapon Shooter</option>
+            <option value="b_mouse_look">👀 Mouse Look / Rotation</option>
+            <option value="b_patrol">🚶 Patrol Movement</option>
+            <option value="b_wasd">🎮 WASD Character Movement</option>
+            <option value="b_health">❤️ Health Component</option>
+          </optgroup>
         </select>
       </div>
     `;
@@ -972,6 +982,27 @@ export class InspectorPanel {
     if (compSelect) {
       compSelect.addEventListener('change', () => {
         const type = compSelect.value;
+        if (!type) return;
+
+        if (type.startsWith('b_')) {
+          const bType = type.replace('b_', '');
+          if (this.editor.behaviors) {
+            const defaults = {
+              enemy_ai: { speed: 3.5, detectRadius: 15, damage: 15 },
+              projectile_shooter: { speed: 30, damage: 35, cooldown: 0.3 },
+              mouse_look: { speed: 90 },
+              patrol: { speed: 3, distance: 6 },
+              wasd: { speed: 8 },
+              health: { maxHp: 100, currentHp: 100 }
+            };
+            this.editor.behaviors.attachBehavior(ent, bType, defaults[bType] || {});
+            showToast(`Attached behavior: ${bType}`, 'success');
+            this.updateView();
+          }
+          compSelect.value = '';
+          return;
+        }
+
         if (type === 'trigger') {
           if (this.editor.triggers) {
             if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
@@ -1629,6 +1660,48 @@ export class InspectorPanel {
       });
 
       stack.appendChild(card);
+    }
+
+    // Active Behaviors Stack Cards
+    if (this.editor.behaviors) {
+      const behaviors = this.editor.behaviors.getBehaviors(ent);
+      if (behaviors && behaviors.length > 0) {
+        behaviors.forEach(b => {
+          const card = document.createElement('div');
+          card.className = 'inspector-section';
+          card.style.borderColor = 'var(--accent-orange)';
+          const paramRows = Object.entries(b.params || {}).map(([key, val]) => `
+            <div class="prop-row">
+              <span class="prop-label">${key}</span>
+              <input type="${typeof val === 'number' ? 'number' : 'text'}" class="text-input behavior-param-input" data-param="${key}" value="${val}">
+            </div>
+          `).join('');
+
+          card.innerHTML = `
+            <div class="inspector-section-header" style="background: rgba(255, 102, 0, 0.12); color: var(--accent-orange);">
+              <span>⚡ Behavior: ${b.type}</span>
+              <button class="btn btn-remove-behavior" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+            </div>
+            <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
+              ${paramRows || '<div style="font-size: 10px; color: var(--text-muted);">No adjustable parameters</div>'}
+            </div>
+          `;
+
+          card.querySelector('.btn-remove-behavior').addEventListener('click', () => {
+            this.editor.behaviors.removeBehavior(ent, b.type);
+            this.updateView();
+          });
+
+          card.querySelectorAll('.behavior-param-input').forEach(inp => {
+            inp.addEventListener('input', (e) => {
+              const k = inp.dataset.param;
+              b.params[k] = typeof b.params[k] === 'number' ? parseFloat(e.target.value) || 0 : e.target.value;
+            });
+          });
+
+          stack.appendChild(card);
+        });
+      }
     }
   }
 }

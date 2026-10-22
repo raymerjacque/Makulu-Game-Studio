@@ -301,7 +301,7 @@ export class BehaviorManager {
                   return;
                 }
 
-                bullet.translate(0, 0, -bulletSpeed * bdt);
+                bullet.translateLocal(0, 0, -bulletSpeed * bdt);
 
                 // Collision check against enemies
                 app.root.forEach(other => {
@@ -320,10 +320,10 @@ export class BehaviorManager {
               app.on('update', updateBullet);
             }
           } else if (b.type === 'mouse_look') {
-            // Allows player/camera to rotate with WASD or mouse movement
+            // Allows player/camera to rotate with Arrow keys, Q/E, or mouse
             const rotSpeed = b.params.speed || 90;
-            if (this.isKeyDown('arrowleft')) entity.rotate(0, rotSpeed * dt, 0);
-            if (this.isKeyDown('arrowright')) entity.rotate(0, -rotSpeed * dt, 0);
+            if (this.isKeyDown('arrowleft') || this.isKeyDown('q')) entity.rotate(0, rotSpeed * dt, 0);
+            if (this.isKeyDown('arrowright') || this.isKeyDown('e')) entity.rotate(0, -rotSpeed * dt, 0);
           }
         }
       }

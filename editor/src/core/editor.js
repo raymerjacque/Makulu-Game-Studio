@@ -54,7 +54,8 @@ export class Editor {
       health: { enabled: true, label: 'HP', max: 100, color: '#ef4444' },
       score: { enabled: true, label: 'Score:', initial: 0 },
       crosshair: { enabled: true, style: 'dot' },
-      gameOver: { enabled: true, title: 'GAME OVER', message: 'Your health reached 0. Press Restart to try again.' }
+      gameOver: { enabled: true, title: 'GAME OVER', message: 'Your health reached 0. Press Restart to try again.' },
+      victory: { enabled: true, title: '🏆 VICTORY!', message: 'Congratulations! You completed the level!' }
     };
   }
 
