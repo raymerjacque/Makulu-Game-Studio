@@ -564,19 +564,12 @@ export class GameBundler {
     const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character') || n.name.toLowerCase().includes('hero') || n.name.toLowerCase().includes('warrior')) || app.root.children[0];
 
     app.on('update', dt => {
-      // Screen Shake Evaluation
+      // Screen Shake Evaluation (nudges camera locally without snapping world position)
       if (window._shakeTimer > 0) {
-        if (!window._shakeBaseCamPos) {
-          window._shakeBaseCamPos = gameCamera.getPosition().clone();
-        }
         window._shakeTimer -= dt;
         const offsetX = (Math.random() - 0.5) * window._shakeIntensity;
         const offsetY = (Math.random() - 0.5) * window._shakeIntensity;
-        gameCamera.setPosition(window._shakeBaseCamPos.x + offsetX, window._shakeBaseCamPos.y + offsetY, window._shakeBaseCamPos.z);
-        if (window._shakeTimer <= 0) {
-          gameCamera.setPosition(window._shakeBaseCamPos);
-          window._shakeBaseCamPos = null;
-        }
+        gameCamera.translateLocal(offsetX, offsetY, 0);
       }
 
       // Execute embedded behaviors
@@ -621,6 +614,11 @@ export class GameBundler {
               if (d > distance && b._state.dir > 0) b._state.dir = -1;
               if (d < 0 && b._state.dir < 0) b._state.dir = 1;
               node.translate(0, b._state.dir * speed * dt, 0);
+            } else if (axis === 'z') {
+              const d = curPos.z - b._state.startPos.z;
+              if (d > distance && b._state.dir > 0) b._state.dir = -1;
+              if (d < -distance && b._state.dir < 0) b._state.dir = 1;
+              node.translate(0, 0, b._state.dir * speed * dt);
             } else {
               const d = curPos.x - b._state.startPos.x;
               if (d > distance && b._state.dir > 0) b._state.dir = -1;
@@ -803,6 +801,17 @@ export class GameBundler {
             if (b._cooldown > 0) b._cooldown -= dt;
             const shootKey = keys['f'] || keys['keyf'] || keys['e'] || keys[' '];
             if (shootKey && b._cooldown <= 0) {
+              // Deduct ammo if weapon inventory is attached
+              const inv = (node._behaviors || []).find(wb => wb.type === 'weapon_inventory');
+              if (inv && inv.properties && typeof inv.properties.ammo === 'number') {
+                if (inv.properties.ammo <= 0) return;
+                inv.properties.ammo--;
+                const ammoEl = document.getElementById('hud-ammo-text');
+                if (ammoEl) {
+                  ammoEl.textContent = "🔫 Weapon Active: " + (inv.properties.weaponName || 'Plasma Gun') + " | Ammo: " + inv.properties.ammo;
+                }
+              }
+
               b._cooldown = b.properties?.cooldown || 0.3;
               const bullet = new pc.Entity('Bullet_' + Date.now());
               bullet.setPosition(node.getPosition().clone().add(node.forward.clone().mulScalar(1.2)));

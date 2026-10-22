@@ -118,12 +118,14 @@ test('Health and Combat Damage behaviors in BehaviorManager', () => {
   }
 });
 
-test('New Game Behaviors: Moving Platform, Door, Spawner, Weapon Inventory', () => {
+test('New Game Behaviors: Moving Platform, Door, Spawner, Weapon Inventory, Enemy AI, Projectile Shooter, Mouse Look', () => {
   const editor = new Editor();
   const platform = { name: 'Elevator' };
   const door = { name: 'Gate' };
   const spawner = { name: 'Portal' };
   const weapon = { name: 'Gun' };
+  const enemy = { name: 'Goblin' };
+  const player = { name: 'Player' };
 
   if (editor.behaviors) {
     editor.behaviors.attachBehavior(platform, 'moving_platform', { speed: 2.5, distance: 8, axis: 'y' });
@@ -137,6 +139,15 @@ test('New Game Behaviors: Moving Platform, Door, Spawner, Weapon Inventory', () 
 
     editor.behaviors.attachBehavior(weapon, 'weapon_inventory', { weaponName: 'Plasma Gun', ammo: 30 });
     assert.equal(editor.behaviors.hasBehavior(weapon, 'weapon_inventory'), true);
+
+    editor.behaviors.attachBehavior(enemy, 'enemy_ai', { speed: 3.5, detectRadius: 15, damage: 15 });
+    assert.equal(editor.behaviors.hasBehavior(enemy, 'enemy_ai'), true);
+
+    editor.behaviors.attachBehavior(player, 'projectile_shooter', { speed: 30, damage: 35 });
+    assert.equal(editor.behaviors.hasBehavior(player, 'projectile_shooter'), true);
+
+    editor.behaviors.attachBehavior(player, 'mouse_look', { speed: 90 });
+    assert.equal(editor.behaviors.hasBehavior(player, 'mouse_look'), true);
   }
 });
 

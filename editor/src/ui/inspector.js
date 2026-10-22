@@ -103,6 +103,10 @@ export class InspectorPanel {
     const hasEnemyAI = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'enemy_ai') : false;
     const hasShooter = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'projectile_shooter') : false;
     const hasMouseLook = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'mouse_look') : false;
+    const hasMovingPlatform = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'moving_platform') : false;
+    const hasInteractiveDoor = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'interactive_door') : false;
+    const hasEnemySpawner = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'enemy_spawner') : false;
+    const hasWeaponInventory = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'weapon_inventory') : false;
     const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
 
     body.innerHTML = `
@@ -348,6 +352,50 @@ export class InspectorPanel {
             </button>
           `}
 
+          ${hasMovingPlatform ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #60a5fa; font-weight: 600;">🛗 Moving Platform Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-moving-platform-behavior" title="Remove Platform" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-moving-platform-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🛗</span> <span>Make Moving Platform / Elevator</span>
+            </button>
+          `}
+
+          ${hasInteractiveDoor ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #c084fc; font-weight: 600;">🚪 Interactive Proximity Door Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-interactive-door-behavior" title="Remove Door" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-interactive-door-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🚪</span> <span>Make Automatic Proximity Door</span>
+            </button>
+          `}
+
+          ${hasEnemySpawner ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #ef4444; font-weight: 600;">👾 Monster Spawner Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-enemy-spawner-behavior" title="Remove Spawner" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-enemy-spawner-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>👾</span> <span>Make Monster Spawner Portal</span>
+            </button>
+          `}
+
+          ${hasWeaponInventory ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,229,255,0.15); border: 1px solid #00e5ff; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #00e5ff; font-weight: 600;">🎒 Weapon & Ammo Inventory Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-weapon-inventory-behavior" title="Remove Inventory" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-weapon-inventory-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🎒</span> <span>Attach Weapon & Ammo HUD</span>
+            </button>
+          `}
+
           <button class="btn" id="add-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
             <span>⚡</span> <span>Add Teleport Trigger Volume</span>
           </button>
@@ -513,6 +561,94 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.removeBehavior(ent, 'mouse_look');
           showToast(`Removed Rotation Controls from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Moving Platform Behavior
+    const addPlatformBtn = body.querySelector('#add-moving-platform-behavior');
+    if (addPlatformBtn) {
+      addPlatformBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'moving_platform', { speed: 2.5, distance: 8, axis: 'y' });
+          showToast(`🛗 Attached Moving Platform (Elevator) to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remPlatformBtn = body.querySelector('#remove-moving-platform-behavior');
+    if (remPlatformBtn) {
+      remPlatformBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'moving_platform');
+          showToast(`Removed Moving Platform from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Interactive Door Behavior
+    const addDoorBtn = body.querySelector('#add-interactive-door-behavior');
+    if (addDoorBtn) {
+      addDoorBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'interactive_door', { radius: 3.0 });
+          showToast(`🚪 Attached Interactive Proximity Door to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remDoorBtn = body.querySelector('#remove-interactive-door-behavior');
+    if (remDoorBtn) {
+      remDoorBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'interactive_door');
+          showToast(`Removed Interactive Door from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Enemy Spawner Behavior
+    const addSpawnerBtn = body.querySelector('#add-enemy-spawner-behavior');
+    if (addSpawnerBtn) {
+      addSpawnerBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'enemy_spawner', { interval: 6.0 });
+          showToast(`👾 Attached Monster Spawner to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remSpawnerBtn = body.querySelector('#remove-enemy-spawner-behavior');
+    if (remSpawnerBtn) {
+      remSpawnerBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'enemy_spawner');
+          showToast(`Removed Monster Spawner from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Weapon Inventory Behavior
+    const addWeaponBtn = body.querySelector('#add-weapon-inventory-behavior');
+    if (addWeaponBtn) {
+      addWeaponBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'weapon_inventory', { weaponName: 'Plasma Gun', ammo: 30 });
+          showToast(`🎒 Attached Weapon Inventory (Plasma Gun, 30 ammo) to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remWeaponBtn = body.querySelector('#remove-weapon-inventory-behavior');
+    if (remWeaponBtn) {
+      remWeaponBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'weapon_inventory');
+          showToast(`Removed Weapon Inventory from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
@@ -900,6 +1036,10 @@ export class InspectorPanel {
             <option value="b_projectile_shooter">🔫 Projectile Weapon Shooter</option>
             <option value="b_mouse_look">👀 Mouse Look / Rotation</option>
             <option value="b_patrol">🚶 Patrol Movement</option>
+            <option value="b_moving_platform">🛗 Moving Platform / Elevator</option>
+            <option value="b_interactive_door">🚪 Interactive Proximity Door</option>
+            <option value="b_enemy_spawner">👾 Monster Spawner Portal</option>
+            <option value="b_weapon_inventory">🎒 Weapon Inventory & Ammo</option>
             <option value="b_wasd">🎮 WASD Character Movement</option>
             <option value="b_health">❤️ Health Component</option>
           </optgroup>
@@ -992,6 +1132,10 @@ export class InspectorPanel {
               projectile_shooter: { speed: 30, damage: 35, cooldown: 0.3 },
               mouse_look: { speed: 90 },
               patrol: { speed: 3, distance: 6 },
+              moving_platform: { speed: 2.5, distance: 8, axis: 'y' },
+              interactive_door: { radius: 3.0 },
+              enemy_spawner: { interval: 6.0 },
+              weapon_inventory: { weaponName: 'Plasma Gun', ammo: 30 },
               wasd: { speed: 8 },
               health: { maxHp: 100, currentHp: 100 }
             };

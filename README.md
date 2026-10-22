@@ -156,6 +156,14 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Equips characters or defense turrets with ballistic weapons. Fires glowing plasma projectile spheres on `F`, `E`, or `Spacebar` with adjustable speed, cooldown, and damage, eliminating hostile enemies on impact.
 16. **👀 3D Mouse Look & Smooth Rotation:**
     Enables first-person and third-person camera/player steering via pointer lock mouse look and `Q` / `E` / Arrow rotation with configurable sensitivity.
+17. **🛗 Moving Platform / Elevator:**
+    Oscillates geometric platforms back and forth along the X, Y, or Z axis with configurable speed and distance. Perfect for vertical elevators, floating stepping stones, and mechanical obstacles.
+18. **🚪 Interactive Proximity Door:**
+    Detects player approach within a custom radius and automatically lifts/opens to grant passage, then closes securely once the player departs.
+19. **👾 Monster / Enemy Spawner Portal:**
+    Periodically spawns hostile Enemy AI entities at timed intervals, dynamically populating combat arenas, dungeons, and waves.
+20. **🎒 Weapon Inventory & Ammo Counter:**
+    Manages player equipment loadouts and live ammunition reserves on the 2D screen HUD, depleting ammo as projectiles are fired.
 
 ---
 
@@ -165,10 +173,9 @@ Design and customize responsive screen UI overlays directly from the TopBar (`To
 * **❤️ Health Bar Overlay:** Toggleable health bar with customizable label, max health, custom fill colors, and animated depletion.
 * **⭐ Score Counter:** Dynamic score counter with prefix label and live updates from collectible coins and trigger points.
 * **🎯 Reticle & Crosshair:** Visual center aim reticle (dot, cross, circle) for aiming and interaction.
+* **🔫 Ammo & Weapon Overlay:** Live weapon name and ammo counter (`hud-ammo-counter`) linked to the weapon inventory.
 * **💀 Game Over Screen:** Atmospheric dark screen with death message and 1-click level restart upon player defeat.
 * **🏆 Victory / Level Complete Screen:** Celebration overlay with victory badge, level complete summary, and "Play Again" button triggered by victory trigger volumes.
-* **🎯 Center Screen Crosshair:** Toggleable aiming reticle with multiple styles (**● Dot**, **┼ Crosshair**, **◯ Circle**).
-* **💀 Game Over Screen:** High-impact overlay with custom death messages and a 1-click **Restart** button that triggers on player defeat.
 * **Seamless Standalone Compilation:** All HUD elements compile natively into standalone single-file `.html` web games.
 
 ---

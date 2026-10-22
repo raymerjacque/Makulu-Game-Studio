@@ -12,6 +12,8 @@ export class BehaviorManager {
     this.activeBehaviors = new Map(); // entity -> Array<{ type, params }>
     this.keys = {};
     this._updateBound = false;
+    this._shakeTimer = 0;
+    this._shakeIntensity = 0;
 
     // Track active key presses reliably on window
     window.addEventListener('keydown', (e) => {
@@ -55,6 +57,11 @@ export class BehaviorManager {
     return this.activeBehaviors;
   }
 
+  triggerScreenShake(intensity = 0.4, duration = 0.25) {
+    this._shakeIntensity = intensity;
+    this._shakeTimer = duration;
+  }
+
   bindUpdateLoop() {
     if (this._updateBound) return;
     const app = this.editor.getApp();
@@ -63,6 +70,17 @@ export class BehaviorManager {
 
     app.on('update', (dt) => {
       if (!this.isPlaying) return;
+
+      // Screen Shake Evaluation
+      if (this._shakeTimer > 0) {
+        this._shakeTimer -= dt;
+        const cam = app.root.find(node => node.camera);
+        if (cam) {
+          const offsetX = (Math.random() - 0.5) * this._shakeIntensity;
+          const offsetY = (Math.random() - 0.5) * this._shakeIntensity;
+          cam.translateLocal(offsetX, offsetY, 0);
+        }
+      }
 
       for (const [entity, behaviors] of this.activeBehaviors.entries()) {
         if (!entity || !entity.enabled || !entity.parent) continue;
@@ -150,6 +168,11 @@ export class BehaviorManager {
               if (d > distance && b.state.dir > 0) b.state.dir = -1;
               if (d < 0 && b.state.dir < 0) b.state.dir = 1;
               entity.translate(0, b.state.dir * speed * dt, 0);
+            } else if (axis === 'z') {
+              const d = curPos.z - b.state.startPos.z;
+              if (d > distance && b.state.dir > 0) b.state.dir = -1;
+              if (d < -distance && b.state.dir < 0) b.state.dir = 1;
+              entity.translate(0, 0, b.state.dir * speed * dt);
             } else {
               const d = curPos.x - b.state.startPos.x;
               if (d > distance && b.state.dir > 0) b.state.dir = -1;
@@ -309,6 +332,7 @@ export class BehaviorManager {
                     if (healthB) {
                       const dmg = b.params.damage || 15;
                       healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || healthB.params.maxHp || 100) - dmg);
+                      this.triggerScreenShake(0.4, 0.2);
                       if (typeof showToast === 'function') showToast(`⚔️ Enemy ${entity.name} attacked player for ${dmg} damage! HP: ${healthB.params.currentHp}`, 'warn');
                     }
                   }
@@ -321,6 +345,14 @@ export class BehaviorManager {
 
             const isTriggered = this.isKeyDown('f') || this.isKeyDown('keyf') || this.isKeyDown('e') || this.isKeyDown('space');
             if (isTriggered && b._cooldown <= 0) {
+              // Deduct ammo if weapon inventory is attached
+              const playerBehaviors = this.getBehaviors(entity);
+              const inv = playerBehaviors.find(wb => wb.type === 'weapon_inventory');
+              if (inv && inv.params && typeof inv.params.ammo === 'number') {
+                if (inv.params.ammo <= 0) return;
+                inv.params.ammo--;
+              }
+
               b._cooldown = b.params.cooldown || 0.3;
 
               const bullet = new pc.Entity(`Bullet_${Date.now()}`);
@@ -354,6 +386,7 @@ export class BehaviorManager {
                     if (other.name.toLowerCase().includes('enemy') || other.name.toLowerCase().includes('monster') || other.name.toLowerCase().includes('target') || other.name.toLowerCase().includes('dummy')) {
                       const d = bullet.getPosition().distance(other.getPosition());
                       if (d < 1.5) {
+                        this.triggerScreenShake(0.3, 0.15);
                         if (typeof showToast === 'function') showToast(`💥 Bullet hit ${other.name}!`, 'success');
                         other.enabled = false;
                         lifetime = 0;
