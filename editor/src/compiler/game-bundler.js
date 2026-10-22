@@ -165,6 +165,40 @@ export class GameBundler {
       margin-bottom: 24px;
     }
 
+    /* Victory Modal Screen */
+    #victory-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 20, 10, 0.88);
+      backdrop-filter: blur(12px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #victory-title {
+      font-size: 42px;
+      font-weight: 900;
+      color: #10b981;
+      text-shadow: 0 0 25px rgba(16,185,129,0.8);
+      margin-bottom: 8px;
+    }
+
+    #victory-msg {
+      font-size: 14px;
+      color: #cbd5e1;
+      max-width: 400px;
+      margin-bottom: 24px;
+    }
+
     .btn-restart {
       background: #ef4444;
       color: #fff;
@@ -175,6 +209,19 @@ export class GameBundler {
       border-radius: 8px;
       cursor: pointer;
       box-shadow: 0 0 15px rgba(239,68,68,0.5);
+      pointer-events: auto;
+    }
+
+    .btn-win-restart {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(16,185,129,0.5);
       pointer-events: auto;
     }
 
@@ -225,6 +272,13 @@ export class GameBundler {
     <div id="gameover-title">GAME OVER</div>
     <div id="gameover-msg">Your health reached 0. Press Restart to try again.</div>
     <button class="btn-restart" onclick="window.location.reload()">🔄 Restart Level</button>
+  </div>
+
+  <!-- Victory Screen -->
+  <div id="victory-screen">
+    <div id="victory-title">🏆 VICTORY!</div>
+    <div id="victory-msg">Congratulations! You completed the level!</div>
+    <button class="btn-win-restart" onclick="window.location.reload()">🎮 Play Again</button>
   </div>
 
   <button id="ui-fullscreen" onclick="document.documentElement.requestFullscreen()">⛶ Fullscreen</button>
@@ -575,6 +629,41 @@ export class GameBundler {
                 }
               }
             }
+          } else if (b.type === 'enemy_ai') {
+            if (playerEntity) {
+              const speed = b.properties?.speed || 3.5;
+              const detectRadius = b.properties?.detectRadius || 15;
+              const attackRadius = b.properties?.attackRadius || 1.8;
+              const pos = node.getPosition();
+              const targetPos = playerEntity.getPosition();
+              const dist = pos.distance(targetPos);
+
+              if (dist <= detectRadius) {
+                const lookPos = new pc.Vec3(targetPos.x, pos.y, targetPos.z);
+                node.lookAt(lookPos);
+
+                if (dist > attackRadius) {
+                  const dir = lookPos.sub(pos).normalize().mulScalar(speed * dt);
+                  node.translate(dir);
+                } else {
+                  if (!b._attackTimer) b._attackTimer = 0;
+                  b._attackTimer -= dt;
+                  if (b._attackTimer <= 0) {
+                    b._attackTimer = b.properties?.attackRate || 1.0;
+                    const playerB = playerEntity._behaviors || [];
+                    const healthB = playerB.find(hb => hb.type === 'health');
+                    if (healthB) {
+                      const dmg = b.properties?.damage || 15;
+                      healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - dmg);
+                    }
+                  }
+                }
+              }
+            }
+          } else if (b.type === 'mouse_look') {
+            const rotSpeed = b.properties?.speed || 90;
+            if (keys['arrowleft']) node.rotate(0, rotSpeed * dt, 0);
+            if (keys['arrowright']) node.rotate(0, -rotSpeed * dt, 0);
           }
         });
       });
@@ -631,6 +720,15 @@ export class GameBundler {
             } else if (config.action === 'destroy' && config.targetEntity) {
               const target = app.root.findByName(config.targetEntity);
               if (target && target.parent) target.parent.removeChild(target);
+            } else if (config.action === 'win_level') {
+              const vicScreen = document.getElementById('victory-screen');
+              if (vicScreen) {
+                if (config.victoryMessage) {
+                  const msgEl = document.getElementById('victory-msg');
+                  if (msgEl) msgEl.textContent = config.victoryMessage;
+                }
+                vicScreen.style.display = 'flex';
+              }
             }
           };
 

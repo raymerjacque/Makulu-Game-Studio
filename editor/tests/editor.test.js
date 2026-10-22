@@ -118,7 +118,38 @@ test('Health and Combat Damage behaviors in BehaviorManager', () => {
   }
 });
 
-test('GameBundler generates standalone HTML with HUD and Base64 assets', () => {
+test('New Game Behaviors: Enemy AI, Projectile Shooter, Mouse Look', () => {
+  const editor = new Editor();
+  const enemy = { name: 'Goblin' };
+  const player = { name: 'Player' };
+
+  if (editor.behaviors) {
+    editor.behaviors.attachBehavior(enemy, 'enemy_ai', { speed: 3.5, detectRadius: 15, damage: 15 });
+    assert.equal(editor.behaviors.hasBehavior(enemy, 'enemy_ai'), true);
+
+    editor.behaviors.attachBehavior(player, 'projectile_shooter', { speed: 30, damage: 35 });
+    assert.equal(editor.behaviors.hasBehavior(player, 'projectile_shooter'), true);
+
+    editor.behaviors.attachBehavior(player, 'mouse_look', { speed: 90 });
+    assert.equal(editor.behaviors.hasBehavior(player, 'mouse_look'), true);
+  }
+});
+
+test('Win Level Victory Trigger action registration and execution', () => {
+  const editor = new Editor();
+  editor.triggers.registerTrigger('FinishLine', {
+    eventType: 'on_enter',
+    action: 'win_level',
+    victoryMessage: 'Level 1 Cleared!'
+  });
+
+  assert.equal(editor.triggers.hasTrigger('FinishLine'), true);
+  const trig = editor.triggers.getTrigger('FinishLine');
+  assert.equal(trig.action, 'win_level');
+  assert.equal(trig.victoryMessage, 'Level 1 Cleared!');
+});
+
+test('GameBundler generates standalone HTML with HUD, Victory screen, Base64 assets and new behaviors', () => {
   const editor = new Editor();
   editor.projectName = 'Awesome 3D Game';
   editor.assetsPanel = {
@@ -136,5 +167,6 @@ test('GameBundler generates standalone HTML with HUD and Base64 assets', () => {
   assert.ok(html.includes('hud-container'));
   assert.ok(html.includes('hud-health-bar-wrap'));
   assert.ok(html.includes('gameover-screen'));
+  assert.ok(html.includes('victory-screen'));
   assert.ok(html.includes('data:audio/mp3;base64,SUQzBAAAAAAA'));
 });

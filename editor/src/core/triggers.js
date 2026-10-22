@@ -152,6 +152,11 @@ export class TriggerSystem {
       }
     } else if (config.action === 'play_sound' && config.soundAsset) {
       showToast(`🔊 Triggering Audio Playback: ${config.soundAsset}`, 'info');
+    } else if (config.action === 'win_level') {
+      showToast(`🏆 VICTORY! Level Completed successfully!`, 'success');
+      this.editor.events.emit('game:victory', {
+        message: config.victoryMessage || 'VICTORY! Level Completed!'
+      });
     }
   }
 }
