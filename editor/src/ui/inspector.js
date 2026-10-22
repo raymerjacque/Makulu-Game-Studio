@@ -91,6 +91,11 @@ export class InspectorPanel {
     const hasSpin = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'spin') : false;
     const hasFlicker = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'light_flicker') : false;
     const hasImpulse = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'physics_impulse') : false;
+    const hasSine = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'sine_float') : false;
+    const hasOrbit = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'orbit') : false;
+    const hasCamFollow = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'camera_follow') : false;
+    const hasBillboard = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'billboard') : false;
+    const hasCollectible = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'collectible') : false;
 
     body.innerHTML = `
       <!-- Mode Banner -->
@@ -200,6 +205,61 @@ export class InspectorPanel {
           ` : `
             <button class="btn" id="add-impulse-behavior" style="justify-content: flex-start; gap: 8px;">
               <span>💥</span> <span>Add Spacebar Physics Jump</span>
+            </button>
+          `}
+
+          ${hasSine ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,229,255,0.15); border: 1px solid #00e5ff; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #00e5ff; font-weight: 600;">🌊 Sine Wave Floating Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-sine-behavior" title="Remove Floating" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-sine-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🌊</span> <span>Add Sine Wave Floating</span>
+            </button>
+          `}
+
+          ${hasOrbit ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234,179,8,0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #facc15; font-weight: 600;">💫 Orbit Movement Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-orbit-behavior" title="Remove Orbit" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-orbit-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>💫</span> <span>Add Orbit Movement</span>
+            </button>
+          `}
+
+          ${hasCamFollow ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #4ade80; font-weight: 600;">🎥 Camera Follow Target Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-camfollow-behavior" title="Remove Follow" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-camfollow-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🎥</span> <span>Set Camera Follow Target</span>
+            </button>
+          `}
+
+          ${hasBillboard ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(236,72,153,0.15); border: 1px solid #ec4899; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #f472b6; font-weight: 600;">🎯 Billboard Facing Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-billboard-behavior" title="Remove Billboard" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-billboard-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🎯</span> <span>Make Billboard (Face Camera)</span>
+            </button>
+          `}
+
+          ${hasCollectible ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(251,146,60,0.15); border: 1px solid #fb923c; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #fb923c; font-weight: 600;">💎 Collectible Item Pickup Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-collectible-behavior" title="Remove Collectible" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-collectible-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>💎</span> <span>Make Collectible Item Pickup</span>
             </button>
           `}
 
@@ -347,7 +407,7 @@ export class InspectorPanel {
           if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
           this.editor.behaviors.attachBehavior(ent, 'physics_impulse', { force: 8 });
           showToast(`💥 Attached Physics Jump to ${ent.name}! Press Spacebar during ▶ Play to jump!`, 'success');
-          this.inspect(ent);
+          this.updateView();
         }
       });
     }
@@ -357,7 +417,117 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.removeBehavior(ent, 'physics_impulse');
           showToast(`Removed Physics Jump from ${ent.name}.`, 'info');
-          this.inspect(ent);
+          this.updateView();
+        }
+      });
+    }
+
+    // Sine Wave Floating
+    const addSineBtn = body.querySelector('#add-sine-behavior');
+    if (addSineBtn) {
+      addSineBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'sine_float', { amplitude: 0.5, frequency: 2.0 });
+          showToast(`🌊 Attached Sine Wave Floating to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remSineBtn = body.querySelector('#remove-sine-behavior');
+    if (remSineBtn) {
+      remSineBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'sine_float');
+          showToast(`Removed Sine Floating from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Orbit Movement
+    const addOrbitBtn = body.querySelector('#add-orbit-behavior');
+    if (addOrbitBtn) {
+      addOrbitBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'orbit', { speed: 1.0, radius: 5.0 });
+          showToast(`💫 Attached Orbit Movement to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remOrbitBtn = body.querySelector('#remove-orbit-behavior');
+    if (remOrbitBtn) {
+      remOrbitBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'orbit');
+          showToast(`Removed Orbit Movement from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Camera Follow Target
+    const addCamFollowBtn = body.querySelector('#add-camfollow-behavior');
+    if (addCamFollowBtn) {
+      addCamFollowBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'camera_follow', { offset: [0, 4, 8] });
+          showToast(`🎥 Set ${ent.name} as Camera Follow Target!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remCamFollowBtn = body.querySelector('#remove-camfollow-behavior');
+    if (remCamFollowBtn) {
+      remCamFollowBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'camera_follow');
+          showToast(`Removed Camera Follow from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Billboard Camera Facing
+    const addBillboardBtn = body.querySelector('#add-billboard-behavior');
+    if (addBillboardBtn) {
+      addBillboardBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'billboard', {});
+          showToast(`🎯 Attached Billboard facing to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remBillboardBtn = body.querySelector('#remove-billboard-behavior');
+    if (remBillboardBtn) {
+      remBillboardBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'billboard');
+          showToast(`Removed Billboard from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Collectible Item Pickup
+    const addCollectibleBtn = body.querySelector('#add-collectible-behavior');
+    if (addCollectibleBtn) {
+      addCollectibleBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'collectible', { radius: 1.5 });
+          showToast(`💎 Set ${ent.name} as Collectible Item Pickup!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remCollectibleBtn = body.querySelector('#remove-collectible-behavior');
+    if (remCollectibleBtn) {
+      remCollectibleBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'collectible');
+          showToast(`Removed Collectible Pickup from ${ent.name}.`, 'info');
+          this.updateView();
         }
       });
     }
@@ -820,8 +990,15 @@ export class InspectorPanel {
       stack.appendChild(card);
     }
 
-    // Animation Player Component Card
-    if (ent.anim || ent.animation || ent.findComponent('anim')) {
+    // Animation Player Component Card (checks root & child entities for anim/animation components)
+    let animComp = ent.anim || ent.animation;
+    let animTarget = ent;
+    if (!animComp) {
+      animTarget = ent.findComponent ? (ent.findComponent('anim') ? ent : ent.findOne(e => e.anim || e.animation)) : null;
+      if (animTarget) animComp = animTarget.anim || animTarget.animation;
+    }
+
+    if (animComp) {
       const card = document.createElement('div');
       card.className = 'inspector-section';
       card.innerHTML = `
@@ -836,31 +1013,36 @@ export class InspectorPanel {
           </div>
           <div class="prop-row">
             <span class="prop-label">Speed</span>
-            <input type="range" min="0.1" max="2.0" step="0.1" class="text-input" id="anim-speed" value="1.0">
+            <input type="range" min="0.1" max="2.0" step="0.1" class="text-input" id="anim-speed" value="${animComp.speed !== undefined ? animComp.speed : 1.0}">
           </div>
         </div>
       `;
 
       card.querySelector('#btn-anim-play').addEventListener('click', () => {
-        const animComp = ent.anim || ent.animation || ent.findComponent('anim');
-        if (animComp && animComp.playing === false) {
-          if (animComp.play) animComp.play();
+        if (animComp) {
+          if (animComp.playing === false || !animComp.playing) {
+            if (animComp.play) animComp.play();
+            else if (animComp.playing !== undefined) animComp.playing = true;
+          }
+          showToast(`▶ Animation playing on ${animTarget.name}`, 'info');
         }
       });
 
       card.querySelector('#btn-anim-pause').addEventListener('click', () => {
-        const animComp = ent.anim || ent.animation || ent.findComponent('anim');
-        if (animComp && animComp.pause) animComp.pause();
+        if (animComp) {
+          if (animComp.pause) animComp.pause();
+          else if (animComp.playing !== undefined) animComp.playing = false;
+          showToast(`⏸ Animation paused on ${animTarget.name}`, 'info');
+        }
       });
 
       card.querySelector('#anim-speed').addEventListener('input', (e) => {
         const speed = parseFloat(e.target.value);
-        const animComp = ent.anim || ent.animation || ent.findComponent('anim');
         if (animComp) animComp.speed = speed;
       });
 
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
-        this.editor.removeComponent(ent, 'anim');
+        this.editor.removeComponent(animTarget, 'anim');
       });
 
       stack.appendChild(card);
