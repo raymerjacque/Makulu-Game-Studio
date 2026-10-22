@@ -48,6 +48,14 @@ export class Editor {
     this.prefabs = new PrefabSystem(this);
     this.triggers = new TriggerSystem(this);
     this.assetsPanel = null;
+
+    // Default 2D Screen UI HUD Configuration
+    this.hudConfig = {
+      health: { enabled: true, label: 'HP', max: 100, color: '#ef4444' },
+      score: { enabled: true, label: 'Score:', initial: 0 },
+      crosshair: { enabled: true, style: 'dot' },
+      gameOver: { enabled: true, title: 'GAME OVER', message: 'Your health reached 0. Press Restart to try again.' }
+    };
   }
 
   setRuntime(runtime) {
@@ -364,9 +372,9 @@ export class Editor {
    */
   exportSceneJSON() {
     const app = this.getApp();
-    if (!app) return '{}';
 
     const serializeNode = (node) => {
+      if (!node) return { children: [] };
       const data = {
         name: node.name,
         enabled: node.enabled,
@@ -486,10 +494,11 @@ export class Editor {
       project: this.projectName,
       scene: this.activeSceneName,
       atmosphere: this.runtime ? this.runtime.currentAtmosphere || 'day' : 'day',
-      gravity: (app.systems && app.systems.rigidbody && app.systems.rigidbody.gravity) ? [app.systems.rigidbody.gravity.x, app.systems.rigidbody.gravity.y, app.systems.rigidbody.gravity.z] : [0, -9.8, 0],
+      gravity: (app && app.systems && app.systems.rigidbody && app.systems.rigidbody.gravity) ? [app.systems.rigidbody.gravity.x, app.systems.rigidbody.gravity.y, app.systems.rigidbody.gravity.z] : [0, -9.8, 0],
+      hud: this.hudConfig,
       triggers: triggersData,
       scripts: scriptsData,
-      root: serializeNode(app.root)
+      root: app ? serializeNode(app.root) : { children: [] }
     };
 
     return JSON.stringify(sceneData, null, 2);
@@ -499,13 +508,14 @@ export class Editor {
    * Import and Deserialize Scene JSON
    */
   loadSceneJSON(jsonData) {
-    const app = this.getApp();
-    if (!app || !app.root) return false;
-
     try {
       const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
       if (data.project) this.projectName = data.project;
       if (data.scene) this.activeSceneName = data.scene;
+      if (data.hud) this.hudConfig = data.hud;
+
+      const app = this.getApp();
+      if (!app || !app.root) return true;
 
       // Clear existing user entities (keep EditorGrid and EditorCamera)
       const toRemove = [];

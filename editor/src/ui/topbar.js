@@ -4,7 +4,7 @@ import { showToast } from './toast.js';
  * Top Navigation Bar
  */
 export class TopBar {
-  constructor(container, editor, aiController, templatesModal = null, publishModal = null, helpModal = null, guideModal = null, aiSettingsModal = null, projectSettingsModal = null, postProcessingModal = null, timelinePanel = null) {
+  constructor(container, editor, aiController, templatesModal = null, publishModal = null, helpModal = null, guideModal = null, aiSettingsModal = null, projectSettingsModal = null, postProcessingModal = null, timelinePanel = null, hudModal = null) {
     this.container = container;
     this.editor = editor;
     this.aiController = aiController;
@@ -16,6 +16,7 @@ export class TopBar {
     this.projectSettingsModal = projectSettingsModal;
     this.postProcessingModal = postProcessingModal;
     this.timelinePanel = timelinePanel;
+    this.hudModal = hudModal;
     this.isPlaying = false;
     this.render();
   }
@@ -41,6 +42,7 @@ export class TopBar {
           <button id="btn-dup-scene" class="btn" title="Duplicate Active Scene" style="padding: 2px 6px; font-size: 10px;">📋</button>
           <button id="btn-delete-scene" class="btn" title="Delete Active Scene" style="padding: 2px 6px; font-size: 10px; color: #ef4444;">🗑️</button>
           <button id="btn-open-templates" class="btn" style="background: rgba(255,102,0,0.18); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 3px 8px; font-size: 11px;" title="1-Click Genre Starter Templates">🎮 Templates</button>
+          <button id="btn-open-hud" class="btn" style="background: rgba(239, 68, 68, 0.16); border-color: #ef4444; color: #ef4444; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="2D Screen UI / HUD Designer (Health Bar, Score Counter, Crosshair, Game Over Screen)">📺 HUD</button>
           <button id="btn-open-timeline" class="btn" style="background: rgba(251, 146, 60, 0.16); border-color: #fb923c; color: #fb923c; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Animation Timeline & Keyframe Sequencer">🎬 Timeline</button>
           <button id="btn-open-guide" class="btn" style="background: rgba(0, 229, 255, 0.16); border-color: #00e5ff; color: #00e5ff; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Beginner's Step-by-Step Game Creation Masterclass">📖 Guide</button>
           <button id="btn-open-help" class="btn" style="background: rgba(168, 85, 247, 0.16); border-color: #c084fc; color: #c084fc; font-weight: 600; padding: 3px 8px; font-size: 11px;" title="Editor Overview, Navigation Controls & Hotkeys">❓ Help</button>
@@ -104,6 +106,14 @@ export class TopBar {
     if (tmplBtn) {
       tmplBtn.addEventListener('click', () => {
         if (this.templatesModal) this.templatesModal.open();
+      });
+    }
+
+    // Open HUD Designer
+    const hudBtn = this.container.querySelector('#btn-open-hud');
+    if (hudBtn) {
+      hudBtn.addEventListener('click', () => {
+        if (this.hudModal) this.hudModal.open();
       });
     }
 

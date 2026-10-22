@@ -18,6 +18,7 @@ import { AISettingsModal } from './ui/ai-settings-modal.js';
 import { ProjectSettingsModal } from './ui/project-settings-modal.js';
 import { PostProcessingModal } from './ui/postprocessing-modal.js';
 import { TimelinePanel } from './ui/timeline.js';
+import { HUDModal } from './ui/hud-modal.js';
 import { ConsoleDrawer } from './ui/console-drawer.js';
 import { BehaviorManager } from './core/behaviors.js';
 
@@ -60,12 +61,13 @@ async function bootstrap() {
   const projectSettingsModal = new ProjectSettingsModal(editor);
   const postProcessingModal = new PostProcessingModal(editor);
   const timelinePanel = new TimelinePanel(editor);
+  const hudModal = new HUDModal(editor);
   const consoleDrawer = new ConsoleDrawer(document.body, editor, aiUI);
 
   const behaviors = new BehaviorManager(editor);
   editor.behaviors = behaviors;
 
-  new TopBar(topBarContainer, editor, aiUI, templatesModal, publishModal, helpModal, guideModal, aiSettingsModal, projectSettingsModal, postProcessingModal, timelinePanel);
+  new TopBar(topBarContainer, editor, aiUI, templatesModal, publishModal, helpModal, guideModal, aiSettingsModal, projectSettingsModal, postProcessingModal, timelinePanel, hudModal);
   new ToolStrip(toolStripContainer, editor);
   new HierarchyPanel(hierarchyContainer, editor);
   new InspectorPanel(inspectorContainer, editor, codeEditor);

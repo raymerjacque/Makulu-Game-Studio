@@ -206,6 +206,15 @@ export class AIExecutor {
             break;
           }
 
+          case 'configure_hud': {
+            if (act.config) {
+              this.editor.hudConfig = { ...this.editor.hudConfig, ...act.config };
+              this.editor.events.emit('hud:config:changed', this.editor.hudConfig);
+              executed.push({ action: act.action, target: '2D HUD Config' });
+            }
+            break;
+          }
+
           default:
             console.warn(`AIExecutor: Unknown action "${act.action}"`);
         }
