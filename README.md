@@ -123,6 +123,23 @@ Add interactive gameplay logic without writing a single line of JavaScript:
    Modulates light intensity and range using procedural Perlin noise fluctuation, creating realistic medieval campfires, dungeon torches, and flickering neon lamps.
 4. **💥 Spacebar Physics Jump:**
    Adds dynamic rigidbody impulse jumping on Spacebar press during simulation mode.
+5. **🚶 Patrol Movement:**
+   Automatically translates entities back and forth along an axis across a configurable travel distance and speed. Ideal for guards, moving platforms, and patrolling enemies.
+6. **🎯 Billboard Camera Alignment:**
+   Dynamically rotates entities to face the active camera at all times. Perfect for 2D sprites, health bars, nametags, and UI icons in 3D space.
+7. **💎 Collectible Item Pickups:**
+   Detects proximity between player entities and items, triggering collection events, sound effects, and entity removal.
+
+---
+
+## ⚡ Interactive Trigger System
+
+Create reactive game mechanics through modular trigger volumes:
+* **🌀 Teleport:** Instantaneous entity relocation across the scene.
+* **💡 Toggle Visibility:** Dynamically reveal secret rooms, hidden passages, and puzzle clues.
+* **💥 Destroy Entity:** Remove destructible obstacles, defeated enemies, or consumed barriers.
+* **✨ Spawn Prefab:** Dynamically instantiate prefab templates (loot, enemies, hazards) upon entering trigger zones.
+* **🔊 Audio Playback:** Trigger spatial sounds, ambient stingers, and musical cues.
 
 ---
 
@@ -132,6 +149,8 @@ Add interactive gameplay logic without writing a single line of JavaScript:
   * Live **3D Orbiting Sphere Preview** rendered via real-time WebGL.
   * Adjust Diffuse Color, Metallic, Roughness, Emissive Glow, and Opacity.
   * Direct 1-click **"Apply to Selected Object"** or **"Save as Asset"** to your project library.
+  * **Drag-and-Drop Material Assignment:** Drag `.mat` material cards from the Asset Browser directly onto any 3D entity in the viewport to apply instantly.
+  * **Double-Click Quick Apply:** Double-click any saved material in the asset browser to immediately dress the currently selected entity.
 * **⚙️ Global Project & Physics Settings (`⚙️ Project`):**
   * **Physics Gravity Y:** Freely tune gravity between Earth (`-9.8 m/s²`), Moon (`-1.6 m/s²`), Zero-G (`0`), or high-gravity worlds.
   * **Tone Mapping Selection:** Choose between ACES Filmic, Linear Standard, and High Contrast Filmic.
@@ -164,9 +183,12 @@ Add interactive gameplay logic without writing a single line of JavaScript:
   * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust) with particle count and lifetime controls.
   * **🔊 3D Spatial Audio:** Volume, Pitch, and Loop toggles.
   * **📜 Custom Scripting:** 1-click code editor attachment and execution.
-* **🗂️ Scene Management & Hierarchy Reparenting:**
+* **🗂️ Multi-Scene Management & Hierarchy Power Tools:**
+  * **Multi-Scene Switcher:** Create and navigate between multiple levels (`Main Scene`, `Level_2`, etc.) with automatic background state retention and scene JSON snapshotting.
+  * **Entity Right-Click Context Menu:** Right-click any entity in the hierarchy tree to Rename, Frame (`F`), Duplicate (`Ctrl+D`), Add Child Entity, or Delete.
+  * **Eye-Icon Visibility Toggles:** 1-click hide (`🙈`) or show (`👁️`) individual entities without deleting them.
   * **Drag & Drop Reparenting:** Organize complex scenes by dragging entities onto parents directly in the hierarchy tree.
-  * **📂 Scene Import & 💾 Export:** Save and load full scene graphs as portable JSON files.
+  * **📂 Scene Import & 💾 Export:** Save and load full scene graphs as portable JSON files with complete component and behavior state.
 
 ---
 
@@ -183,7 +205,7 @@ Test gameplay mechanics instantly using ready-to-play prototypes:
 ## 🚀 Game Compiling & Cloud Publishing
 
 Share games instantly across any platform:
-* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors, assets, materials, lights, particles, and audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
+* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible), assets, PBR materials, lights with shadow casting, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
 * **1-Click Makulu Cloud Web Hosting:** Click **🚀 Publish** to generate an instant live shareable web URL with clipboard copying and responsive touch controls.
 
 ---

@@ -38,6 +38,7 @@ export class Editor {
     this.runtime = null;
     this.projectName = 'Untitled Project';
     this.activeSceneName = 'Main Scene';
+    this.scenes = new Map(); // sceneName -> json string
 
     // Materials and Assets registry
     this.materials = new Map();
@@ -91,6 +92,29 @@ export class Editor {
     if (options.components) {
       options.components.forEach(comp => {
         entity.addComponent(comp.type, comp.properties || {});
+        if (comp.type === 'render' && comp.material && entity.render) {
+          const matData = comp.material;
+          const mat = new pc.StandardMaterial();
+          if (matData.diffuse) mat.diffuse = new pc.Color(...matData.diffuse);
+          if (matData.metalness !== undefined) {
+            mat.metalness = matData.metalness;
+            mat.useMetalness = true;
+          }
+          if (matData.roughness !== undefined) mat.roughness = matData.roughness;
+          if (matData.opacity !== undefined) {
+            mat.opacity = matData.opacity;
+            if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
+          }
+          mat.update();
+          entity.render.material = mat;
+        }
+      });
+    }
+
+    // Attach behaviors if provided
+    if (options.behaviors && this.behaviors) {
+      options.behaviors.forEach(b => {
+        this.behaviors.attachBehavior(entity, b.type, b.properties || b.params || {});
       });
     }
 
@@ -192,21 +216,45 @@ export class Editor {
   }
 
   /**
-   * Duplicate active entity
+   * Duplicate active entity with all components, materials, and attached behaviors (Recorded to Command History)
    */
   duplicateEntity(entity = null) {
     const target = entity || this.selection.getActive();
-    if (!target || target === this.getApp().root) return null;
+    const app = this.getApp();
+    if (!target || !app || target === app.root) return null;
 
     const clone = target.clone();
     clone.name = `${target.name} (Copy)`;
     const pos = target.getPosition().clone().add(new pc.Vec3(1, 0, 0));
     clone.setPosition(pos);
 
-    return this.createEntity({
-      name: clone.name,
-      parent: target.parent
-    });
+    const parent = target.parent || app.root;
+
+    // Duplicate attached behaviors
+    if (this.behaviors && this.behaviors.getBehaviors) {
+      const behaviors = this.behaviors.getBehaviors(target);
+      behaviors.forEach(b => {
+        this.behaviors.attachBehavior(clone, b.type, { ...(b.params || b.properties || {}) });
+      });
+    }
+
+    const command = new Command(
+      `Duplicate Entity: ${target.name}`,
+      () => {
+        parent.addChild(clone);
+        this.selection.set(clone);
+        this.events.emit('scene:changed');
+        this.events.emit('entity:created', clone);
+        return clone;
+      },
+      () => {
+        if (clone.parent) clone.parent.removeChild(clone);
+        if (this.selection.getActive() === clone) this.selection.clear();
+        this.events.emit('scene:changed');
+      }
+    );
+
+    return this.commandBus.execute(command);
   }
 
   /**
@@ -394,11 +442,14 @@ export class Editor {
       }
 
       // Check for attached behaviors
-      if (this.behaviors && this.behaviors.attachedBehaviors && this.behaviors.attachedBehaviors.has(node)) {
-        data.behaviors = Array.from(this.behaviors.attachedBehaviors.get(node).entries()).map(([type, props]) => ({
-          type,
-          properties: props
-        }));
+      if (this.behaviors) {
+        const blist = this.behaviors.getBehaviors ? this.behaviors.getBehaviors(node) : (this.behaviors.activeBehaviors?.get(node) || []);
+        if (blist && blist.length > 0) {
+          data.behaviors = blist.map(b => ({
+            type: b.type,
+            properties: b.params || b.properties || {}
+          }));
+        }
       }
 
       node.children.forEach(child => {
@@ -524,7 +575,7 @@ export class Editor {
 
         if (nodeData.behaviors && this.behaviors) {
           nodeData.behaviors.forEach(b => {
-            this.behaviors.attachBehavior(ent, b.type, b.properties || {});
+            this.behaviors.attachBehavior(ent, b.type, b.properties || b.params || {});
           });
         }
 
@@ -547,6 +598,39 @@ export class Editor {
     } catch (err) {
       console.error('Editor: Failed to load scene JSON:', err);
       return false;
+    }
+  }
+
+  /**
+   * Switch between multi-scenes, automatically saving current state and restoring target scene
+   */
+  switchScene(sceneName) {
+    if (!sceneName || sceneName === this.activeSceneName) return;
+
+    // 1. Snapshot and store the outgoing scene state
+    const currentSceneJSON = this.saveSceneJSON();
+    this.scenes.set(this.activeSceneName, currentSceneJSON);
+
+    // 2. Load target scene if previously stored
+    if (this.scenes.has(sceneName)) {
+      this.loadSceneJSON(this.scenes.get(sceneName));
+      this.activeSceneName = sceneName;
+    } else {
+      // Create new clean scene
+      this.activeSceneName = sceneName;
+      const app = this.getApp();
+      if (app && app.root) {
+        const toRemove = [];
+        app.root.children.forEach(c => {
+          if (c.name !== 'EditorGrid' && c.name !== 'EditorCamera') {
+            toRemove.push(c);
+          }
+        });
+        toRemove.forEach(c => app.root.removeChild(c));
+        this.selection.clear();
+        this.events.emit('scene:changed');
+      }
+      this.scenes.set(sceneName, this.saveSceneJSON());
     }
   }
 }

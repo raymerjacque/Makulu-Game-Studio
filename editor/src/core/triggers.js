@@ -45,10 +45,9 @@ export class TriggerSystem {
       }
     } else if (config.action === 'spawn' && config.prefabName) {
       if (this.editor.prefabs) {
-        const prefab = this.editor.prefabs.prefabs.get(config.prefabName);
+        const prefab = this.editor.prefabs.getPrefab ? this.editor.prefabs.getPrefab(config.prefabName) : this.editor.prefabs.prefabs.get(config.prefabName);
         if (prefab) {
-          this.editor.prefabs.instantiatePrefab(prefab, { position: config.spawnPosition || [0, 2, 0] });
-          showToast(`✨ Spawned Prefab: ${config.prefabName}`, 'success');
+          this.editor.prefabs.instantiatePrefab(prefab, config.spawnPosition || [0, 2, 0]);
         }
       }
     } else if (config.action === 'play_sound' && config.soundAsset) {

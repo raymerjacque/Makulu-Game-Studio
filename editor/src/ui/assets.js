@@ -124,9 +124,31 @@ export class AssetsPanel {
               components: [{ type: 'render', properties: { type: 'box' } }]
             });
           }
-        } else if (asset.type === 'prefabs' && asset.prefabData) {
+        } else if (asset.type === 'prefabs' && (asset.prefabData || asset.data)) {
           if (this.editor.prefabs) {
-            this.editor.prefabs.instantiatePrefab(asset.prefabData);
+            this.editor.prefabs.instantiatePrefab(asset.prefabData || asset.data);
+          }
+        } else if (asset.type === 'materials' && asset.materialData) {
+          const selected = this.editor.selection.getActive();
+          if (selected && selected.render) {
+            const matProps = asset.materialData;
+            const mat = new pc.StandardMaterial();
+            if (matProps.diffuse) mat.diffuse = new pc.Color(...matProps.diffuse);
+            if (matProps.metalness !== undefined) {
+              mat.metalness = matProps.metalness;
+              mat.useMetalness = true;
+            }
+            if (matProps.roughness !== undefined) mat.roughness = matProps.roughness;
+            if (matProps.opacity !== undefined) {
+              mat.opacity = matProps.opacity;
+              if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
+            }
+            mat.update();
+            selected.render.material = mat;
+            this.editor.events.emit('entity:component:changed', selected);
+            showToast(`🎨 Applied "${asset.name}" to ${selected.name}!`, 'success');
+          } else {
+            showToast(`Select an entity with a 3D Render mesh to apply "${asset.name}"`, 'info');
           }
         } else if (asset.type === 'scripts') {
           if (this.codeEditor) {

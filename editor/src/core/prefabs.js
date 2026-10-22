@@ -46,13 +46,31 @@ export class PrefabSystem {
     return prefabData;
   }
 
+  getPrefab(nameOrId) {
+    if (!nameOrId) return null;
+    if (this.prefabs.has(nameOrId)) return this.prefabs.get(nameOrId);
+    for (const [id, p] of this.prefabs.entries()) {
+      if (p.name === nameOrId || p.name === `${nameOrId}.prefab` || (p.entityData && p.entityData.name === nameOrId)) {
+        return p;
+      }
+    }
+    return null;
+  }
+
+  instantiate(prefabData, positionOverride = null) {
+    return this.instantiatePrefab(prefabData, positionOverride);
+  }
+
   instantiatePrefab(prefabData, positionOverride = null) {
     if (!prefabData || !prefabData.entityData) return null;
 
     const data = JSON.parse(JSON.stringify(prefabData.entityData));
     if (positionOverride) {
       data.transform = data.transform || {};
-      data.transform.position = positionOverride;
+      let pos = positionOverride;
+      if (positionOverride && positionOverride.position) pos = positionOverride.position;
+      if (pos && typeof pos.x === 'number') pos = [pos.x, pos.y, pos.z];
+      data.transform.position = Array.isArray(pos) ? pos : [0, 0, 0];
     }
 
     const createdEntity = this.editor.createEntity(data);
@@ -72,10 +90,20 @@ export class PrefabSystem {
     };
 
     if (entity.render) {
-      data.components.push({
+      const renderComp = {
         type: 'render',
         properties: { type: entity.render.type || 'box' }
-      });
+      };
+      if (entity.render.material) {
+        const mat = entity.render.material;
+        renderComp.material = {
+          diffuse: mat.diffuse ? [mat.diffuse.r, mat.diffuse.g, mat.diffuse.b] : [1, 1, 1],
+          metalness: mat.metalness !== undefined ? mat.metalness : 0.5,
+          roughness: mat.roughness !== undefined ? mat.roughness : 0.3,
+          opacity: mat.opacity !== undefined ? mat.opacity : 1.0
+        };
+      }
+      data.components.push(renderComp);
     }
 
     if (entity.light) {
@@ -138,6 +166,16 @@ export class PrefabSystem {
           loop: entity.sound.loop
         }
       });
+    }
+
+    if (this.editor.behaviors) {
+      const blist = this.editor.behaviors.getBehaviors ? this.editor.behaviors.getBehaviors(entity) : (this.editor.behaviors.activeBehaviors?.get(entity) || []);
+      if (blist && blist.length > 0) {
+        data.behaviors = blist.map(b => ({
+          type: b.type,
+          properties: b.params || b.properties || {}
+        }));
+      }
     }
 
     return data;

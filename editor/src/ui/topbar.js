@@ -127,31 +127,21 @@ export class TopBar {
         const val = e.target.value;
         if (val === '__create_new__') {
           const name = prompt('Enter new scene name:', 'Level_2');
-          if (name) {
-            this.editor.activeSceneName = name;
-            // Clear current user scene
-            const app = this.editor.getApp();
-            if (app && app.root) {
-              const toRemove = [];
-              app.root.children.forEach(c => {
-                if (c.name !== 'EditorGrid' && c.name !== 'EditorCamera') toRemove.push(c);
-              });
-              toRemove.forEach(c => app.root.removeChild(c));
-              this.editor.selection.clear();
-              this.editor.events.emit('scene:changed');
-            }
+          if (name && name.trim()) {
+            const cleanName = name.trim();
+            this.editor.switchScene(cleanName);
             // Add option to select
             const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
+            opt.value = cleanName;
+            opt.textContent = cleanName;
             sceneSelect.insertBefore(opt, sceneSelect.lastElementChild);
-            sceneSelect.value = name;
-            showToast(`✨ Created and switched to scene "${name}"!`, 'success');
+            sceneSelect.value = cleanName;
+            showToast(`✨ Created and switched to scene "${cleanName}"!`, 'success');
           } else {
             sceneSelect.value = this.editor.activeSceneName;
           }
         } else {
-          this.editor.activeSceneName = val;
+          this.editor.switchScene(val);
           showToast(`Switched active scene to "${val}"`, 'info');
         }
       });

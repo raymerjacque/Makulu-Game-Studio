@@ -214,6 +214,19 @@ export class GameBundler {
             if (delta > distance && b._state.dir > 0) b._state.dir = -1;
             if (delta < -distance && b._state.dir < 0) b._state.dir = 1;
             node.translate(b._state.dir * speed * dt, 0, 0);
+          } else if (b.type === 'billboard') {
+            const cam = app.root.find(c => c.camera);
+            if (cam) {
+              node.lookAt(cam.getPosition());
+              node.rotateLocal(0, 180, 0);
+            }
+          } else if (b.type === 'collectible') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist < (b.properties?.radius || 1.5)) {
+                node.enabled = false;
+              }
+            }
           }
         });
       });

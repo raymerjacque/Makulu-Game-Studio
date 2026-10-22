@@ -50,6 +50,10 @@ export class BehaviorManager {
     }
   }
 
+  get attachedBehaviors() {
+    return this.activeBehaviors;
+  }
+
   bindUpdateLoop() {
     if (this._updateBound) return;
     const app = this.editor.getApp();
