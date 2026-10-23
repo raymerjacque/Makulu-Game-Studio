@@ -176,6 +176,10 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Provides vertical propulsion and rocket jumping on `Spacebar` or `Shift`, complete with live fuel depletion and automatic recharge.
 26. **🌀 Level Transition Portal:**
     Proximity gateway volume that transitions the game to a target scene (e.g. `Level_2`, `Boss_Arena`) or triggers victory.
+27. **🔊 Audio SFX Proximity Trigger:**
+    Plays directional sound effects or procedural audio cues (coin, laser, explosion, jump, hurt) when a player enters within an adjustable radius.
+28. **✨ PostFX Atmosphere Trigger:**
+    Dynamically shifts the scene's ambient lighting, fog density, and sky preset (Day, Sunset, Cyberpunk, Foggy, Night) when the player enters a zone.
 
 ---
 

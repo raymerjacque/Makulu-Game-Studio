@@ -120,6 +120,10 @@ export class TemplatesModal {
       if (e.target === this.modal) this.close();
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+
     this.modal.querySelectorAll('.btn-load-template').forEach(btn => {
       btn.addEventListener('click', () => {
         const tmpl = btn.dataset.tmpl;

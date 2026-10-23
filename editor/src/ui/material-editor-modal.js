@@ -127,6 +127,10 @@ export class MaterialEditorModal {
       if (e.target === this.modal) this.close();
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+
     const diffusePick = this.modal.querySelector('#mat-color-picker');
     const metalSlide = this.modal.querySelector('#mat-metalness-slider');
     const metalVal = this.modal.querySelector('#mat-metal-val');

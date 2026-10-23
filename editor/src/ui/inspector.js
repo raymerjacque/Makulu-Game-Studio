@@ -115,6 +115,8 @@ export class InspectorPanel {
     const hasLockedDoor = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'locked_door') : false;
     const hasJetpack = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'jetpack') : false;
     const hasLevelPortal = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'level_portal') : false;
+    const hasAudioTrigger = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'audio_trigger') : false;
+    const hasPostfxTrigger = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'postfx_trigger') : false;
     const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
 
     body.innerHTML = `
@@ -467,6 +469,28 @@ export class InspectorPanel {
           ` : `
             <button class="btn" id="add-level-portal-behavior" style="justify-content: flex-start; gap: 8px;">
               <span>🌀</span> <span>Make Level Transition Portal</span>
+            </button>
+          `}
+
+          ${hasAudioTrigger ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #60a5fa; font-weight: 600;">🔊 Audio SFX Proximity Trigger Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-audio-trigger-behavior" title="Remove Audio Trigger" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-audio-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔊</span> <span>Add Audio SFX Proximity Trigger</span>
+            </button>
+          `}
+
+          ${hasPostfxTrigger ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #c084fc; font-weight: 600;">✨ PostFX Atmosphere Trigger Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-postfx-trigger-behavior" title="Remove PostFX Trigger" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-postfx-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>✨</span> <span>Add Atmosphere FX Trigger Zone</span>
             </button>
           `}
 
@@ -1169,6 +1193,48 @@ export class InspectorPanel {
       });
     }
 
+    const addAudioTrigBtn = body.querySelector('#add-audio-trigger-behavior');
+    if (addAudioTrigBtn) {
+      addAudioTrigBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'audio_trigger', { radius: 3.0, sfxType: 'coin' });
+          showToast(`🔊 Attached Audio Proximity Trigger to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remAudioTrigBtn = body.querySelector('#remove-audio-trigger-behavior');
+    if (remAudioTrigBtn) {
+      remAudioTrigBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'audio_trigger');
+          showToast(`Removed Audio Trigger from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    const addPostfxTrigBtn = body.querySelector('#add-postfx-trigger-behavior');
+    if (addPostfxTrigBtn) {
+      addPostfxTrigBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'postfx_trigger', { radius: 4.0, atmosphere: 'cyberpunk' });
+          showToast(`✨ Attached PostFX Atmosphere Trigger to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remPostfxTrigBtn = body.querySelector('#remove-postfx-trigger-behavior');
+    if (remPostfxTrigBtn) {
+      remPostfxTrigBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'postfx_trigger');
+          showToast(`Removed PostFX Trigger from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
     const simpleAnimBtn = body.querySelector('#btn-simple-anim-blend');
     if (simpleAnimBtn) {
       simpleAnimBtn.addEventListener('click', () => {
@@ -1307,6 +1373,8 @@ export class InspectorPanel {
             <option value="b_weapon_inventory">🎒 Weapon Inventory & Ammo</option>
             <option value="b_wasd">🎮 WASD Character Movement</option>
             <option value="b_health">❤️ Health Component</option>
+            <option value="b_audio_trigger">🔊 Audio Zone Trigger</option>
+            <option value="b_postfx_trigger">✨ PostFX Atmosphere Trigger</option>
           </optgroup>
         </select>
       </div>
@@ -1408,7 +1476,9 @@ export class InspectorPanel {
               enemy_spawner: { interval: 6.0 },
               weapon_inventory: { weaponName: 'Plasma Gun', ammo: 30 },
               wasd: { speed: 8 },
-              health: { maxHp: 100, currentHp: 100 }
+              health: { maxHp: 100, currentHp: 100 },
+              audio_trigger: { radius: 3.0, sfxType: 'coin' },
+              postfx_trigger: { radius: 4.0, atmosphere: 'cyberpunk' }
             };
             this.editor.behaviors.attachBehavior(ent, bType, defaults[bType] || {});
             showToast(`Attached behavior: ${bType}`, 'success');

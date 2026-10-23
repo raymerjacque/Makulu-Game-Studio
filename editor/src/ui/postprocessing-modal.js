@@ -134,6 +134,10 @@ export class PostProcessingModal {
   bindEvents() {
     this.modal.querySelector('#fx-btn-close').addEventListener('click', () => this.close());
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+
     const tonemapSelect = this.modal.querySelector('#fx-tonemap-select');
     const exposureSlider = this.modal.querySelector('#fx-exposure-slider');
     const exposureVal = this.modal.querySelector('#fx-exposure-val');

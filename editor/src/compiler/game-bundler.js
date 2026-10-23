@@ -992,6 +992,17 @@ export class GameBundler {
                   app.scene.fog = pc.FOG_EXP2;
                   app.scene.fogColor = new pc.Color(0.02, 0.05, 0.15);
                   app.scene.fogDensity = 0.02;
+                } else if (preset === 'foggy') {
+                  app.scene.ambientLight = new pc.Color(0.3, 0.35, 0.4);
+                  app.scene.fog = pc.FOG_EXP2;
+                  app.scene.fogColor = new pc.Color(0.45, 0.5, 0.55);
+                  app.scene.fogDensity = 0.035;
+                } else if (preset === 'night') {
+                  app.scene.ambientLight = new pc.Color(0.02, 0.03, 0.08);
+                  app.scene.fog = pc.FOG_NONE;
+                } else {
+                  app.scene.ambientLight = new pc.Color(0.25, 0.25, 0.28);
+                  app.scene.fog = pc.FOG_NONE;
                 }
               } else if (dist >= radius && b._state.active) {
                 b._state.active = false;

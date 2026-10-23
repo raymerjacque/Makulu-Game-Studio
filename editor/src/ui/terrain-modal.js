@@ -99,6 +99,10 @@ export class TerrainModal {
       if (e.target === this.modal) this.close();
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+
     // Slider text updates
     const subdivs = this.modal.querySelector('#terrain-subdivs');
     const subdivsVal = this.modal.querySelector('#terrain-subdivs-val');

@@ -136,6 +136,10 @@ export class AnimBlendModal {
       if (e.target === this.modal) this.close();
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+
     // Parameter inputs
     const speedSlider = this.modal.querySelector('#param-speed-slider');
     const speedVal = this.modal.querySelector('#param-speed-val');

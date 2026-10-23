@@ -108,6 +108,10 @@ export class PublishModal {
       if (e.target === this.modal) this.close();
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+
     // Download standalone HTML5 game
     const downloadBtn = this.modal.querySelector('#btn-download-bundle');
     downloadBtn.addEventListener('click', () => {

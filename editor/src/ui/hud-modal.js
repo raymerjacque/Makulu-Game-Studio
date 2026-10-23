@@ -183,6 +183,12 @@ export class HUDModal {
     this.container.querySelector('#hud-close').addEventListener('click', () => this.close());
     this.container.querySelector('#hud-cancel').addEventListener('click', () => this.close());
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.container && this.container.style.display === 'flex') {
+        this.close();
+      }
+    });
+
     this.container.querySelector('#hud-save').addEventListener('click', () => {
       const config = {
         health: {

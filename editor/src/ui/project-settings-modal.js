@@ -141,6 +141,10 @@ export class ProjectSettingsModal {
       if (e.target === this.modal) this.close();
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+
     const saveBtn = this.modal.querySelector('#btn-save-project-settings');
     saveBtn.addEventListener('click', () => {
       const title = this.modal.querySelector('#proj-title-input').value.trim();
