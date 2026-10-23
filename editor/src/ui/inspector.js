@@ -2056,7 +2056,12 @@ export class InspectorPanel {
                   </div>
                 `;
               } else if (attr.type === 'rgb' || attr.type === 'color') {
-                const hexVal = Array.isArray(currentVal) ? `#${Math.round(currentVal[0] * 255).toString(16).padStart(2, '0')}${Math.round(currentVal[1] * 255).toString(16).padStart(2, '0')}${Math.round(currentVal[2] * 255).toString(16).padStart(2, '0')}` : '#ffffff';
+                let hexVal = '#ffffff';
+                if (Array.isArray(currentVal) && currentVal.length >= 3) {
+                  hexVal = `#${Math.round((currentVal[0] <= 1 ? currentVal[0] * 255 : currentVal[0])).toString(16).padStart(2, '0')}${Math.round((currentVal[1] <= 1 ? currentVal[1] * 255 : currentVal[1])).toString(16).padStart(2, '0')}${Math.round((currentVal[2] <= 1 ? currentVal[2] * 255 : currentVal[2])).toString(16).padStart(2, '0')}`;
+                } else if (typeof currentVal === 'string' && currentVal.startsWith('#')) {
+                  hexVal = currentVal;
+                }
                 return `
                   <div class="prop-row">
                     <span class="prop-label">${attr.title}</span>

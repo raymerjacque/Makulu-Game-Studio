@@ -962,6 +962,41 @@ export class GameBundler {
                 if (vicScreen) vicScreen.style.display = 'flex';
               }
             }
+          } else if (b.type === 'audio_trigger') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 3.0;
+              if (!b._state) b._state = { triggered: false };
+              if (dist < radius && !b._state.triggered) {
+                b._state.triggered = true;
+                if (window.playProceduralSFX) window.playProceduralSFX(b.properties?.sfxType || 'coin');
+              } else if (dist >= radius && b._state.triggered) {
+                b._state.triggered = false;
+              }
+            }
+          } else if (b.type === 'postfx_trigger') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 4.0;
+              if (!b._state) b._state = { active: false };
+              if (dist < radius && !b._state.active) {
+                b._state.active = true;
+                const preset = b.properties?.atmosphere || 'cyberpunk';
+                if (preset === 'sunset') {
+                  app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
+                  app.scene.fog = pc.FOG_EXP2;
+                  app.scene.fogColor = new pc.Color(0.8, 0.4, 0.2);
+                  app.scene.fogDensity = 0.015;
+                } else if (preset === 'cyberpunk') {
+                  app.scene.ambientLight = new pc.Color(0.05, 0.08, 0.18);
+                  app.scene.fog = pc.FOG_EXP2;
+                  app.scene.fogColor = new pc.Color(0.02, 0.05, 0.15);
+                  app.scene.fogDensity = 0.02;
+                }
+              } else if (dist >= radius && b._state.active) {
+                b._state.active = false;
+              }
+            }
           } else if (b.type === 'mouse_look') {
             const rotSpeed = b.properties?.speed || 90;
             if (keys['arrowleft'] || keys['q']) node.rotate(0, rotSpeed * dt, 0);

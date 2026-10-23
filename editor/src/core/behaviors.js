@@ -17,20 +17,22 @@ export class BehaviorManager {
     this._shakeIntensity = 0;
 
     // Track active key presses reliably on window
-    window.addEventListener('keydown', (e) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
-      this.keys[e.key.toLowerCase()] = true;
-      if (e.code) this.keys[e.code.toLowerCase()] = true;
-    });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+        this.keys[e.key.toLowerCase()] = true;
+        if (e.code) this.keys[e.code.toLowerCase()] = true;
+      });
 
-    window.addEventListener('keyup', (e) => {
-      this.keys[e.key.toLowerCase()] = false;
-      if (e.code) this.keys[e.code.toLowerCase()] = false;
-    });
+      window.addEventListener('keyup', (e) => {
+        this.keys[e.key.toLowerCase()] = false;
+        if (e.code) this.keys[e.code.toLowerCase()] = false;
+      });
 
-    window.addEventListener('blur', () => {
-      this.keys = {};
-    });
+      window.addEventListener('blur', () => {
+        this.keys = {};
+      });
+    }
 
     this.editor.events.on('game:play', () => {
       this.isPlaying = true;
@@ -530,6 +532,37 @@ export class BehaviorManager {
                   }
                 }
               }
+          } else if (b.type === 'audio_trigger') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 3.0;
+              if (!b.state) b.state = { triggered: false };
+              if (dist < radius && !b.state.triggered) {
+                b.state.triggered = true;
+                const sfxType = b.params.sfxType || 'coin';
+                proceduralSFX.play(sfxType);
+                if (typeof showToast === 'function') showToast(`🔊 Audio Trigger sound played: ${sfxType}`, 'info');
+              } else if (dist >= radius && b.state.triggered) {
+                b.state.triggered = false;
+              }
+            }
+          } else if (b.type === 'postfx_trigger') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 4.0;
+              if (!b.state) b.state = { active: false };
+              if (dist < radius && !b.state.active) {
+                b.state.active = true;
+                if (this.editor.runtime) {
+                  this.editor.runtime.setAtmosphere(b.params.atmosphere || 'cyberpunk');
+                }
+                if (typeof showToast === 'function') showToast(`✨ PostFX Trigger activated: ${b.params.atmosphere || 'cyberpunk'} atmosphere`, 'info');
+              } else if (dist >= radius && b.state.active) {
+                b.state.active = false;
+              }
+            }
           } else if (b.type === 'mouse_look') {
             const rotSpeed = b.params.speed || 90;
             if (this.isKeyDown('arrowleft') || this.isKeyDown('q')) entity.rotate(0, rotSpeed * dt, 0);
