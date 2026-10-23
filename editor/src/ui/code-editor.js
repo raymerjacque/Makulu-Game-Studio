@@ -98,6 +98,13 @@ export class CodeEditorModal {
       if (e.target === this.modal) this.close();
     });
 
+    // Close on pressing Escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) {
+        this.close();
+      }
+    });
+
     // Save & Compile button
     const saveBtn = this.modal.querySelector('#code-btn-save');
     const textarea = this.modal.querySelector('#code-textarea');
