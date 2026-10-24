@@ -24,3 +24,24 @@ test('BehaviorManager attaches audio_trigger and postfx_trigger behaviors', () =
   assert.equal(bm.hasBehavior(dummyEntity, 'audio_trigger'), false);
   assert.equal(bm.hasBehavior(dummyEntity, 'postfx_trigger'), true);
 });
+
+test('BehaviorManager handles new behaviors: lava_hazard, coin_bounce, light_color_cycle, waypoint_patrol', () => {
+  const editor = new Editor();
+  const bm = new BehaviorManager(editor);
+  const dummyEntity = new pc.Entity('HazardEntity');
+
+  bm.attachBehavior(dummyEntity, 'lava_hazard', { radius: 2.5, damage: 100 });
+  assert.equal(bm.hasBehavior(dummyEntity, 'lava_hazard'), true);
+
+  bm.attachBehavior(dummyEntity, 'coin_bounce', { speed: 90, amplitude: 0.3 });
+  assert.equal(bm.hasBehavior(dummyEntity, 'coin_bounce'), true);
+
+  bm.attachBehavior(dummyEntity, 'light_color_cycle', { speed: 1.5 });
+  assert.equal(bm.hasBehavior(dummyEntity, 'light_color_cycle'), true);
+
+  bm.attachBehavior(dummyEntity, 'waypoint_patrol', { speed: 4.0 });
+  assert.equal(bm.hasBehavior(dummyEntity, 'waypoint_patrol'), true);
+
+  const bList = bm.getBehaviors(dummyEntity);
+  assert.equal(bList.length, 4);
+});

@@ -1017,6 +1017,55 @@ export class GameBundler {
               node.rotate(0, -mouseDeltaX * sens, 0);
               mouseDeltaX = 0;
             }
+          } else if (b.type === 'lava_hazard') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.5;
+              const dmg = b.properties?.damage || 100;
+              if (dist < radius) {
+                const playerB = playerEntity._behaviors || [];
+                const healthB = playerB.find(hb => hb.type === 'health');
+                if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
+                  healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - dmg);
+                  healthB._invincibleTimer = 1.0;
+                  if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                  window.triggerScreenShake(0.6, 0.3);
+                }
+              }
+            }
+          } else if (b.type === 'coin_bounce') {
+            const speed = b.properties?.speed || 90;
+            const amp = b.properties?.amplitude || 0.3;
+            if (!b._state) b._state = { startY: node.getPosition().y, time: 0 };
+            b._state.time += dt * 3.0;
+            node.rotate(0, speed * dt, 0);
+            const pos = node.getPosition();
+            node.setPosition(pos.x, b._state.startY + Math.sin(b._state.time) * amp, pos.z);
+          } else if (b.type === 'light_color_cycle') {
+            if (node.light) {
+              const speed = b.properties?.speed || 1.0;
+              if (!b._state) b._state = { time: 0 };
+              b._state.time += dt * speed;
+              const r = (Math.sin(b._state.time) + 1) / 2;
+              const g = (Math.sin(b._state.time + 2.094) + 1) / 2;
+              const bColor = (Math.sin(b._state.time + 4.188) + 1) / 2;
+              node.light.color = new pc.Color(r, g, bColor);
+            }
+          } else if (b.type === 'waypoint_patrol') {
+            const waypoints = b.properties?.waypoints || [[-5, 0, 0], [5, 0, 0], [0, 0, 5]];
+            const speed = b.properties?.speed || 4.0;
+            if (!b._state) b._state = { index: 0 };
+            const targetCoord = waypoints[b._state.index % waypoints.length];
+            const targetVec = new pc.Vec3(...targetCoord);
+            const curPos = node.getPosition();
+            const dist = curPos.distance(targetVec);
+
+            if (dist < 0.5) {
+              b._state.index++;
+            } else {
+              const dir = targetVec.sub(curPos).normalize().scale(speed * dt);
+              node.translate(dir);
+            }
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;
             if (b._cooldown > 0) b._cooldown -= dt;
