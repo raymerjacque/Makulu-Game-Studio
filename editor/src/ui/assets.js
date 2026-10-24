@@ -16,13 +16,14 @@ export class AssetsPanel {
     this.activeFolder = 'all';
 
     this.assets = [
-      { id: '1', name: 'Character_Hero.glb', type: 'models', icon: '🧍', size: '128 KB', url: './models/character_hero.glb' },
-      { id: '2', name: 'Pine_Tree.glb', type: 'models', icon: '🌲', size: '13 KB', url: './models/pine_tree.glb' },
-      { id: '3', name: 'Treasure_Chest.glb', type: 'models', icon: '📦', size: '16 KB', url: './models/chest.glb' },
-      { id: '4', name: 'Default_Grid.png', type: 'textures', icon: '🖼️', size: '128 KB' },
-      { id: '5', name: 'PBR_Gold.mat', type: 'materials', icon: '🟡', size: '2 KB' },
-      { id: '6', name: 'RotateBehavior.js', type: 'scripts', icon: '📜', size: '1.2 KB' },
-      { id: '7', name: 'Ambient_Wind.wav', type: 'audio', icon: '🔊', size: '450 KB' }
+      { id: '1', name: 'Character_Hero.glb', type: 'models', icon: '🧙‍♂️', size: '131 KB', url: './models/character_hero.glb' },
+      { id: '2', name: 'Character_Enemy_Warrior.glb', type: 'models', icon: '⚔️', size: '127 KB', url: './models/character_warrior.glb' },
+      { id: '3', name: 'Pine_Tree.glb', type: 'models', icon: '🌲', size: '17 KB', url: './models/pine_tree.glb' },
+      { id: '4', name: 'Treasure_Chest.glb', type: 'models', icon: '💎', size: '35 KB', url: './models/chest.glb' },
+      { id: '5', name: 'Default_Grid.png', type: 'textures', icon: '🖼️', size: '128 KB' },
+      { id: '6', name: 'PBR_Gold.mat', type: 'materials', icon: '🟡', size: '2 KB' },
+      { id: '7', name: 'RotateBehavior.js', type: 'scripts', icon: '📜', size: '1.2 KB' },
+      { id: '8', name: 'Ambient_Wind.wav', type: 'audio', icon: '🔊', size: '450 KB' }
     ];
 
     this.render();

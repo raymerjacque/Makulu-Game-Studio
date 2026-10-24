@@ -17,7 +17,7 @@ export const MODEL_CATALOG = [
   },
   {
     id: 'character_warrior',
-    name: 'Armored Warrior',
+    name: 'Enemy Warrior / Guard',
     category: 'characters',
     author: 'Kenney CC0',
     polyCount: 'Low Poly',

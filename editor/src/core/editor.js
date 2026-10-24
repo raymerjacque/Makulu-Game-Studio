@@ -184,6 +184,7 @@ export class Editor {
             app.root.addChild(rootEntity);
             this.selection.set(rootEntity);
             this.events.emit('scene:changed');
+            this.events.emit('entity:created', rootEntity);
             if (this.runtime && this.runtime.editorCamera) {
               this.runtime.editorCamera.frameEntity(rootEntity);
             }
@@ -237,6 +238,9 @@ export class Editor {
 
     const clone = target.clone();
     clone.name = `${target.name} (Copy)`;
+    if (target._modelUrl) {
+      clone._modelUrl = target._modelUrl;
+    }
     const pos = target.getPosition().clone().add(new pc.Vec3(1, 0, 0));
     clone.setPosition(pos);
 
