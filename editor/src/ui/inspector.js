@@ -1373,6 +1373,10 @@ export class InspectorPanel {
             <option value="b_weapon_inventory">🎒 Weapon Inventory & Ammo</option>
             <option value="b_wasd">🎮 WASD Character Movement</option>
             <option value="b_health">❤️ Health Component</option>
+            <option value="b_lava_hazard">🔥 Lava / Acid Hazard Zone</option>
+            <option value="b_coin_bounce">🪙 Coin Spin & Floating Bounce</option>
+            <option value="b_light_color_cycle">🌈 RGB Neon Light Cycle</option>
+            <option value="b_waypoint_patrol">🗺️ Multi-Waypoint Path Patrol</option>
             <option value="b_audio_trigger">🔊 Audio Zone Trigger</option>
             <option value="b_postfx_trigger">✨ PostFX Atmosphere Trigger</option>
           </optgroup>
@@ -1477,6 +1481,10 @@ export class InspectorPanel {
               weapon_inventory: { weaponName: 'Plasma Gun', ammo: 30 },
               wasd: { speed: 8 },
               health: { maxHp: 100, currentHp: 100 },
+              lava_hazard: { radius: 2.5, damage: 100 },
+              coin_bounce: { speed: 90, amplitude: 0.3 },
+              light_color_cycle: { speed: 1.0 },
+              waypoint_patrol: { speed: 4.0 },
               audio_trigger: { radius: 3.0, sfxType: 'coin' },
               postfx_trigger: { radius: 4.0, atmosphere: 'cyberpunk' }
             };

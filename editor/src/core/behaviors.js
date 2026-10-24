@@ -567,6 +567,57 @@ export class BehaviorManager {
             const rotSpeed = b.params.speed || 90;
             if (this.isKeyDown('arrowleft') || this.isKeyDown('q')) entity.rotate(0, rotSpeed * dt, 0);
             if (this.isKeyDown('arrowright') || this.isKeyDown('e')) entity.rotate(0, -rotSpeed * dt, 0);
+          } else if (b.type === 'lava_hazard') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.5;
+              const dmg = b.params.damage || 100;
+              if (dist < radius) {
+                const playerBehaviors = this.getBehaviors(player);
+                const healthB = playerBehaviors.find(hb => hb.type === 'health');
+                if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
+                  healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - dmg);
+                  healthB._invincibleTimer = 1.0;
+                  this.triggerScreenShake(0.6, 0.3);
+                  proceduralSFX.play('explosion');
+                  if (typeof showToast === 'function') showToast(`🔥 Player fell into Lava Hazard! HP: ${healthB.params.currentHp}`, 'error');
+                }
+              }
+            }
+          } else if (b.type === 'coin_bounce') {
+            const speed = b.params.speed || 90;
+            const amp = b.params.amplitude || 0.3;
+            if (!b.state) b.state = { startY: entity.getPosition().y, time: 0 };
+            b.state.time += dt * 3.0;
+            entity.rotate(0, speed * dt, 0);
+            const pos = entity.getPosition();
+            entity.setPosition(pos.x, b.state.startY + Math.sin(b.state.time) * amp, pos.z);
+          } else if (b.type === 'light_color_cycle') {
+            if (entity.light) {
+              const speed = b.params.speed || 1.0;
+              if (!b.state) b.state = { time: 0 };
+              b.state.time += dt * speed;
+              const r = (Math.sin(b.state.time) + 1) / 2;
+              const g = (Math.sin(b.state.time + 2.094) + 1) / 2;
+              const bColor = (Math.sin(b.state.time + 4.188) + 1) / 2;
+              entity.light.color = new pc.Color(r, g, bColor);
+            }
+          } else if (b.type === 'waypoint_patrol') {
+            const waypoints = b.params.waypoints || [[-5, 0, 0], [5, 0, 0], [0, 0, 5]];
+            const speed = b.params.speed || 4.0;
+            if (!b.state) b.state = { index: 0 };
+            const targetCoord = waypoints[b.state.index % waypoints.length];
+            const targetVec = new pc.Vec3(...targetCoord);
+            const curPos = entity.getPosition();
+            const dist = curPos.distance(targetVec);
+
+            if (dist < 0.5) {
+              b.state.index++;
+            } else {
+              const dir = targetVec.sub(curPos).normalize().scale(speed * dt);
+              entity.translate(dir);
+            }
           }
         }
       }
