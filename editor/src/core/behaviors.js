@@ -604,19 +604,25 @@ export class BehaviorManager {
               entity.light.color = new pc.Color(r, g, bColor);
             }
           } else if (b.type === 'waypoint_patrol') {
-            const waypoints = b.params.waypoints || [[-5, 0, 0], [5, 0, 0], [0, 0, 5]];
+            let waypoints = b.params.waypoints || [[-5, 0, 0], [5, 0, 0], [0, 0, 5]];
+            if (typeof waypoints === 'string') {
+              try { waypoints = JSON.parse(waypoints); } catch (e) { waypoints = [[-5, 0, 0], [5, 0, 0], [0, 0, 5]]; }
+            }
+            if (!Array.isArray(waypoints) || waypoints.length === 0) waypoints = [[-5, 0, 0], [5, 0, 0], [0, 0, 5]];
             const speed = b.params.speed || 4.0;
             if (!b.state) b.state = { index: 0 };
             const targetCoord = waypoints[b.state.index % waypoints.length];
-            const targetVec = new pc.Vec3(...targetCoord);
-            const curPos = entity.getPosition();
-            const dist = curPos.distance(targetVec);
+            if (targetCoord && targetCoord.length >= 3) {
+              const targetVec = new pc.Vec3(targetCoord[0], targetCoord[1], targetCoord[2]);
+              const curPos = entity.getPosition();
+              const dist = curPos.distance(targetVec);
 
-            if (dist < 0.5) {
-              b.state.index++;
-            } else {
-              const dir = targetVec.sub(curPos).normalize().scale(speed * dt);
-              entity.translate(dir);
+              if (dist < 0.5) {
+                b.state.index++;
+              } else {
+                const dir = targetVec.clone().sub(curPos).normalize().scale(speed * dt);
+                entity.translate(dir);
+              }
             }
           }
         }

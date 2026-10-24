@@ -180,6 +180,14 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Plays directional sound effects or procedural audio cues (coin, laser, explosion, jump, hurt) when a player enters within an adjustable radius.
 28. **✨ PostFX Atmosphere Trigger:**
     Dynamically shifts the scene's ambient lighting, fog density, and sky preset (Day, Sunset, Cyberpunk, Foggy, Night) when the player enters a zone.
+29. **🔥 Lava / Acid Hazard Zone:**
+    Transforms entities into deadly lava, acid pools, or spikes that inflict rapid contact damage on players with screen shake and SFX.
+30. **🪙 Coin Spin & Floating Bounce:**
+    Applies classic arcade pickup physics with simultaneous smooth Y-axis spin and vertical sine wave bouncing.
+31. **🌈 RGB Neon Light Cycle:**
+    Continuously modulates point or spot lights across a vibrant, phase-shifted RGB color cycle for dance floors, sci-fi consoles, and neon signs.
+32. **🗺️ Multi-Waypoint Path Patrol:**
+    Guides NPCs, drones, platforms, or cameras along an arbitrary array of 3D coordinate waypoints with loop cycling.
 
 ---
 

@@ -117,6 +117,10 @@ export class InspectorPanel {
     const hasLevelPortal = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'level_portal') : false;
     const hasAudioTrigger = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'audio_trigger') : false;
     const hasPostfxTrigger = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'postfx_trigger') : false;
+    const hasLavaHazard = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'lava_hazard') : false;
+    const hasCoinBounce = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'coin_bounce') : false;
+    const hasLightCycle = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'light_color_cycle') : false;
+    const hasWaypointPatrol = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'waypoint_patrol') : false;
     const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
 
     body.innerHTML = `
@@ -491,6 +495,50 @@ export class InspectorPanel {
           ` : `
             <button class="btn" id="add-postfx-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
               <span>✨</span> <span>Add Atmosphere FX Trigger Zone</span>
+            </button>
+          `}
+
+          ${hasLavaHazard ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #f87171; font-weight: 600;">🔥 Lava / Hazard Zone Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-lava-hazard-behavior" title="Remove Lava Hazard" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-lava-hazard-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔥</span> <span>Add Lava / Hazard Zone (Damage)</span>
+            </button>
+          `}
+
+          ${hasCoinBounce ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #facc15; font-weight: 600;">🪙 Coin Spin & Bounce Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-coin-bounce-behavior" title="Remove Coin Bounce" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-coin-bounce-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🪙</span> <span>Make Bouncing Coin / Pickup</span>
+            </button>
+          `}
+
+          ${hasLightCycle ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #c084fc; font-weight: 600;">🌈 RGB Neon Light Cycle Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-light-cycle-behavior" title="Remove Light Cycle" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-light-cycle-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🌈</span> <span>Make RGB Neon Cycling Light</span>
+            </button>
+          `}
+
+          ${hasWaypointPatrol ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #34d399; font-weight: 600;">🗺️ Waypoint Path Patrol Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-waypoint-patrol-behavior" title="Remove Waypoint Patrol" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-waypoint-patrol-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🗺️</span> <span>Add Multi-Waypoint Path Patrol</span>
             </button>
           `}
 
@@ -1230,6 +1278,94 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.removeBehavior(ent, 'postfx_trigger');
           showToast(`Removed PostFX Trigger from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Lava Hazard
+    const addLavaBtn = body.querySelector('#add-lava-hazard-behavior');
+    if (addLavaBtn) {
+      addLavaBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'lava_hazard', { radius: 2.5, damage: 100 });
+          showToast(`🔥 Attached Lava Hazard Zone to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remLavaBtn = body.querySelector('#remove-lava-hazard-behavior');
+    if (remLavaBtn) {
+      remLavaBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'lava_hazard');
+          showToast(`Removed Lava Hazard from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Coin Bounce
+    const addCoinBtn = body.querySelector('#add-coin-bounce-behavior');
+    if (addCoinBtn) {
+      addCoinBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'coin_bounce', { speed: 90, amplitude: 0.3 });
+          showToast(`🪙 Attached Coin Spin & Bounce to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remCoinBtn = body.querySelector('#remove-coin-bounce-behavior');
+    if (remCoinBtn) {
+      remCoinBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'coin_bounce');
+          showToast(`Removed Coin Bounce from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Light Cycle
+    const addLightCycleBtn = body.querySelector('#add-light-cycle-behavior');
+    if (addLightCycleBtn) {
+      addLightCycleBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'light_color_cycle', { speed: 1.0 });
+          showToast(`🌈 Attached RGB Neon Light Cycle to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remLightCycleBtn = body.querySelector('#remove-light-cycle-behavior');
+    if (remLightCycleBtn) {
+      remLightCycleBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'light_color_cycle');
+          showToast(`Removed Light Cycle from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    // Waypoint Patrol
+    const addWaypointBtn = body.querySelector('#add-waypoint-patrol-behavior');
+    if (addWaypointBtn) {
+      addWaypointBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'waypoint_patrol', { speed: 4.0, waypoints: [[-5, 0, 0], [5, 0, 0], [0, 0, 5]] });
+          showToast(`🗺️ Attached Waypoint Path Patrol to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remWaypointBtn = body.querySelector('#remove-waypoint-patrol-behavior');
+    if (remWaypointBtn) {
+      remWaypointBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'waypoint_patrol');
+          showToast(`Removed Waypoint Patrol from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
@@ -2353,7 +2489,7 @@ export class InspectorPanel {
           const paramRows = Object.entries(b.params || {}).map(([key, val]) => `
             <div class="prop-row">
               <span class="prop-label">${key}</span>
-              <input type="${typeof val === 'number' ? 'number' : 'text'}" class="text-input behavior-param-input" data-param="${key}" value="${val}">
+              <input type="${typeof val === 'number' ? 'number' : 'text'}" class="text-input behavior-param-input" data-param="${key}" value="${typeof val === 'object' && val !== null ? JSON.stringify(val) : val}">
             </div>
           `).join('');
 
@@ -2375,7 +2511,17 @@ export class InspectorPanel {
           card.querySelectorAll('.behavior-param-input').forEach(inp => {
             inp.addEventListener('input', (e) => {
               const k = inp.dataset.param;
-              b.params[k] = typeof b.params[k] === 'number' ? parseFloat(e.target.value) || 0 : e.target.value;
+              if (typeof b.params[k] === 'number') {
+                b.params[k] = parseFloat(e.target.value) || 0;
+              } else if (Array.isArray(b.params[k]) || (typeof e.target.value === 'string' && (e.target.value.trim().startsWith('[') || e.target.value.trim().startsWith('{')))) {
+                try {
+                  b.params[k] = JSON.parse(e.target.value);
+                } catch (err) {
+                  b.params[k] = e.target.value;
+                }
+              } else {
+                b.params[k] = e.target.value;
+              }
             });
           });
 

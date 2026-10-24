@@ -223,6 +223,10 @@ test('GameBundler generates standalone HTML with Ammo.js physics, HUD, Victory s
   assert.ok(html.includes('key_pickup'));
   assert.ok(html.includes('locked_door'));
   assert.ok(html.includes('jetpack'));
+  assert.ok(html.includes('lava_hazard'), 'GameBundler includes lava hazard contact damage');
+  assert.ok(html.includes('coin_bounce'), 'GameBundler includes coin bounce animation');
+  assert.ok(html.includes('light_color_cycle'), 'GameBundler includes light color cycling');
+  assert.ok(html.includes('waypoint_patrol'), 'GameBundler includes waypoint patrol movement');
   assert.ok(html.includes('playProceduralSFX'));
   assert.ok(html.includes('data:audio/mp3;base64,SUQzBAAAAAAA'));
   assert.ok(html.includes('data.components.joint'), 'GameBundler includes joint constraint parsing');
