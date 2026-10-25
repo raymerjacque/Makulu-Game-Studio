@@ -1493,6 +1493,11 @@ export class InspectorPanel {
             <option value="trigger">Trigger Volume</option>
           </optgroup>
           <optgroup label="Gameplay Behaviors">
+            <option value="b_dash_boost">💨 Dash Boost Thruster</option>
+            <option value="b_health_regen">💚 Periodic Health Regeneration</option>
+            <option value="b_day_night_cycle">☀️ Day & Night Sun Rotation</option>
+            <option value="b_spotlight_flicker">🔦 Torch / Spotlight Cone Flicker</option>
+            <option value="b_target_lock_on">🎯 Target Camera / Entity Lock-On</option>
             <option value="b_first_person_controller">👀 First-Person Controller</option>
             <option value="b_target_health">🎯 Target/Enemy Health & Defeat</option>
             <option value="b_key_pickup">🔑 Key Item Pickup</option>
@@ -1601,6 +1606,11 @@ export class InspectorPanel {
           const bType = type.replace('b_', '');
           if (this.editor.behaviors) {
             const defaults = {
+              dash_boost: { force: 25, cooldown: 1.2 },
+              health_regen: { amount: 5, interval: 2.0 },
+              day_night_cycle: { speed: 0.1 },
+              spotlight_flicker: { baseOuterAngle: 45, variance: 8 },
+              target_lock_on: { targetEntity: 'Enemy' },
               first_person_controller: { speed: 10, rotSpeed: 90 },
               target_health: { maxHp: 100, currentHp: 100, scoreValue: 100 },
               key_pickup: { keyName: 'Gold Key', radius: 1.8 },
@@ -1983,6 +1993,9 @@ export class InspectorPanel {
 
     // Rigidbody Physics Card
     if (ent.rigidbody) {
+      const lin = ent.rigidbody.linearFactor || new pc.Vec3(1, 1, 1);
+      const ang = ent.rigidbody.angularFactor || new pc.Vec3(1, 1, 1);
+
       const card = document.createElement('div');
       card.className = 'inspector-section';
       card.innerHTML = `
@@ -1990,7 +2003,7 @@ export class InspectorPanel {
           <span>⚙️ Rigidbody Physics</span>
           <button class="btn btn-remove-comp" data-comp="rigidbody" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
         </div>
-        <div class="inspector-section-content">
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
           <div class="prop-row">
             <span class="prop-label">Body Type</span>
             <select class="select-input" id="rigidbody-type-select">
@@ -2011,6 +2024,25 @@ export class InspectorPanel {
             <span class="prop-label">Friction</span>
             <input type="range" min="0" max="1" step="0.05" class="text-input" id="rigidbody-friction" value="${ent.rigidbody.friction !== undefined ? ent.rigidbody.friction : 0.5}">
           </div>
+
+          <!-- Physics Axis Constraints Locking -->
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 6px; margin-top: 2px;">
+            <div style="font-weight: 700; font-size: 10px; color: var(--accent-orange); margin-bottom: 4px;">🔒 Lock Linear Motion Factor</div>
+            <div style="display: flex; gap: 8px; font-size: 11px;">
+              <label><input type="checkbox" id="rb-lock-pos-x" ${lin.x === 0 ? 'checked' : ''}> Freeze X</label>
+              <label><input type="checkbox" id="rb-lock-pos-y" ${lin.y === 0 ? 'checked' : ''}> Freeze Y</label>
+              <label><input type="checkbox" id="rb-lock-pos-z" ${lin.z === 0 ? 'checked' : ''}> Freeze Z</label>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 6px;">
+            <div style="font-weight: 700; font-size: 10px; color: var(--accent-orange); margin-bottom: 4px;">🔒 Lock Angular Rotation Factor</div>
+            <div style="display: flex; gap: 8px; font-size: 11px;">
+              <label><input type="checkbox" id="rb-lock-rot-x" ${ang.x === 0 ? 'checked' : ''}> Freeze Pitch (X)</label>
+              <label><input type="checkbox" id="rb-lock-rot-y" ${ang.y === 0 ? 'checked' : ''}> Freeze Yaw (Y)</label>
+              <label><input type="checkbox" id="rb-lock-rot-z" ${ang.z === 0 ? 'checked' : ''}> Freeze Roll (Z)</label>
+            </div>
+          </div>
         </div>
       `;
       card.querySelector('#rigidbody-type-select').addEventListener('change', (e) => {
@@ -2025,6 +2057,24 @@ export class InspectorPanel {
       card.querySelector('#rigidbody-friction').addEventListener('input', (e) => {
         ent.rigidbody.friction = parseFloat(e.target.value);
       });
+
+      const updateFactors = () => {
+        const lx = card.querySelector('#rb-lock-pos-x').checked ? 0 : 1;
+        const ly = card.querySelector('#rb-lock-pos-y').checked ? 0 : 1;
+        const lz = card.querySelector('#rb-lock-pos-z').checked ? 0 : 1;
+        const ax = card.querySelector('#rb-lock-rot-x').checked ? 0 : 1;
+        const ay = card.querySelector('#rb-lock-rot-y').checked ? 0 : 1;
+        const az = card.querySelector('#rb-lock-rot-z').checked ? 0 : 1;
+
+        ent.rigidbody.linearFactor = new pc.Vec3(lx, ly, lz);
+        ent.rigidbody.angularFactor = new pc.Vec3(ax, ay, az);
+        this.editor.events.emit('scene:changed');
+      };
+
+      ['rb-lock-pos-x', 'rb-lock-pos-y', 'rb-lock-pos-z', 'rb-lock-rot-x', 'rb-lock-rot-y', 'rb-lock-rot-z'].forEach(id => {
+        card.querySelector(`#${id}`).addEventListener('change', updateFactors);
+      });
+
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'rigidbody');
       });
@@ -2112,15 +2162,27 @@ export class InspectorPanel {
           </div>
           <div class="prop-row">
             <span class="prop-label">Volume</span>
-            <input type="range" min="0" max="1" step="0.05" class="text-input" id="sound-volume" value="${ent.sound.volume || 1}">
+            <input type="range" min="0" max="1" step="0.05" class="text-input" id="sound-volume" value="${ent.sound.volume !== undefined ? ent.sound.volume : 1}">
           </div>
           <div class="prop-row">
             <span class="prop-label">Pitch</span>
-            <input type="range" min="0.5" max="2" step="0.1" class="text-input" id="sound-pitch" value="${ent.sound.pitch || 1}">
+            <input type="range" min="0.5" max="2" step="0.1" class="text-input" id="sound-pitch" value="${ent.sound.pitch !== undefined ? ent.sound.pitch : 1}">
           </div>
           <div class="prop-row">
-            <span class="prop-label">Loop</span>
+            <span class="prop-label">Min Atten Distance</span>
+            <input type="number" min="0.1" step="0.5" class="text-input" id="sound-min-dist" value="${ent.sound.minDistance !== undefined ? ent.sound.minDistance : 1.0}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Max Atten Distance</span>
+            <input type="number" min="1" step="1" class="text-input" id="sound-max-dist" value="${ent.sound.maxDistance !== undefined ? ent.sound.maxDistance : 15.0}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Loop Playback</span>
             <input type="checkbox" id="sound-loop" ${ent.sound.loop !== false ? 'checked' : ''}>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Auto Play On Start</span>
+            <input type="checkbox" id="sound-autoplay" ${ent.sound.autoPlay ? 'checked' : ''}>
           </div>
           <button class="btn btn-primary" id="btn-preview-audio" style="font-size: 11px; padding: 4px;">
             ▶ Test Audio Playback
@@ -2140,8 +2202,20 @@ export class InspectorPanel {
         ent.sound.pitch = parseFloat(e.target.value);
       });
 
+      card.querySelector('#sound-min-dist').addEventListener('change', (e) => {
+        ent.sound.minDistance = parseFloat(e.target.value);
+      });
+
+      card.querySelector('#sound-max-dist').addEventListener('change', (e) => {
+        ent.sound.maxDistance = parseFloat(e.target.value);
+      });
+
       card.querySelector('#sound-loop').addEventListener('change', (e) => {
         ent.sound.loop = e.target.checked;
+      });
+
+      card.querySelector('#sound-autoplay').addEventListener('change', (e) => {
+        ent.sound.autoPlay = e.target.checked;
       });
 
       card.querySelector('#btn-preview-audio').addEventListener('click', () => {
@@ -2167,11 +2241,14 @@ export class InspectorPanel {
 
     // Particle System Emitter Component Card
     if (ent.particlesystem) {
+      const ps = ent.particlesystem;
+      const curColor = ps.colorTint ? `#${Math.round(ps.colorTint[0]*255).toString(16).padStart(2,'0')}${Math.round(ps.colorTint[1]*255).toString(16).padStart(2,'0')}${Math.round(ps.colorTint[2]*255).toString(16).padStart(2,'0')}` : '#ff6600';
+
       const card = document.createElement('div');
       card.className = 'inspector-section';
       card.innerHTML = `
         <div class="inspector-section-header">
-          <span>✨ Particle System</span>
+          <span>✨ Particle System Emitter</span>
           <button class="btn btn-remove-comp" data-comp="particlesystem" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
         </div>
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
@@ -2182,15 +2259,29 @@ export class InspectorPanel {
               <option value="smoke">💨 Smoke Puff</option>
               <option value="sparks">⚡ Electric Sparks</option>
               <option value="magic">✨ Magic Dust</option>
+              <option value="rain">🌧️ Rain / Water Drop</option>
+              <option value="explosion">💥 Explosion Burst</option>
             </select>
           </div>
           <div class="prop-row">
             <span class="prop-label">Particle Count</span>
-            <input type="range" min="10" max="200" step="5" class="text-input" id="particle-num" value="${ent.particlesystem.numParticles || 60}">
+            <input type="range" min="10" max="300" step="5" class="text-input" id="particle-num" value="${ps.numParticles || 60}">
           </div>
           <div class="prop-row">
             <span class="prop-label">Lifetime (s)</span>
-            <input type="range" min="0.2" max="5" step="0.1" class="text-input" id="particle-lifetime" value="${ent.particlesystem.lifetime || 1.5}">
+            <input type="range" min="0.1" max="6" step="0.1" class="text-input" id="particle-lifetime" value="${ps.lifetime || 1.5}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Color Tint</span>
+            <input type="color" id="particle-color-tint" value="${curColor}" style="background: none; border: none; width: 40px; height: 24px; cursor: pointer;">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Emission Rate</span>
+            <input type="range" min="0.01" max="0.5" step="0.01" class="text-input" id="particle-rate" value="${ps.rate || 0.05}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Initial Scale</span>
+            <input type="range" min="0.05" max="3.0" step="0.05" class="text-input" id="particle-scale" value="${ps.particleScale || 0.5}">
           </div>
         </div>
       `;
@@ -2199,35 +2290,56 @@ export class InspectorPanel {
         const preset = e.target.value;
         if (ent.particlesystem) {
           if (preset === 'fire') {
-            ent.particlesystem.numParticles = 80;
-            ent.particlesystem.lifetime = 1.2;
+            ps.numParticles = 80; ps.lifetime = 1.2; ps.colorTint = [1, 0.4, 0]; ps.particleScale = 0.6;
           } else if (preset === 'smoke') {
-            ent.particlesystem.numParticles = 40;
-            ent.particlesystem.lifetime = 2.5;
+            ps.numParticles = 40; ps.lifetime = 2.5; ps.colorTint = [0.4, 0.4, 0.4]; ps.particleScale = 1.2;
           } else if (preset === 'sparks') {
-            ent.particlesystem.numParticles = 120;
-            ent.particlesystem.lifetime = 0.6;
+            ps.numParticles = 120; ps.lifetime = 0.6; ps.colorTint = [1, 0.9, 0.2]; ps.particleScale = 0.2;
           } else if (preset === 'magic') {
-            ent.particlesystem.numParticles = 100;
-            ent.particlesystem.lifetime = 1.8;
+            ps.numParticles = 100; ps.lifetime = 1.8; ps.colorTint = [0.7, 0.2, 1]; ps.particleScale = 0.4;
+          } else if (preset === 'rain') {
+            ps.numParticles = 200; ps.lifetime = 2.0; ps.colorTint = [0.2, 0.6, 1]; ps.particleScale = 0.15;
+          } else if (preset === 'explosion') {
+            ps.numParticles = 150; ps.lifetime = 0.8; ps.colorTint = [1, 0.2, 0]; ps.particleScale = 0.8;
           }
           const numInput = card.querySelector('#particle-num');
           const lifeInput = card.querySelector('#particle-lifetime');
-          if (numInput) numInput.value = ent.particlesystem.numParticles;
-          if (lifeInput) lifeInput.value = ent.particlesystem.lifetime;
-          if (ent.particlesystem.rebuild) ent.particlesystem.rebuild();
+          const scaleInput = card.querySelector('#particle-scale');
+          if (numInput) numInput.value = ps.numParticles;
+          if (lifeInput) lifeInput.value = ps.lifetime;
+          if (scaleInput) scaleInput.value = ps.particleScale;
+          if (ps.rebuild) ps.rebuild();
           showToast(`✨ Applied particle preset: ${preset}`, 'info');
         }
       });
 
       card.querySelector('#particle-num').addEventListener('input', (e) => {
-        ent.particlesystem.numParticles = parseInt(e.target.value, 10);
-        if (ent.particlesystem.rebuild) ent.particlesystem.rebuild();
+        ps.numParticles = parseInt(e.target.value, 10);
+        if (ps.rebuild) ps.rebuild();
       });
 
       card.querySelector('#particle-lifetime').addEventListener('input', (e) => {
-        ent.particlesystem.lifetime = parseFloat(e.target.value);
-        if (ent.particlesystem.rebuild) ent.particlesystem.rebuild();
+        ps.lifetime = parseFloat(e.target.value);
+        if (ps.rebuild) ps.rebuild();
+      });
+
+      card.querySelector('#particle-color-tint').addEventListener('input', (e) => {
+        const hex = e.target.value;
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        ps.colorTint = [r, g, b];
+        if (ps.rebuild) ps.rebuild();
+      });
+
+      card.querySelector('#particle-rate').addEventListener('input', (e) => {
+        ps.rate = parseFloat(e.target.value);
+        if (ps.rebuild) ps.rebuild();
+      });
+
+      card.querySelector('#particle-scale').addEventListener('input', (e) => {
+        ps.particleScale = parseFloat(e.target.value);
+        if (ps.rebuild) ps.rebuild();
       });
 
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
