@@ -121,6 +121,33 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
 * **Component Engineering:** Attach Rigidbody, Collision, Light, Render, Audio (`add_sound`), and Particle (`add_particle_system`) components.
 * **Animation State Machines:** Configure 2D/3D state blend trees and parameter conditions via `configure_anim_blend`.
+* **Consulting the Skills Library:** Consult any of the **64 standardized micro-skills** via `consult_skill` before performing complex operations.
+
+---
+
+## 🧠 Standardized Agent Skills Library (64 Micro-Skills)
+
+Modeled after the leading AI agent specifications ([addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) and [mattpocock/skills](https://github.com/mattpocock/skills)), MakuluLinux Game Studio features a comprehensive, microscopic library of **64 standardized agent skills** in [`/skills`](./skills/README.md).
+
+Both autonomous coding agents (Google Jules, Antigravity, Claude Code, Cursor) and the In-Editor AI Copilot follow these skills before modifying code or scenes, ensuring consistent, non-hallucinating, bug-free execution:
+
+* 📖 **[Master Skills Directory & Catalog](./skills/README.md)**
+* 📚 **[The Complete Skillbook Reference](./skills/SKILLBOOK.md)**
+* ⚙️ **[Machine-Readable Skills Index](./skills/index.json)**
+
+### 📂 Skill Domains & Coverage:
+1. **📦 3D Models & Meshes (8 skills):** [`spawn-3d-model`](./skills/spawn-3d-model/SKILL.md), [`resize-3d-model`](./skills/resize-3d-model/SKILL.md), [`spawn-primitive`](./skills/spawn-primitive/SKILL.md), [`transform-entity`](./skills/transform-entity/SKILL.md), [`duplicate-and-delete`](./skills/duplicate-and-delete/SKILL.md), [`manage-hierarchy`](./skills/manage-hierarchy/SKILL.md), [`prefab-system`](./skills/prefab-system/SKILL.md), [`procedural-terrain`](./skills/procedural-terrain/SKILL.md).
+2. **💃 Character Locomotion & Skeletal Animation (6 skills):** [`glb-skeletal-rigging`](./skills/glb-skeletal-rigging/SKILL.md), [`character-locomotion`](./skills/character-locomotion/SKILL.md), [`procedural-limb-animation`](./skills/procedural-limb-animation/SKILL.md), [`inspector-animation-player`](./skills/inspector-animation-player/SKILL.md), [`anim-blend-graph`](./skills/anim-blend-graph/SKILL.md), [`timeline-keyframe-sequencer`](./skills/timeline-keyframe-sequencer/SKILL.md).
+3. **🎨 Materials & Texture Compression (3 skills):** [`configure-pbr-material`](./skills/configure-pbr-material/SKILL.md), [`apply-material-presets`](./skills/apply-material-presets/SKILL.md), [`texture-compression-pipeline`](./skills/texture-compression-pipeline/SKILL.md).
+4. **☀️ Lighting, Atmosphere & PostFX (4 skills):** [`configure-lights`](./skills/configure-lights/SKILL.md), [`skybox-and-atmosphere`](./skills/skybox-and-atmosphere/SKILL.md), [`fog-and-postfx`](./skills/fog-and-postfx/SKILL.md), [`light-flicker-and-cycle`](./skills/light-flicker-and-cycle/SKILL.md).
+5. **⚙️ Physics, Colliders & Joints (4 skills):** [`configure-rigidbody-physics`](./skills/configure-rigidbody-physics/SKILL.md), [`physics-collision-shapes`](./skills/physics-collision-shapes/SKILL.md), [`physics-joint-constraints`](./skills/physics-joint-constraints/SKILL.md), [`ragdoll-physics`](./skills/ragdoll-physics/SKILL.md).
+6. **🎮 Player Controllers & Traversal (7 skills):** [`wasd-player-controller`](./skills/wasd-player-controller/SKILL.md), [`first-person-controller`](./skills/first-person-controller/SKILL.md), [`jetpack-controller`](./skills/jetpack-controller/SKILL.md), [`wall-run-controller`](./skills/wall-run-controller/SKILL.md), [`grappling-hook`](./skills/grappling-hook/SKILL.md), [`vehicle-controller`](./skills/vehicle-controller/SKILL.md), [`dash-boost`](./skills/dash-boost/SKILL.md).
+7. **⚔️ AI Enemies, Combat & Weapons (10 skills):** [`enemy-ai`](./skills/enemy-ai/SKILL.md), [`boss-ai`](./skills/boss-ai/SKILL.md), [`patrol-and-waypoints`](./skills/patrol-and-waypoints/SKILL.md), [`turret-ai`](./skills/turret-ai/SKILL.md), [`stealth-ai`](./skills/stealth-ai/SKILL.md), [`enemy-spawner`](./skills/enemy-spawner/SKILL.md), [`health-and-damage`](./skills/health-and-damage/SKILL.md), [`shield-generator`](./skills/shield-generator/SKILL.md), [`cover-system`](./skills/cover-system/SKILL.md), [`projectile-shooter`](./skills/projectile-shooter/SKILL.md).
+8. **🚪 Interactive World & Triggers (6 skills):** [`interactive-doors-and-keys`](./skills/interactive-doors-and-keys/SKILL.md), [`moving-platforms`](./skills/moving-platforms/SKILL.md), [`pressure-plates`](./skills/pressure-plates/SKILL.md), [`environmental-hazards`](./skills/environmental-hazards/SKILL.md), [`water-volumes-and-buoyancy`](./skills/water-volumes-and-buoyancy/SKILL.md), [`sensor-triggers-and-teleport`](./skills/sensor-triggers-and-teleport/SKILL.md).
+9. **🏆 Progression, Flow & Quests (4 skills):** [`checkpoints-and-respawn`](./skills/checkpoints-and-respawn/SKILL.md), [`victory-and-game-over`](./skills/victory-and-game-over/SKILL.md), [`quest-and-dialogue-system`](./skills/quest-and-dialogue-system/SKILL.md), [`inventory-and-crafting`](./skills/inventory-and-crafting/SKILL.md).
+10. **🔊 Audio, Spatial Sound & Particles (3 skills):** [`3d-spatial-audio`](./skills/3d-spatial-audio/SKILL.md), [`procedural-sfx-generator`](./skills/procedural-sfx-generator/SKILL.md), [`particle-effects`](./skills/particle-effects/SKILL.md).
+11. **🖥️ HUD & Overlays (2 skills):** [`hud-system-configuration`](./skills/hud-system-configuration/SKILL.md), [`multi-scene-management`](./skills/multi-scene-management/SKILL.md).
+12. **📜 Scripting, Compilation & Architecture (7 skills):** [`scripting-and-attributes`](./skills/scripting-and-attributes/SKILL.md), [`in-editor-code-editor`](./skills/in-editor-code-editor/SKILL.md), [`compile-standalone-game`](./skills/compile-standalone-game/SKILL.md), [`export-and-import-scene`](./skills/export-and-import-scene/SKILL.md), [`editor-modes-simple-vs-pro`](./skills/editor-modes-simple-vs-pro/SKILL.md), [`command-bus-undo-redo`](./skills/command-bus-undo-redo/SKILL.md), [`ai-copilot-action-protocol`](./skills/ai-copilot-action-protocol/SKILL.md).
 
 ---
 

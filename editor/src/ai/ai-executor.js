@@ -545,6 +545,11 @@ export class AIExecutor {
             break;
           }
 
+          case 'consult_skill': {
+            executed.push({ action: act.action, target: act.skill || 'Skillbook' });
+            break;
+          }
+
           default:
             console.warn(`AIExecutor: Unknown action "${act.action}"`);
         }

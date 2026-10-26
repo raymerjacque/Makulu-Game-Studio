@@ -1,0 +1,823 @@
+[
+  {
+    "slug": "ai-copilot-action-protocol",
+    "name": "ai-copilot-action-protocol",
+    "category": "ai-and-combat",
+    "tags": [
+      "ai-copilot",
+      "json-actions",
+      "autonomous",
+      "ai-executor"
+    ],
+    "description": "Instruct the AI Copilot to execute scene modifications using the structured json:actions protocol."
+  },
+  {
+    "slug": "boss-ai",
+    "name": "boss-ai",
+    "category": "ai-and-combat",
+    "tags": [
+      "boss",
+      "boss-ai",
+      "phases",
+      "enrage",
+      "aoe"
+    ],
+    "description": "Create multi-phase boss encounters with health thresholds, enrage speed multipliers, and screen-shaking attacks."
+  },
+  {
+    "slug": "cover-system",
+    "name": "cover-system",
+    "category": "ai-and-combat",
+    "tags": [
+      "cover",
+      "crouch",
+      "mitigation",
+      "tactical"
+    ],
+    "description": "Enable tactical cover mechanics reducing incoming enemy damage by 75%."
+  },
+  {
+    "slug": "enemy-ai",
+    "name": "enemy-ai",
+    "category": "ai-and-combat",
+    "tags": [
+      "enemy",
+      "ai",
+      "pursuit",
+      "combat",
+      "attack"
+    ],
+    "description": "Implement autonomous enemy tracking, pursuit, attack distance checks, and melee damage."
+  },
+  {
+    "slug": "enemy-spawner",
+    "name": "enemy-spawner",
+    "category": "ai-and-combat",
+    "tags": [
+      "spawner",
+      "waves",
+      "portal",
+      "respawn"
+    ],
+    "description": "Spawn repeated waves of enemies from portals, nests, or doors at regular intervals."
+  },
+  {
+    "slug": "health-and-damage",
+    "name": "health-and-damage",
+    "category": "ai-and-combat",
+    "tags": [
+      "health",
+      "damage",
+      "hp",
+      "heal",
+      "pickup"
+    ],
+    "description": "Manage entity health pools, take damage, apply invincibility frames, and collect health pickups."
+  },
+  {
+    "slug": "patrol-and-waypoints",
+    "name": "patrol-and-waypoints",
+    "category": "ai-and-combat",
+    "tags": [
+      "patrol",
+      "waypoints",
+      "navigation",
+      "routes"
+    ],
+    "description": "Set up back-and-forth linear patrol routes or multi-node 3D waypoint circuits."
+  },
+  {
+    "slug": "projectile-shooter",
+    "name": "projectile-shooter",
+    "category": "ai-and-combat",
+    "tags": [
+      "gun",
+      "projectile",
+      "shooter",
+      "bullet",
+      "fire"
+    ],
+    "description": "Equip characters with weapon shooting mechanics, spawning high-speed projectiles on key press."
+  },
+  {
+    "slug": "shield-generator",
+    "name": "shield-generator",
+    "category": "ai-and-combat",
+    "tags": [
+      "shield",
+      "armor",
+      "overshield",
+      "recharge"
+    ],
+    "description": "Add energy shields that absorb incoming combat damage before health is depleted."
+  },
+  {
+    "slug": "stealth-ai",
+    "name": "stealth-ai",
+    "category": "ai-and-combat",
+    "tags": [
+      "stealth",
+      "vision-cone",
+      "fov",
+      "detection"
+    ],
+    "description": "Implement field-of-view vision cone detection for stealth games and guard evasion."
+  },
+  {
+    "slug": "turret-ai",
+    "name": "turret-ai",
+    "category": "ai-and-combat",
+    "tags": [
+      "turret",
+      "defense",
+      "projectiles",
+      "targeting"
+    ],
+    "description": "Deploy defensive turrets that track the player within range and fire laser projectiles."
+  },
+  {
+    "slug": "3d-spatial-audio",
+    "name": "3d-spatial-audio",
+    "category": "audio-and-sfx",
+    "tags": [
+      "audio",
+      "spatial-audio",
+      "3d-sound",
+      "sound",
+      "music"
+    ],
+    "description": "Attach 3D spatialized sound sources with distance attenuation falloff and Doppler realism."
+  },
+  {
+    "slug": "particle-effects",
+    "name": "particle-effects",
+    "category": "audio-and-sfx",
+    "tags": [
+      "particles",
+      "fire",
+      "smoke",
+      "snow",
+      "rain",
+      "sparks"
+    ],
+    "description": "Spawn and configure particle emitters for fire, smoke, sparks, snow, and rain."
+  },
+  {
+    "slug": "procedural-sfx-generator",
+    "name": "procedural-sfx-generator",
+    "category": "audio-and-sfx",
+    "tags": [
+      "sfx",
+      "procedural-audio",
+      "web-audio",
+      "sound-effects"
+    ],
+    "description": "Synthesize retro and arcade sound effects on-the-fly using the Web Audio API without audio files."
+  },
+  {
+    "slug": "anim-blend-graph",
+    "name": "anim-blend-graph",
+    "category": "character-locomotion",
+    "tags": [
+      "state-machine",
+      "blend-tree",
+      "transitions",
+      "graph"
+    ],
+    "description": "Build and edit visual animation state machines with custom conditions and blend times in AnimBlendModal."
+  },
+  {
+    "slug": "character-locomotion",
+    "name": "character-locomotion",
+    "category": "character-locomotion",
+    "tags": [
+      "locomotion",
+      "walk",
+      "idle",
+      "run",
+      "wasd",
+      "enemy-ai"
+    ],
+    "description": "Drive seamless velocity-based transitions between Idle and Walk/Sprint animations when characters move."
+  },
+  {
+    "slug": "glb-skeletal-rigging",
+    "name": "glb-skeletal-rigging",
+    "category": "character-locomotion",
+    "tags": [
+      "skeletal",
+      "animation",
+      "rigging",
+      "anim-component",
+      "animstategraph"
+    ],
+    "description": "Automatically extract GLB animation tracks, build a multi-state AnimStateGraph, and attach an AnimComponent."
+  },
+  {
+    "slug": "inspector-animation-player",
+    "name": "inspector-animation-player",
+    "category": "character-locomotion",
+    "tags": [
+      "inspector",
+      "animation-player",
+      "preview",
+      "clips"
+    ],
+    "description": "Preview, switch, and control character animation clips directly from the Inspector UI."
+  },
+  {
+    "slug": "procedural-limb-animation",
+    "name": "procedural-limb-animation",
+    "category": "character-locomotion",
+    "tags": [
+      "procedural",
+      "limbs",
+      "walk-cycle",
+      "modular",
+      "swing"
+    ],
+    "description": "Apply procedural harmonic leg and arm walk cycle swinging for blocky or modular models without bones."
+  },
+  {
+    "slug": "timeline-keyframe-sequencer",
+    "name": "timeline-keyframe-sequencer",
+    "category": "character-locomotion",
+    "tags": [
+      "timeline",
+      "keyframe",
+      "sequencer",
+      "cinematic"
+    ],
+    "description": "Animate entity properties over time using the multi-track visual keyframe timeline sequencer."
+  },
+  {
+    "slug": "compile-standalone-game",
+    "name": "compile-standalone-game",
+    "category": "compilation-and-export",
+    "tags": [
+      "compiler",
+      "game-bundler",
+      "standalone",
+      "html5",
+      "export"
+    ],
+    "description": "Bundle entire 3D games into a single self-contained, offline-playable .html file."
+  },
+  {
+    "slug": "export-and-import-scene",
+    "name": "export-and-import-scene",
+    "category": "compilation-and-export",
+    "tags": [
+      "json",
+      "export-scene",
+      "import-scene",
+      "backup",
+      "schema"
+    ],
+    "description": "Export scenes to clean human-readable JSON files and reload them safely."
+  },
+  {
+    "slug": "command-bus-undo-redo",
+    "name": "command-bus-undo-redo",
+    "category": "editor-interface",
+    "tags": [
+      "command-bus",
+      "undo",
+      "redo",
+      "history",
+      "transaction"
+    ],
+    "description": "Record user actions and AI modifications to the Command Bus for full Ctrl+Z and Ctrl+Y support."
+  },
+  {
+    "slug": "editor-modes-simple-vs-pro",
+    "name": "editor-modes-simple-vs-pro",
+    "category": "editor-interface",
+    "tags": [
+      "simple-mode",
+      "pro-mode",
+      "workflow",
+      "novice",
+      "expert"
+    ],
+    "description": "Switch between 🌱 Simple Mode for beginners and ⚡ Pro Mode for full ECS engineering."
+  },
+  {
+    "slug": "environmental-hazards",
+    "name": "environmental-hazards",
+    "category": "interactive-world",
+    "tags": [
+      "hazard",
+      "lava",
+      "acid",
+      "spikes",
+      "damage-zone"
+    ],
+    "description": "Construct hazardous lava pits, acid pools, and spike traps that deal lethal contact damage."
+  },
+  {
+    "slug": "interactive-doors-and-keys",
+    "name": "interactive-doors-and-keys",
+    "category": "interactive-world",
+    "tags": [
+      "door",
+      "key",
+      "lock",
+      "gate",
+      "puzzle"
+    ],
+    "description": "Create proximity-opening doors, locked dungeon gates, and collectible key pickups."
+  },
+  {
+    "slug": "moving-platforms",
+    "name": "moving-platforms",
+    "category": "interactive-world",
+    "tags": [
+      "platform",
+      "elevator",
+      "lift",
+      "shuttle"
+    ],
+    "description": "Build vertical elevators and horizontal moving shuttle platforms with smooth direction reversal."
+  },
+  {
+    "slug": "pressure-plates",
+    "name": "pressure-plates",
+    "category": "interactive-world",
+    "tags": [
+      "pressure-plate",
+      "switch",
+      "trigger",
+      "puzzle"
+    ],
+    "description": "Create floor pressure switches that trigger target entities or toggle doors when stepped on."
+  },
+  {
+    "slug": "sensor-triggers-and-teleport",
+    "name": "sensor-triggers-and-teleport",
+    "category": "interactive-world",
+    "tags": [
+      "trigger",
+      "sensor",
+      "teleport",
+      "portal",
+      "events"
+    ],
+    "description": "Register invisible sensor zones that teleport players, award points, or trigger scene events."
+  },
+  {
+    "slug": "water-volumes-and-buoyancy",
+    "name": "water-volumes-and-buoyancy",
+    "category": "interactive-world",
+    "tags": [
+      "water",
+      "swimming",
+      "buoyancy",
+      "ocean"
+    ],
+    "description": "Spawn semi-transparent buoyant water volumes with upward floating physics forces."
+  },
+  {
+    "slug": "configure-lights",
+    "name": "configure-lights",
+    "category": "lighting-and-atmosphere",
+    "tags": [
+      "light",
+      "directional",
+      "point",
+      "spot",
+      "shadows"
+    ],
+    "description": "Spawn and adjust Directional, Point, and Spot lights with custom color, intensity, and shadow casting."
+  },
+  {
+    "slug": "fog-and-postfx",
+    "name": "fog-and-postfx",
+    "category": "lighting-and-atmosphere",
+    "tags": [
+      "fog",
+      "postfx",
+      "exposure",
+      "atmosphere",
+      "fogginess"
+    ],
+    "description": "Configure exponential squared atmospheric fog density, fog color, and camera exposure tone-mapping."
+  },
+  {
+    "slug": "light-flicker-and-cycle",
+    "name": "light-flicker-and-cycle",
+    "category": "lighting-and-atmosphere",
+    "tags": [
+      "light-flicker",
+      "spotlight-flicker",
+      "color-cycle",
+      "torch"
+    ],
+    "description": "Attach procedural Perlin noise flickering to torches or smooth RGB color cycling to party lights."
+  },
+  {
+    "slug": "skybox-and-atmosphere",
+    "name": "skybox-and-atmosphere",
+    "category": "lighting-and-atmosphere",
+    "tags": [
+      "skybox",
+      "atmosphere",
+      "environment",
+      "preset",
+      "ambient"
+    ],
+    "description": "Switch and customize scene sky atmosphere presets: Clear Day, Sunset, Cyberpunk, Foggy Valley, and Night."
+  },
+  {
+    "slug": "apply-material-presets",
+    "name": "apply-material-presets",
+    "category": "materials-and-shaders",
+    "tags": [
+      "presets",
+      "gold",
+      "neon",
+      "lava",
+      "water",
+      "wood",
+      "stone"
+    ],
+    "description": "Instantly apply pre-tuned PBR material presets to entities."
+  },
+  {
+    "slug": "configure-pbr-material",
+    "name": "configure-pbr-material",
+    "category": "materials-and-shaders",
+    "tags": [
+      "material",
+      "pbr",
+      "metalness",
+      "roughness",
+      "diffuse",
+      "emissive"
+    ],
+    "description": "Create and customize physically-based rendering (PBR) materials on any entity."
+  },
+  {
+    "slug": "texture-compression-pipeline",
+    "name": "texture-compression-pipeline",
+    "category": "materials-and-shaders",
+    "tags": [
+      "texture-compression",
+      "basis",
+      "ktx2",
+      "astc",
+      "dxt",
+      "etc2",
+      "bc7"
+    ],
+    "description": "Configure Basis Universal / KTX2 GPU texture compression formats and hardware anisotropic filtering."
+  },
+  {
+    "slug": "duplicate-and-delete",
+    "name": "duplicate-and-delete",
+    "category": "models-and-assets",
+    "tags": [
+      "duplicate",
+      "delete",
+      "clone",
+      "undo"
+    ],
+    "description": "Safely clone entities with all attached behaviors and components, or delete them with full undo/redo history."
+  },
+  {
+    "slug": "manage-hierarchy",
+    "name": "manage-hierarchy",
+    "category": "models-and-assets",
+    "tags": [
+      "hierarchy",
+      "parenting",
+      "grouping",
+      "search"
+    ],
+    "description": "Organize scene entities, manage parent-child relationships, filter by name, and group scene props."
+  },
+  {
+    "slug": "prefab-system",
+    "name": "prefab-system",
+    "category": "models-and-assets",
+    "tags": [
+      "prefab",
+      "templates",
+      "reuse",
+      "instances"
+    ],
+    "description": "Save entity hierarchies as reusable .prefab files and spawn them repeatedly with 1 click."
+  },
+  {
+    "slug": "procedural-terrain",
+    "name": "procedural-terrain",
+    "category": "models-and-assets",
+    "tags": [
+      "terrain",
+      "perlin-noise",
+      "heightmap",
+      "sculptor",
+      "mountains"
+    ],
+    "description": "Generate multi-octave Perlin noise 3D terrain heightmaps with biomes and collision."
+  },
+  {
+    "slug": "resize-3d-model",
+    "name": "resize-3d-model",
+    "category": "models-and-assets",
+    "tags": [
+      "resize",
+      "scale",
+      "transform",
+      "corner-arrows",
+      "hud"
+    ],
+    "description": "Interactively resize 3D models using viewport corner hook arrows, floating transform HUD, or Simple Mode size slider."
+  },
+  {
+    "slug": "spawn-3d-model",
+    "name": "spawn-3d-model",
+    "category": "models-and-assets",
+    "tags": [
+      "model",
+      "glb",
+      "gltf",
+      "mesh",
+      "spawn",
+      "catalog"
+    ],
+    "description": "Load and instantiate authentic 3D GLB/glTF models from the catalog or custom URLs into the scene."
+  },
+  {
+    "slug": "spawn-primitive",
+    "name": "spawn-primitive",
+    "category": "models-and-assets",
+    "tags": [
+      "primitive",
+      "box",
+      "sphere",
+      "capsule",
+      "cylinder",
+      "cone",
+      "plane"
+    ],
+    "description": "Spawn geometric 3D primitives with render, material, and collision components."
+  },
+  {
+    "slug": "transform-entity",
+    "name": "transform-entity",
+    "category": "models-and-assets",
+    "tags": [
+      "position",
+      "rotation",
+      "scale",
+      "transform",
+      "gizmo"
+    ],
+    "description": "Manipulate entity position, orientation, and scale using gizmos or numeric Inspector inputs."
+  },
+  {
+    "slug": "configure-rigidbody-physics",
+    "name": "configure-rigidbody-physics",
+    "category": "physics-and-constraints",
+    "tags": [
+      "physics",
+      "rigidbody",
+      "ammo",
+      "mass",
+      "friction",
+      "restitution"
+    ],
+    "description": "Configure authentic Ammo.js physics rigidbodies with mass, friction, bounce, and degree-of-freedom factors."
+  },
+  {
+    "slug": "physics-collision-shapes",
+    "name": "physics-collision-shapes",
+    "category": "physics-and-constraints",
+    "tags": [
+      "collision",
+      "collider",
+      "box",
+      "sphere",
+      "capsule",
+      "mesh"
+    ],
+    "description": "Assign and size physics collision bounding shapes for physical contact and raycasting."
+  },
+  {
+    "slug": "physics-joint-constraints",
+    "name": "physics-joint-constraints",
+    "category": "physics-and-constraints",
+    "tags": [
+      "joints",
+      "constraints",
+      "hinge",
+      "point-to-point",
+      "ragdoll"
+    ],
+    "description": "Link two entities with physics joint constraints (hinges, swinging doors, ball joints)."
+  },
+  {
+    "slug": "ragdoll-physics",
+    "name": "ragdoll-physics",
+    "category": "physics-and-constraints",
+    "tags": [
+      "ragdoll",
+      "death",
+      "defeat",
+      "collapse",
+      "physics"
+    ],
+    "description": "Trigger dynamic ragdoll physics collapse and impulses upon character defeat."
+  },
+  {
+    "slug": "dash-boost",
+    "name": "dash-boost",
+    "category": "player-controllers",
+    "tags": [
+      "dash",
+      "boost",
+      "dodge",
+      "burst-speed"
+    ],
+    "description": "Execute instant directional dash bursts with cooldowns and camera impact."
+  },
+  {
+    "slug": "first-person-controller",
+    "name": "first-person-controller",
+    "category": "player-controllers",
+    "tags": [
+      "fpc",
+      "fps",
+      "first-person",
+      "mouselook",
+      "wasd"
+    ],
+    "description": "Lock camera to entity head height with mouse-look and strafe controls for FPS games."
+  },
+  {
+    "slug": "grappling-hook",
+    "name": "grappling-hook",
+    "category": "player-controllers",
+    "tags": [
+      "grapple",
+      "hook",
+      "swing",
+      "traversal"
+    ],
+    "description": "Launch grappling hook cables to swing and pull toward distant target surfaces."
+  },
+  {
+    "slug": "jetpack-controller",
+    "name": "jetpack-controller",
+    "category": "player-controllers",
+    "tags": [
+      "jetpack",
+      "flight",
+      "fuel",
+      "thrust",
+      "vertical"
+    ],
+    "description": "Add vertical jetpack thrust, fuel depletion, and recharging mechanics."
+  },
+  {
+    "slug": "vehicle-controller",
+    "name": "vehicle-controller",
+    "category": "player-controllers",
+    "tags": [
+      "vehicle",
+      "car",
+      "steering",
+      "driving",
+      "acceleration"
+    ],
+    "description": "Drive cars, buggies, or speedboats with acceleration, steering, and braking physics."
+  },
+  {
+    "slug": "wall-run-controller",
+    "name": "wall-run-controller",
+    "category": "player-controllers",
+    "tags": [
+      "wall-run",
+      "parkour",
+      "titanfall",
+      "movement"
+    ],
+    "description": "Implement wall-running parkour movement along vertical obstacle surfaces."
+  },
+  {
+    "slug": "wasd-player-controller",
+    "name": "wasd-player-controller",
+    "category": "player-controllers",
+    "tags": [
+      "wasd",
+      "movement",
+      "player",
+      "keyboard",
+      "controls"
+    ],
+    "description": "Turn any entity into a playable character with planar WASD and arrow-key movement."
+  },
+  {
+    "slug": "checkpoints-and-respawn",
+    "name": "checkpoints-and-respawn",
+    "category": "progression-and-flow",
+    "tags": [
+      "checkpoint",
+      "respawn",
+      "death",
+      "flag"
+    ],
+    "description": "Place checkpoint markers that save player progress and restore health on defeat."
+  },
+  {
+    "slug": "inventory-and-crafting",
+    "name": "inventory-and-crafting",
+    "category": "progression-and-flow",
+    "tags": [
+      "inventory",
+      "crafting",
+      "recipes",
+      "items"
+    ],
+    "description": "Manage player inventory item slots, collectible items, and crafting recipes."
+  },
+  {
+    "slug": "multi-scene-management",
+    "name": "multi-scene-management",
+    "category": "progression-and-flow",
+    "tags": [
+      "scenes",
+      "levels",
+      "multi-scene",
+      "duplicate-scene"
+    ],
+    "description": "Create, duplicate, rename, switch between, and delete multiple scenes and levels in a single project."
+  },
+  {
+    "slug": "quest-and-dialogue-system",
+    "name": "quest-and-dialogue-system",
+    "category": "progression-and-flow",
+    "tags": [
+      "quest",
+      "dialogue",
+      "npc",
+      "story",
+      "rpg"
+    ],
+    "description": "Implement NPC dialogue speech balloons, quest tracking, and objective progression."
+  },
+  {
+    "slug": "victory-and-game-over",
+    "name": "victory-and-game-over",
+    "category": "progression-and-flow",
+    "tags": [
+      "victory",
+      "gameover",
+      "win",
+      "defeat",
+      "hud"
+    ],
+    "description": "Configure Victory fanfare screens, Game Over screens, and restart mechanics."
+  },
+  {
+    "slug": "in-editor-code-editor",
+    "name": "in-editor-code-editor",
+    "category": "scripting-and-code",
+    "tags": [
+      "code-editor",
+      "ide",
+      "syntax",
+      "escape",
+      "modal"
+    ],
+    "description": "Write and test JavaScript scripts directly inside the built-in CodeEditorModal with syntax highlighting."
+  },
+  {
+    "slug": "scripting-and-attributes",
+    "name": "scripting-and-attributes",
+    "category": "scripting-and-code",
+    "tags": [
+      "script",
+      "attributes",
+      "playcanvas",
+      "code",
+      "reflection"
+    ],
+    "description": "Author PlayCanvas JavaScript scripts and declare Script.attributes for dynamic Inspector controls."
+  },
+  {
+    "slug": "hud-system-configuration",
+    "name": "hud-system-configuration",
+    "category": "ui-and-hud",
+    "tags": [
+      "hud",
+      "ui",
+      "healthbar",
+      "ammo",
+      "crosshair",
+      "minimap"
+    ],
+    "description": "Customize on-screen HUD elements: health bar, ammo counter, crosshairs, and minimap."
+  }
+]
