@@ -523,7 +523,9 @@ export class GameBundler {
           type: rb.type || 'static',
           mass: rb.mass || 1,
           restitution: rb.restitution || 0.5,
-          friction: rb.friction || 0.5
+          friction: rb.friction || 0.5,
+          linearFactor: rb.linearFactor ? new pc.Vec3(...rb.linearFactor) : new pc.Vec3(1, 1, 1),
+          angularFactor: rb.angularFactor ? new pc.Vec3(...rb.angularFactor) : new pc.Vec3(1, 1, 1)
         });
       }
 
@@ -533,7 +535,9 @@ export class GameBundler {
         ent.addComponent('particlesystem', {
           numParticles: ps.numParticles || 60,
           lifetime: ps.lifetime || 1.5,
-          rate: ps.rate || 0.05
+          rate: ps.rate || 0.05,
+          particleScale: ps.particleScale || 0.5,
+          colorGraph: ps.colorTint ? new pc.CurveSet([[0, ps.colorTint[0]], [0, ps.colorTint[1]], [0, ps.colorTint[2]]]) : null
         });
       }
 
@@ -543,7 +547,10 @@ export class GameBundler {
         ent.addComponent('sound', {
           volume: snd.volume !== undefined ? snd.volume : 1,
           pitch: snd.pitch !== undefined ? snd.pitch : 1,
-          loop: snd.loop !== false
+          loop: snd.loop !== false,
+          minDistance: snd.minDistance !== undefined ? snd.minDistance : 1,
+          maxDistance: snd.maxDistance !== undefined ? snd.maxDistance : 15,
+          autoPlay: Boolean(snd.autoPlay)
         });
       }
 
@@ -1070,6 +1077,53 @@ export class GameBundler {
               } else {
                 const dir = targetVec.clone().sub(curPos).normalize().scale(speed * dt);
                 node.translate(dir);
+              }
+            }
+          } else if (b.type === 'dash_boost') {
+            if (!b._cooldown) b._cooldown = 0;
+            if (b._cooldown > 0) b._cooldown -= dt;
+            const boostKey = keys['shift'] || keys['lshift'];
+            if (boostKey && b._cooldown <= 0) {
+              b._cooldown = b.properties?.cooldown || 1.2;
+              const force = b.properties?.force || 25;
+              const dir = node.forward.clone().mulScalar(-force * dt);
+              if (node.rigidbody) {
+                node.rigidbody.applyImpulse(dir.x, 0, dir.z);
+              } else {
+                node.translateLocal(0, 0, -force * dt);
+              }
+              if (window.playProceduralSFX) window.playProceduralSFX('boost', 0.25);
+            }
+          } else if (b.type === 'health_regen') {
+            if (!b._regenTimer) b._regenTimer = 0;
+            b._regenTimer -= dt;
+            if (b._regenTimer <= 0) {
+              b._regenTimer = b.properties?.interval || 2.0;
+              const playerB = node._behaviors || [];
+              const healthB = playerB.find(hb => hb.type === 'health');
+              if (healthB) {
+                const maxHp = healthB.properties?.maxHp || 100;
+                const regenAmount = b.properties?.amount || 5;
+                if (healthB.properties.currentHp < maxHp) {
+                  healthB.properties.currentHp = Math.min(maxHp, (healthB.properties.currentHp || maxHp) + regenAmount);
+                }
+              }
+            }
+          } else if (b.type === 'day_night_cycle') {
+            const speed = b.properties?.speed || 0.1;
+            node.rotate(speed * dt * 15, 0, 0);
+          } else if (b.type === 'spotlight_flicker') {
+            if (node.light && node.light.type === 'spot') {
+              const baseAngle = b.properties?.baseOuterAngle || 45;
+              const variance = b.properties?.variance || 8;
+              node.light.outerConeAngle = Math.max(10, baseAngle + (Math.random() - 0.5) * variance);
+            }
+          } else if (b.type === 'target_lock_on') {
+            const targetName = b.properties?.targetEntity;
+            if (targetName) {
+              const target = app.root.findByName(targetName);
+              if (target && target.enabled) {
+                node.lookAt(target.getPosition());
               }
             }
           } else if (b.type === 'projectile_shooter') {

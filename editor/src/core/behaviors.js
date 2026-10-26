@@ -624,6 +624,55 @@ export class BehaviorManager {
                 entity.translate(dir);
               }
             }
+          } else if (b.type === 'dash_boost') {
+            if (!b._cooldown) b._cooldown = 0;
+            if (b._cooldown > 0) b._cooldown -= dt;
+            const boostKey = this.isKeyDown('shift') || this.isKeyDown('lshift');
+            if (boostKey && b._cooldown <= 0) {
+              b._cooldown = b.params.cooldown || 1.2;
+              const force = b.params.force || 25;
+              const dir = entity.forward.clone().mulScalar(-force * dt);
+              if (entity.rigidbody) {
+                entity.rigidbody.applyImpulse(dir.x, 0, dir.z);
+              } else {
+                entity.translateLocal(0, 0, -force * dt);
+              }
+              proceduralSFX.play('boost', 0.25);
+              if (typeof showToast === 'function') showToast(`💨 Dash Boost Thruster!`, 'info');
+            }
+          } else if (b.type === 'health_regen') {
+            if (!b._regenTimer) b._regenTimer = 0;
+            b._regenTimer -= dt;
+            if (b._regenTimer <= 0) {
+              b._regenTimer = b.params.interval || 2.0;
+              const playerBehaviors = this.getBehaviors(entity);
+              const healthB = playerBehaviors.find(hb => hb.type === 'health');
+              if (healthB) {
+                const maxHp = healthB.params.maxHp || 100;
+                const regenAmount = b.params.amount || 5;
+                if (healthB.params.currentHp < maxHp) {
+                  healthB.params.currentHp = Math.min(maxHp, (healthB.params.currentHp || maxHp) + regenAmount);
+                  if (typeof showToast === 'function') showToast(`💚 Regenerated +${regenAmount} HP (${healthB.params.currentHp}/${maxHp})`, 'success');
+                }
+              }
+            }
+          } else if (b.type === 'day_night_cycle') {
+            const speed = b.params.speed || 0.1;
+            entity.rotate(speed * dt * 15, 0, 0);
+          } else if (b.type === 'spotlight_flicker') {
+            if (entity.light && entity.light.type === 'spot') {
+              const baseAngle = b.params.baseOuterAngle || 45;
+              const variance = b.params.variance || 8;
+              entity.light.outerConeAngle = Math.max(10, baseAngle + (Math.random() - 0.5) * variance);
+            }
+          } else if (b.type === 'target_lock_on') {
+            const targetName = b.params.targetEntity;
+            if (targetName) {
+              const target = app.root.findByName(targetName);
+              if (target && target.enabled) {
+                entity.lookAt(target.getPosition());
+              }
+            }
           }
         }
       }

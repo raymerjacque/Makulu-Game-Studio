@@ -448,7 +448,9 @@ export class Editor {
           type: node.rigidbody.type || 'static',
           mass: node.rigidbody.mass || 1,
           restitution: node.rigidbody.restitution !== undefined ? node.rigidbody.restitution : 0.5,
-          friction: node.rigidbody.friction !== undefined ? node.rigidbody.friction : 0.5
+          friction: node.rigidbody.friction !== undefined ? node.rigidbody.friction : 0.5,
+          linearFactor: node.rigidbody.linearFactor ? [node.rigidbody.linearFactor.x, node.rigidbody.linearFactor.y, node.rigidbody.linearFactor.z] : [1, 1, 1],
+          angularFactor: node.rigidbody.angularFactor ? [node.rigidbody.angularFactor.x, node.rigidbody.angularFactor.y, node.rigidbody.angularFactor.z] : [1, 1, 1]
         };
       }
       if (node.joint) {
@@ -465,14 +467,20 @@ export class Editor {
       if (node.particlesystem) {
         data.components.particlesystem = {
           numParticles: node.particlesystem.numParticles || 60,
-          lifetime: node.particlesystem.lifetime || 1.5
+          lifetime: node.particlesystem.lifetime || 1.5,
+          rate: node.particlesystem.rate || 0.05,
+          particleScale: node.particlesystem.particleScale || 0.5,
+          colorTint: node.particlesystem.colorTint || [1, 0.4, 0]
         };
       }
       if (node.sound) {
         data.components.sound = {
-          volume: node.sound.volume || 1,
-          pitch: node.sound.pitch || 1,
-          loop: node.sound.loop !== false
+          volume: node.sound.volume !== undefined ? node.sound.volume : 1,
+          pitch: node.sound.pitch !== undefined ? node.sound.pitch : 1,
+          loop: node.sound.loop !== false,
+          minDistance: node.sound.minDistance !== undefined ? node.sound.minDistance : 1,
+          maxDistance: node.sound.maxDistance !== undefined ? node.sound.maxDistance : 15,
+          autoPlay: Boolean(node.sound.autoPlay)
         };
       }
       if (node.script) {
@@ -634,7 +642,9 @@ export class Editor {
               type: rb.type || 'static',
               mass: rb.mass || 1,
               restitution: rb.restitution || 0.5,
-              friction: rb.friction || 0.5
+              friction: rb.friction || 0.5,
+              linearFactor: rb.linearFactor ? new pc.Vec3(...rb.linearFactor) : new pc.Vec3(1, 1, 1),
+              angularFactor: rb.angularFactor ? new pc.Vec3(...rb.angularFactor) : new pc.Vec3(1, 1, 1)
             });
           }
           if (nodeData.animGraph) {
@@ -649,16 +659,24 @@ export class Editor {
             }
           }
           if (nodeData.components.particlesystem) {
+            const ps = nodeData.components.particlesystem;
             ent.addComponent('particlesystem', {
-              numParticles: nodeData.components.particlesystem.numParticles || 60,
-              lifetime: nodeData.components.particlesystem.lifetime || 1.5
+              numParticles: ps.numParticles || 60,
+              lifetime: ps.lifetime || 1.5,
+              rate: ps.rate || 0.05,
+              particleScale: ps.particleScale || 0.5,
+              colorTint: ps.colorTint || [1, 0.4, 0]
             });
           }
           if (nodeData.components.sound) {
+            const snd = nodeData.components.sound;
             ent.addComponent('sound', {
-              volume: nodeData.components.sound.volume !== undefined ? nodeData.components.sound.volume : 1,
-              pitch: nodeData.components.sound.pitch !== undefined ? nodeData.components.sound.pitch : 1,
-              loop: nodeData.components.sound.loop !== false
+              volume: snd.volume !== undefined ? snd.volume : 1,
+              pitch: snd.pitch !== undefined ? snd.pitch : 1,
+              loop: snd.loop !== false,
+              minDistance: snd.minDistance !== undefined ? snd.minDistance : 1,
+              maxDistance: snd.maxDistance !== undefined ? snd.maxDistance : 15,
+              autoPlay: Boolean(snd.autoPlay)
             });
           }
           if (nodeData.components.script) {

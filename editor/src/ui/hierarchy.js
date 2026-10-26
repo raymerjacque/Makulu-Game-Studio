@@ -27,9 +27,16 @@ export class HierarchyPanel {
       </div>
 
       <div class="tree-container" id="hierarchy-tree"></div>
+    `;
 
-      <!-- Add Entity Context Menu -->
-      <div id="add-entity-menu" class="context-menu" style="display: none;">
+    // Ensure context menus are attached to document.body so they are never clipped by panel overflow
+    let addMenu = document.getElementById('add-entity-menu');
+    if (!addMenu) {
+      addMenu = document.createElement('div');
+      addMenu.id = 'add-entity-menu';
+      addMenu.className = 'context-menu';
+      addMenu.style.display = 'none';
+      addMenu.innerHTML = `
         <div class="context-menu-item" data-action="primitive:box">📦 Box</div>
         <div class="context-menu-item" data-action="primitive:sphere">⚪ Sphere</div>
         <div class="context-menu-item" data-action="primitive:capsule">💊 Capsule</div>
@@ -43,18 +50,27 @@ export class HierarchyPanel {
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" data-action="camera:persp">🎥 Camera</div>
         <div class="context-menu-item" data-action="empty">📁 Empty Group</div>
-      </div>
+      `;
+      document.body.appendChild(addMenu);
+    }
 
-      <!-- Item Right-Click Context Menu -->
-      <div id="item-context-menu" class="context-menu" style="display: none;">
+    let itemMenu = document.getElementById('item-context-menu');
+    if (!itemMenu) {
+      itemMenu = document.createElement('div');
+      itemMenu.id = 'item-context-menu';
+      itemMenu.className = 'context-menu';
+      itemMenu.style.display = 'none';
+      itemMenu.innerHTML = `
         <div class="context-menu-item" data-item-action="rename">✏️ Rename</div>
         <div class="context-menu-item" data-item-action="frame">🎯 Frame Entity</div>
         <div class="context-menu-item" data-item-action="duplicate">📋 Duplicate</div>
         <div class="context-menu-item" data-item-action="add-child">➕ Add Child Entity</div>
+        <div class="context-menu-item" data-item-action="save-prefab">📦 Save as Prefab</div>
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" data-item-action="delete" style="color: #ef4444;">🗑️ Delete</div>
-      </div>
-    `;
+      `;
+      document.body.appendChild(itemMenu);
+    }
 
     this.rebuildTree();
   }
@@ -69,27 +85,29 @@ export class HierarchyPanel {
 
     // Add Entity Button dropdown
     const addBtn = this.container.querySelector('#hierarchy-add-btn');
-    const addMenu = this.container.querySelector('#add-entity-menu');
+    const addMenu = document.getElementById('add-entity-menu');
 
-    addBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const rect = addBtn.getBoundingClientRect();
-      addMenu.style.top = `${rect.bottom + 4}px`;
-      addMenu.style.left = `${rect.left - 40}px`;
-      addMenu.style.display = 'block';
-    });
+    if (addBtn && addMenu) {
+      addBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = addBtn.getBoundingClientRect();
+        addMenu.style.top = `${rect.bottom + 4}px`;
+        addMenu.style.left = `${rect.left - 40}px`;
+        addMenu.style.display = 'block';
+      });
 
-    window.addEventListener('click', () => {
-      addMenu.style.display = 'none';
-    });
-
-    addMenu.querySelectorAll('.context-menu-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const action = item.dataset.action;
-        this.handleAddAction(action);
+      window.addEventListener('click', () => {
         addMenu.style.display = 'none';
       });
-    });
+
+      addMenu.querySelectorAll('.context-menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const action = item.dataset.action;
+          this.handleAddAction(action);
+          addMenu.style.display = 'none';
+        });
+      });
+    }
 
     // Keyboard shortcuts (Delete, Ctrl+D duplicate, Ctrl+S export)
     window.addEventListener('keydown', (e) => {
@@ -298,7 +316,8 @@ export class HierarchyPanel {
           e.stopPropagation();
           this.editor.selection.set(node);
 
-          const itemMenu = this.container.querySelector('#item-context-menu');
+          const itemMenu = document.getElementById('item-context-menu');
+          if (!itemMenu) return;
           itemMenu.style.top = `${e.clientY}px`;
           itemMenu.style.left = `${e.clientX}px`;
           itemMenu.style.display = 'block';
@@ -308,12 +327,12 @@ export class HierarchyPanel {
             const action = itemEv.target.dataset.itemAction;
             if (action === 'rename') {
               const newName = prompt('Enter new entity name:', node.name);
-              if (newName) {
-                node.name = newName;
+              if (newName && newName.trim()) {
+                node.name = newName.trim();
                 this.editor.events.emit('scene:changed');
               }
             } else if (action === 'frame') {
-              if (this.editor.runtime) this.editor.runtime.editorCamera.frameEntity(node);
+              if (this.editor.runtime && this.editor.runtime.editorCamera) this.editor.runtime.editorCamera.frameEntity(node);
             } else if (action === 'duplicate') {
               this.editor.duplicateEntity(node);
             } else if (action === 'add-child') {
@@ -322,6 +341,10 @@ export class HierarchyPanel {
                 parent: node,
                 transform: { position: [0, 1, 0] }
               });
+            } else if (action === 'save-prefab') {
+              if (this.editor.prefabs) {
+                this.editor.prefabs.createPrefabFromEntity(node);
+              }
             } else if (action === 'delete') {
               this.editor.deleteEntity(node);
             }
