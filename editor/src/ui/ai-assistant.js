@@ -2,9 +2,11 @@ import { MakuluAIClient } from '../ai/ai-client.js';
 import { AIExecutor } from '../ai/ai-executor.js';
 import { SceneAuditor } from '../ai/scene-auditor.js';
 import { aiSettings } from '../ai/ai-settings.js';
+import { AgentTeam } from '../ai/swarm/agent-team.js';
+import { AgentSwarmView } from './agent-swarm-view.js';
 
 /**
- * Makulu AI Copilot UI Dock
+ * Makulu AI Copilot UI Dock with AutoGPT Agent Swarm Team
  */
 export class AIAssistantUI {
   constructor(editor, settingsModal = null) {
@@ -12,12 +14,14 @@ export class AIAssistantUI {
     this.client = new MakuluAIClient(editor);
     this.executor = new AIExecutor(editor);
     this.auditor = new SceneAuditor(editor);
+    this.team = new AgentTeam(editor, this.client, this.executor);
     this.settingsModal = settingsModal;
     this.isMinimized = false;
     this.isOpen = true;
 
     this.render();
     this.bindEvents();
+    this.bindSwarmMessages();
   }
 
   setSettingsModal(modal) {
@@ -71,6 +75,48 @@ export class AIAssistantUI {
     `;
 
     document.body.appendChild(this.panel);
+
+    const chatBodyEl = this.panel.querySelector('#ai-chat-body');
+    if (chatBodyEl && chatBodyEl.parentElement) {
+      this.swarmView = new AgentSwarmView(chatBodyEl.parentElement, this.team);
+      chatBodyEl.parentElement.insertBefore(this.swarmView.element, chatBodyEl);
+    }
+  }
+
+  bindSwarmMessages() {
+    const chatBody = this.panel.querySelector('#ai-chat-body');
+    this.team.messageBus.subscribe((msg) => {
+      if (!msg.content || msg.type === 'agent_state_changed') return;
+      const card = document.createElement('div');
+      card.className = 'ai-message assistant';
+
+      let borderColor = 'rgba(255, 255, 255, 0.15)';
+      let badgeBg = 'rgba(100, 116, 139, 0.2)';
+      if (msg.type === 'plan') { borderColor = '#f59e0b'; badgeBg = 'rgba(245, 158, 11, 0.15)'; }
+      else if (msg.type === 'task') { borderColor = '#3b82f6'; badgeBg = 'rgba(59, 130, 246, 0.15)'; }
+      else if (msg.type === 'inspection') { borderColor = '#06b6d4'; badgeBg = 'rgba(6, 182, 212, 0.15)'; }
+      else if (msg.type === 'critique') { borderColor = '#f59e0b'; badgeBg = 'rgba(245, 158, 11, 0.15)'; }
+      else if (msg.type === 'repair') { borderColor = '#ec4899'; badgeBg = 'rgba(236, 72, 153, 0.15)'; }
+      else if (msg.type === 'done') { borderColor = '#10b981'; badgeBg = 'rgba(16, 185, 129, 0.15)'; }
+
+      card.innerHTML = `
+        <div class="ai-bubble" style="border-left: 3px solid ${borderColor};">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; background: ${badgeBg}; padding: 1px 6px; border-radius: 4px;">
+              ${this.escapeHTML(msg.from)}
+            </span>
+            <span style="font-size: 9.5px; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase;">
+              ${msg.type}
+            </span>
+          </div>
+          <div style="font-size: 11.5px; line-height: 1.45; color: var(--text-secondary);">
+            ${msg.content.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+      `;
+      chatBody.appendChild(card);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    });
   }
 
   bindEvents() {
@@ -215,7 +261,25 @@ export class AIAssistantUI {
     userMsg.innerHTML = `<div class="ai-bubble">${this.escapeHTML(promptText)}</div>`;
     chatBody.appendChild(userMsg);
 
-    // Add thinking placeholder
+    // AI Team Swarm Mode execution
+    if (this.swarmView && this.swarmView.isTeamModeActive) {
+      try {
+        await this.team.executeTeamTask(promptText, { maxRepairRounds: 2, useLLM: true });
+      } catch (err) {
+        const errMsg = document.createElement('div');
+        errMsg.className = 'ai-message assistant';
+        errMsg.innerHTML = `
+          <div class="ai-bubble" style="border-color: #ef4444; color: #fca5a5;">
+            ⚠️ AI Swarm Error: ${err.message}.
+          </div>
+        `;
+        chatBody.appendChild(errMsg);
+      }
+      chatBody.scrollTop = chatBody.scrollHeight;
+      return;
+    }
+
+    // Fallback: Single Copilot Direct Mode
     const assistantMsg = document.createElement('div');
     assistantMsg.className = 'ai-message assistant';
     assistantMsg.innerHTML = `

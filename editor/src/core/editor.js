@@ -156,12 +156,19 @@ export class Editor {
    */
   async loadModel(url, options = {}) {
     const app = this.getApp();
-    if (!app) return null;
-
     const name = options.name || '3D Model';
     const position = options.position || [0, 0, 0];
     const scale = options.scale || [1, 1, 1];
     const rotation = options.rotation || [0, 0, 0];
+
+    if (!app || !app.assets) {
+      const rootEntity = this.createEntity({
+        name,
+        transform: { position, rotation, scale }
+      });
+      rootEntity._modelUrl = url;
+      return rootEntity;
+    }
 
     return new Promise((resolve, reject) => {
       app.assets.loadFromUrl(url, 'container', (err, asset) => {

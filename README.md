@@ -151,6 +151,65 @@ Both autonomous coding agents (Google Jules, Antigravity, Claude Code, Cursor) a
 
 ---
 
+## 🤖 AutoGPT Collaborative AI Swarm Team
+
+Modeled after **[significant-gravitas/autogpt](https://github.com/significant-gravitas/autogpt)**, MakuluLinux Game Studio features a built-in **Multi-Agent Swarm Team** that transforms single prompts into coordinated, multi-specialist game engineering projects.
+
+Instead of relying on a single AI that can make mistakes or hallucinate, the AutoGPT Swarm operates as an autonomous studio crew:
+
+```
+                    ┌─────────────────────────┐
+                    │      USER PROMPT        │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                     👑 Lead Studio Director
+                     (Decomposes into Phase Plan)
+                                 │
+         ┌───────────────────────┼──────────────────────┐
+         ▼                       ▼                      ▼
+  🏛️ World Architect      📦 Prop Master        🕹️ Gameplay Engineer
+  (Geometry/Terrain)      (Models/Decorations)  (Controllers/Behaviors)
+         │                       │                      │
+         └───────────────────────┼──────────────────────┘
+                                 ▼
+                         💡 Lighting Artist
+                         (Atmosphere/Torches)
+                                 │
+                                 ▼
+                         🔎 QA Inspector
+                         (Scores Scene & Detects Defects)
+                                 │
+                   [Defects Found? Score < 80]
+                                 │
+                                 ▼
+                     🔧 Backup Repair Specialist
+                     (Applies Surgical Fixes)
+                                 │
+                                 ▼
+                     🎉 Final Certified Scene
+```
+
+### 👥 The 8 Specialist Roles
+1. **👑 Lead Studio Director (`director`):** Mission orchestrator; decomposes user prompts into specialized subtasks, dispatches work orders, and runs team debriefs.
+2. **🏛️ World Architect (`architect`):** Constructs arenas, dungeons, castles, terrain heightmaps, platforms, and structural walls.
+3. **📦 Prop Master (`propmaster`):** Curates and places 3D props (trees, boulders, chests, barrels, ruins) with organic scale and positioning.
+4. **🕹️ Gameplay Engineer (`mechanic`):** Implements WASD/first-person player controllers, enemy AI, weapons, health, hazards, and portals.
+5. **💃 Character Animator (`animator`):** Rigging, locomotion state machines, walk/run blending, and procedural limb movement.
+6. **💡 Lighting Artist (`lighting`):** Sets up directional suns, dungeon torch flickers, neon accent lights, and atmosphere sky presets.
+7. **🔎 QA Inspector (`inspector`):** Autonomous critic; runs deep physics sanity checks (orphan rigidbodies without colliders), lighting bounds, entity scale clamping, and player/enemy intent verification, scoring the scene from 0–100.
+8. **🔧 Backup Repair Specialist (`repairer`):** Autonomous repair agent; reads QA defect reports, formulates a repair plan, and applies surgical fixes until the scene passes inspection.
+
+### 📡 Inter-Agent Message Bus (`AgentMessageBus`)
+All agents communicate via an asynchronous publish-subscribe message bus with typed messages (`plan`, `work`, `inspect`, `repair`, `done`) and live state tracking (`idle`, `planning`, `working`, `inspecting`, `repairing`, `completed`).
+
+### 🎛️ AI Studio Copilot Swarm UI
+- **Team Mode Toggle:** Switch seamlessly between Single-Agent Mode and AutoGPT Swarm Mode in the AI Copilot.
+- **Specialist Status Bar:** Real-time visual pills for all active agents showing who is planning, building, inspecting, or repairing.
+- **Roster Inspector Modal:** Click **"👥 Team"** to inspect each agent's identity, avatar, assigned micro-skills, and communication history.
+
+---
+
 ## ⚡ Plug & Play Behavior Engine
 
 Add interactive gameplay logic without writing a single line of JavaScript:
