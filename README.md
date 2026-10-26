@@ -188,6 +188,16 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Continuously modulates point or spot lights across a vibrant, phase-shifted RGB color cycle for dance floors, sci-fi consoles, and neon signs.
 32. **🗺️ Multi-Waypoint Path Patrol:**
     Guides NPCs, drones, platforms, or cameras along an arbitrary array of 3D coordinate waypoints with loop cycling.
+33. **💨 Dash Boost Thruster:**
+    Provides an instant directional forward speed burst or dodge maneuver on `Shift` with configurable boost impulse force, sound effects, and recharge cooldown.
+34. **💚 Periodic Health Regeneration:**
+    Gradually restores player or boss character health points automatically over configurable time intervals and amounts.
+35. **☀️ Day & Night Sun Rotation:**
+    Automates celestial orbital rotation for directional sun lights, smoothly casting shifting real-time shadows and daylight progressions across the world.
+36. **🔦 Torch / Spotlight Cone Flicker:**
+    Simulates organic atmospheric flashlight, torch, or lantern illumination with dynamic outer cone angle jitter and fluctuation.
+37. **🎯 Target Camera / Entity Lock-On:**
+    Continuously rotates an entity or camera to face and track a designated target, enemy monster, or boss in real-time.
 
 ---
 
@@ -289,16 +299,16 @@ Create reactive game mechanics through modular trigger volumes:
   * **🎥 Camera:** FOV, Near Clip, and Far Clip.
   * **💡 Light Source:** Real-time visual color wheel picker, Intensity, Range, Cone Angles, and Shadow cascades.
   * **🎯 Collision Shapes:** Box, Sphere, Capsule, Cylinder, and Mesh.
-  * **⚡ Rigidbody Physics:** Dynamic, Kinematic, Static, Mass, Restitution (bounciness), and Friction controls.
+  * **⚡ Rigidbody Physics:** Dynamic, Kinematic, Static, Mass, Restitution (bounciness), Friction, and **🔒 6-Axis Motion Locking** (Freeze Linear X/Y/Z motion and Freeze Angular Pitch/Yaw/Roll rotation factors) for 2D/2.5D gameplay and upright character physics.
   * **⚙️ Physics Joint Constraints:** Hinge (doors, gates, wheels), Point-to-Point (chains, ropes), Slider (pistons, elevators), and Ball & Socket joints connecting rigidbodies across custom pivot offsets.
-  * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust) with instant 1-click preset switching, particle count, rate, sorting, half-extents, and lifetime controls.
-  * **🔊 3D Spatial Audio:** Audio asset URL configuration with in-editor playback preview, Volume, Pitch, and Loop toggles.
+  * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust, 🌧️ Rain, 💥 Explosion) with 1-click preset switching, emission rate, particle scale, visual color tint picker, sorting, and lifetime controls.
+  * **🔊 3D Spatial Audio:** Audio asset URL configuration with in-editor playback preview, Volume, Pitch, Loop toggles, AutoPlay on Scene Start, and **Min / Max Attenuation Distance** settings for realistic 3D acoustic falloff.
   * **⚡ Trigger Volumes:** Pro Mode addition and visual configuration of interactive proximity triggers.
   * **📜 Custom Scripting:** 1-click code editor attachment and execution.
 * **🗂️ Multi-Scene Management & Hierarchy Power Tools:**
   * **Multi-Scene Switcher:** Create and navigate between multiple levels (`Main Scene`, `Level_2`, etc.) with automatic background state retention and scene JSON snapshotting.
   * **Scene Power Tools:** 1-click **Rename (`✏️`)**, **Duplicate (`📋`)**, and **Delete (`🗑️`)** scene actions directly in the TopBar.
-  * **Entity Right-Click Context Menu:** Right-click any entity in the hierarchy tree to Rename, Frame (`F`), Duplicate (`Ctrl+D`), Add Child Entity, or Delete.
+  * **Entity Right-Click Context Menu:** Overflow-safe body-docked context menu to Rename, Frame (`F`), Duplicate (`Ctrl+D`), Add Child Entity, **📦 Save as Prefab**, or Delete.
   * **Eye-Icon Visibility Toggles:** 1-click hide (`🙈`) or show (`👁️`) individual entities without deleting them.
   * **Drag & Drop Reparenting:** Organize complex scenes by dragging entities onto parents directly in the hierarchy tree.
   * **📂 Scene Import & 💾 Export:** Save and load full scene graphs as portable JSON files with complete component, model, trigger, and behavior state.

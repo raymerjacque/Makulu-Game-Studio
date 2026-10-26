@@ -1086,11 +1086,13 @@ export class GameBundler {
             if (boostKey && b._cooldown <= 0) {
               b._cooldown = b.properties?.cooldown || 1.2;
               const force = b.properties?.force || 25;
-              const dir = node.forward.clone().mulScalar(-force * dt);
+              const forwardDir = new pc.Vec3(node.forward.x, 0, node.forward.z);
+              if (forwardDir.lengthSq() > 0.0001) forwardDir.normalize();
+              else forwardDir.set(0, 0, -1);
               if (node.rigidbody) {
-                node.rigidbody.applyImpulse(dir.x, 0, dir.z);
+                node.rigidbody.applyImpulse(forwardDir.x * force, 0, forwardDir.z * force);
               } else {
-                node.translateLocal(0, 0, -force * dt);
+                node.translate(forwardDir.x * (force * 0.15), 0, forwardDir.z * (force * 0.15));
               }
               if (window.playProceduralSFX) window.playProceduralSFX('boost', 0.25);
             }
@@ -1100,11 +1102,11 @@ export class GameBundler {
             if (b._regenTimer <= 0) {
               b._regenTimer = b.properties?.interval || 2.0;
               const playerB = node._behaviors || [];
-              const healthB = playerB.find(hb => hb.type === 'health');
+              const healthB = playerB.find(hb => hb.type === 'health' || hb.type === 'target_health');
               if (healthB) {
                 const maxHp = healthB.properties?.maxHp || 100;
                 const regenAmount = b.properties?.amount || 5;
-                if (healthB.properties.currentHp < maxHp) {
+                if ((healthB.properties.currentHp || maxHp) < maxHp) {
                   healthB.properties.currentHp = Math.min(maxHp, (healthB.properties.currentHp || maxHp) + regenAmount);
                 }
               }
@@ -1121,7 +1123,7 @@ export class GameBundler {
           } else if (b.type === 'target_lock_on') {
             const targetName = b.properties?.targetEntity;
             if (targetName) {
-              const target = app.root.findByName(targetName);
+              const target = app.root.findByName(targetName) || app.root.find(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
               if (target && target.enabled) {
                 node.lookAt(target.getPosition());
               }

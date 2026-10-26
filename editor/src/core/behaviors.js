@@ -631,11 +631,13 @@ export class BehaviorManager {
             if (boostKey && b._cooldown <= 0) {
               b._cooldown = b.params.cooldown || 1.2;
               const force = b.params.force || 25;
-              const dir = entity.forward.clone().mulScalar(-force * dt);
+              const forwardDir = new pc.Vec3(entity.forward.x, 0, entity.forward.z);
+              if (forwardDir.lengthSq() > 0.0001) forwardDir.normalize();
+              else forwardDir.set(0, 0, -1);
               if (entity.rigidbody) {
-                entity.rigidbody.applyImpulse(dir.x, 0, dir.z);
+                entity.rigidbody.applyImpulse(forwardDir.x * force, 0, forwardDir.z * force);
               } else {
-                entity.translateLocal(0, 0, -force * dt);
+                entity.translate(forwardDir.x * (force * 0.15), 0, forwardDir.z * (force * 0.15));
               }
               proceduralSFX.play('boost', 0.25);
               if (typeof showToast === 'function') showToast(`💨 Dash Boost Thruster!`, 'info');
@@ -646,11 +648,11 @@ export class BehaviorManager {
             if (b._regenTimer <= 0) {
               b._regenTimer = b.params.interval || 2.0;
               const playerBehaviors = this.getBehaviors(entity);
-              const healthB = playerBehaviors.find(hb => hb.type === 'health');
+              const healthB = playerBehaviors.find(hb => hb.type === 'health' || hb.type === 'target_health');
               if (healthB) {
                 const maxHp = healthB.params.maxHp || 100;
                 const regenAmount = b.params.amount || 5;
-                if (healthB.params.currentHp < maxHp) {
+                if ((healthB.params.currentHp || maxHp) < maxHp) {
                   healthB.params.currentHp = Math.min(maxHp, (healthB.params.currentHp || maxHp) + regenAmount);
                   if (typeof showToast === 'function') showToast(`💚 Regenerated +${regenAmount} HP (${healthB.params.currentHp}/${maxHp})`, 'success');
                 }
@@ -668,7 +670,7 @@ export class BehaviorManager {
           } else if (b.type === 'target_lock_on') {
             const targetName = b.params.targetEntity;
             if (targetName) {
-              const target = app.root.findByName(targetName);
+              const target = app.root.findByName(targetName) || app.root.find(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
               if (target && target.enabled) {
                 entity.lookAt(target.getPosition());
               }

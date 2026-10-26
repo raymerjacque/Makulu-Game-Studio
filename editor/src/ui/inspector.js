@@ -2302,6 +2302,8 @@ export class InspectorPanel {
           } else if (preset === 'explosion') {
             ps.numParticles = 150; ps.lifetime = 0.8; ps.colorTint = [1, 0.2, 0]; ps.particleScale = 0.8;
           }
+          if (ps.particleScale !== undefined) ps.scaleGraph = new pc.Curve([0, ps.particleScale]);
+          if (ps.colorTint) ps.colorGraph = new pc.CurveSet([[0, ps.colorTint[0]], [0, ps.colorTint[1]], [0, ps.colorTint[2]]]);
           const numInput = card.querySelector('#particle-num');
           const lifeInput = card.querySelector('#particle-lifetime');
           const scaleInput = card.querySelector('#particle-scale');
@@ -2329,6 +2331,7 @@ export class InspectorPanel {
         const g = parseInt(hex.slice(3, 5), 16) / 255;
         const b = parseInt(hex.slice(5, 7), 16) / 255;
         ps.colorTint = [r, g, b];
+        ps.colorGraph = new pc.CurveSet([[0, r], [0, g], [0, b]]);
         if (ps.rebuild) ps.rebuild();
       });
 
@@ -2339,6 +2342,7 @@ export class InspectorPanel {
 
       card.querySelector('#particle-scale').addEventListener('input', (e) => {
         ps.particleScale = parseFloat(e.target.value);
+        ps.scaleGraph = new pc.Curve([0, ps.particleScale]);
         if (ps.rebuild) ps.rebuild();
       });
 

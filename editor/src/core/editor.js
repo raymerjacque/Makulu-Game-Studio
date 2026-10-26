@@ -660,13 +660,18 @@ export class Editor {
           }
           if (nodeData.components.particlesystem) {
             const ps = nodeData.components.particlesystem;
+            const pScale = ps.particleScale !== undefined ? ps.particleScale : 0.5;
             ent.addComponent('particlesystem', {
               numParticles: ps.numParticles || 60,
               lifetime: ps.lifetime || 1.5,
               rate: ps.rate || 0.05,
-              particleScale: ps.particleScale || 0.5,
-              colorTint: ps.colorTint || [1, 0.4, 0]
+              scaleGraph: new pc.Curve([0, pScale]),
+              colorGraph: ps.colorTint ? new pc.CurveSet([[0, ps.colorTint[0]], [0, ps.colorTint[1]], [0, ps.colorTint[2]]]) : null
             });
+            if (ent.particlesystem) {
+              ent.particlesystem.particleScale = pScale;
+              if (ps.colorTint) ent.particlesystem.colorTint = ps.colorTint;
+            }
           }
           if (nodeData.components.sound) {
             const snd = nodeData.components.sound;
