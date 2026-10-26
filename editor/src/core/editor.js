@@ -293,10 +293,14 @@ export class Editor {
     const finalRot = entity.getEulerAngles().clone();
     const finalScale = entity.getLocalScale().clone();
 
-    // Only record if actually moved
-    if (finalPos.equals(initial.initialPos) && 
-        finalRot.equals(initial.initialRot) && 
-        finalScale.equals(initial.initialScale)) {
+    const initialPos = initial.initialPos || finalPos.clone();
+    const initialRot = initial.initialRot || finalRot.clone();
+    const initialScale = initial.initialScale || finalScale.clone();
+
+    // Only record if actually moved or scaled
+    if (finalPos.equals(initialPos) && 
+        finalRot.equals(initialRot) && 
+        finalScale.equals(initialScale)) {
       return;
     }
 
@@ -309,9 +313,9 @@ export class Editor {
         this.events.emit('entity:transformed', entity);
       },
       () => {
-        entity.setPosition(initial.initialPos);
-        entity.setEulerAngles(initial.initialRot);
-        entity.setLocalScale(initial.initialScale);
+        entity.setPosition(initialPos);
+        entity.setEulerAngles(initialRot);
+        entity.setLocalScale(initialScale);
         this.events.emit('entity:transformed', entity);
       }
     );

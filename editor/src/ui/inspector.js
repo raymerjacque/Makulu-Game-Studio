@@ -230,13 +230,34 @@ export class InspectorPanel {
         </div>
       </div>
 
-      <!-- Quick Size Buttons -->
-      <div class="inspector-section">
-        <div class="inspector-section-header"><span>📏 Object Size</span></div>
-        <div class="inspector-section-content" style="display: flex; gap: 6px;">
-          <button class="btn" id="btn-size-sm" style="flex: 1;">⚪ Small</button>
-          <button class="btn" id="btn-size-md" style="flex: 1;">📦 Medium</button>
-          <button class="btn" id="btn-size-lg" style="flex: 1;">🏢 Large</button>
+      <!-- Model Size & Scale Slider -->
+      <div class="inspector-section" style="border-color: rgba(255, 102, 0, 0.35);">
+        <div class="inspector-section-header" style="background: rgba(255, 102, 0, 0.12); color: var(--accent-orange); display: flex; justify-content: space-between; align-items: center;">
+          <span>📏 Model Size & Scale</span>
+          <span id="simple-scale-display" style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-orange);">${(ent.getLocalScale().x).toFixed(2)}x</span>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Slider and Stepper Controls -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn btn-sm btn-icon" id="btn-scale-step-down" title="Shrink Model (-0.1x)" style="width: 26px; height: 26px; font-size: 11px;">➖</button>
+            <input type="range" id="simple-scale-slider" min="0.1" max="5.0" step="0.05" value="${Math.min(5.0, Math.max(0.1, ent.getLocalScale().x))}" style="flex: 1; accent-color: var(--accent-orange); cursor: pointer;">
+            <button class="btn btn-sm btn-icon" id="btn-scale-step-up" title="Enlarge Model (+0.1x)" style="width: 26px; height: 26px; font-size: 11px;">➕</button>
+            <input type="number" id="simple-scale-number" min="0.01" max="50.0" step="0.1" value="${(ent.getLocalScale().x).toFixed(2)}" class="text-input" style="width: 58px; padding: 3px 6px; text-align: center; font-family: var(--font-mono); font-size: 11px;">
+          </div>
+
+          <!-- Quick Presets -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+            <button class="btn btn-sm" id="btn-scale-05" style="font-size: 10px; padding: 4px 2px;">0.5x Half</button>
+            <button class="btn btn-sm btn-primary" id="btn-scale-10" style="font-size: 10px; padding: 4px 2px;">1.0x Normal</button>
+            <button class="btn btn-sm" id="btn-scale-20" style="font-size: 10px; padding: 4px 2px;">2.0x Double</button>
+            <button class="btn btn-sm" id="btn-scale-40" style="font-size: 10px; padding: 4px 2px;">4.0x Giant</button>
+          </div>
+
+          <!-- Activate Canvas Resize Gizmo Button -->
+          <button class="btn btn-sm" id="btn-activate-scale-gizmo" style="border-color: var(--accent-orange); color: var(--accent-orange); background: rgba(255, 102, 0, 0.08); font-weight: 600; gap: 6px; margin-top: 2px;">
+            <span>⤢</span>
+            <span>Drag Corner Hook Arrows on Canvas (R)</span>
+          </button>
         </div>
       </div>
 
@@ -436,19 +457,73 @@ export class InspectorPanel {
       });
     });
 
-    // Size
-    body.querySelector('#btn-size-sm').addEventListener('click', () => {
-      ent.setLocalScale(0.5, 0.5, 0.5);
+    // Model Size & Scale Slider / Inputs
+    const scaleSlider = body.querySelector('#simple-scale-slider');
+    const scaleNum = body.querySelector('#simple-scale-number');
+    const scaleDisplay = body.querySelector('#simple-scale-display');
+
+    const applyScaleValue = (val) => {
+      const scaleVal = Math.max(0.01, Math.min(50.0, parseFloat(val) || 1.0));
+      ent.setLocalScale(scaleVal, scaleVal, scaleVal);
+      if (scaleSlider) scaleSlider.value = Math.min(5.0, Math.max(0.1, scaleVal));
+      if (scaleNum) scaleNum.value = scaleVal.toFixed(2);
+      if (scaleDisplay) scaleDisplay.textContent = `${scaleVal.toFixed(2)}x`;
       this.editor.events.emit('entity:transformed', ent);
+    };
+
+    if (scaleSlider) {
+      scaleSlider.addEventListener('input', (e) => applyScaleValue(e.target.value));
+      scaleSlider.addEventListener('change', () => {
+        this.editor.commitEntityTransform(ent, { initialScale: ent.getLocalScale() });
+      });
+    }
+
+    if (scaleNum) {
+      scaleNum.addEventListener('change', (e) => {
+        applyScaleValue(e.target.value);
+        this.editor.commitEntityTransform(ent, { initialScale: ent.getLocalScale() });
+      });
+    }
+
+    const btnStepDown = body.querySelector('#btn-scale-step-down');
+    const btnStepUp = body.querySelector('#btn-scale-step-up');
+    if (btnStepDown) {
+      btnStepDown.addEventListener('click', () => {
+        const cur = ent.getLocalScale().x;
+        applyScaleValue(Math.max(0.1, cur - 0.1));
+      });
+    }
+    if (btnStepUp) {
+      btnStepUp.addEventListener('click', () => {
+        const cur = ent.getLocalScale().x;
+        applyScaleValue(cur + 0.1);
+      });
+    }
+
+    // Quick Size Presets
+    const presets = [
+      { id: '#btn-scale-05', val: 0.5 },
+      { id: '#btn-scale-10', val: 1.0 },
+      { id: '#btn-scale-20', val: 2.0 },
+      { id: '#btn-scale-40', val: 4.0 }
+    ];
+    presets.forEach(({ id, val }) => {
+      const btn = body.querySelector(id);
+      if (btn) btn.addEventListener('click', () => applyScaleValue(val));
     });
-    body.querySelector('#btn-size-md').addEventListener('click', () => {
-      ent.setLocalScale(1.0, 1.0, 1.0);
-      this.editor.events.emit('entity:transformed', ent);
-    });
-    body.querySelector('#btn-size-lg').addEventListener('click', () => {
-      ent.setLocalScale(2.5, 2.5, 2.5);
-      this.editor.events.emit('entity:transformed', ent);
-    });
+
+    // Activate Canvas Resize Gizmo Button
+    const btnActivateGizmo = body.querySelector('#btn-activate-scale-gizmo');
+    if (btnActivateGizmo) {
+      btnActivateGizmo.addEventListener('click', () => {
+        if (this.editor.toolstrip) {
+          this.editor.toolstrip.setTransformMode('scale');
+        } else if (this.editor.runtime?.gizmoManager) {
+          this.editor.runtime.gizmoManager.setMode('scale');
+        }
+        showToast('⤢ Grab the Corner Hook Arrows on the model to drag-resize!', 'success');
+      });
+    }
 
     // Nudge
     body.querySelector('#nudge-up').addEventListener('click', () => {
@@ -736,6 +811,12 @@ export class InspectorPanel {
               <div class="vec3-item z"><span class="vec3-prefix">Z</span><input type="number" step="0.1" id="scale-z" class="vec3-input"></div>
             </div>
           </div>
+          <div style="display: flex; justify-content: flex-end; margin-top: -4px;">
+            <label style="display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); cursor: pointer;">
+              <input type="checkbox" id="pro-uniform-scale-lock" checked style="accent-color: var(--accent-orange); width: 12px; height: 12px;">
+              <span>🔗 Uniform Scale (XYZ)</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -827,14 +908,36 @@ export class InspectorPanel {
       ent.setEulerAngles(parseFloat(rotInputs[0].value) || 0, parseFloat(rotInputs[1].value) || 0, parseFloat(rotInputs[2].value) || 0);
       this.editor.events.emit('entity:transformed', ent);
     };
-    const updateScale = () => {
-      ent.setLocalScale(parseFloat(scaleInputs[0].value) || 1, parseFloat(scaleInputs[1].value) || 1, parseFloat(scaleInputs[2].value) || 1);
+    const updateScale = (e) => {
+      const lockUniform = this.container.querySelector('#pro-uniform-scale-lock')?.checked;
+      const targetId = e?.target?.id;
+      let sx = parseFloat(scaleInputs[0].value) || 1;
+      let sy = parseFloat(scaleInputs[1].value) || 1;
+      let sz = parseFloat(scaleInputs[2].value) || 1;
+
+      if (lockUniform && targetId) {
+        if (targetId === 'scale-x') {
+          sy = sx; sz = sx;
+          scaleInputs[1].value = (Math.round(sy * 100) / 100).toFixed(2);
+          scaleInputs[2].value = (Math.round(sz * 100) / 100).toFixed(2);
+        } else if (targetId === 'scale-y') {
+          sx = sy; sz = sy;
+          scaleInputs[0].value = (Math.round(sx * 100) / 100).toFixed(2);
+          scaleInputs[2].value = (Math.round(sz * 100) / 100).toFixed(2);
+        } else if (targetId === 'scale-z') {
+          sx = sz; sy = sz;
+          scaleInputs[0].value = (Math.round(sx * 100) / 100).toFixed(2);
+          scaleInputs[1].value = (Math.round(sy * 100) / 100).toFixed(2);
+        }
+      }
+
+      ent.setLocalScale(sx, sy, sz);
       this.editor.events.emit('entity:transformed', ent);
     };
 
     posInputs.forEach(inp => inp.addEventListener('input', updatePos));
     rotInputs.forEach(inp => inp.addEventListener('input', updateRot));
-    scaleInputs.forEach(inp => inp.addEventListener('input', updateScale));
+    scaleInputs.forEach(inp => inp.addEventListener('input', (e) => updateScale(e)));
 
     // Add Component Select
     const compSelect = this.container.querySelector('#add-component-select');

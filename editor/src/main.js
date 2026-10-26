@@ -22,6 +22,7 @@ import { HUDModal } from './ui/hud-modal.js';
 import { AnimBlendModal } from './ui/anim-blend-modal.js';
 import { ConsoleDrawer } from './ui/console-drawer.js';
 import { BehaviorManager } from './core/behaviors.js';
+import { ModelResizerOverlay } from './ui/model-resizer-overlay.js';
 
 // Styles
 import './styles/theme.css';
@@ -99,6 +100,10 @@ async function bootstrap() {
   // Initialize PlayCanvas 3D Engine Runtime
   const runtime = new EngineRuntime(canvasElement, editor);
   editor.setRuntime(runtime);
+
+  // Initialize On-Canvas 3D Model Resizer Overlay
+  const viewportContainer = document.getElementById('viewport-container');
+  new ModelResizerOverlay(viewportContainer, editor);
 
   // Setup Resizable Splitters
   setupSplitters();

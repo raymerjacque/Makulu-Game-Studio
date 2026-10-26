@@ -517,6 +517,10 @@ export class GizmoManager {
     this.translateGizmo = new pc.TranslateGizmo(camera, this.layer);
     this.rotateGizmo = new pc.RotateGizmo(camera, this.layer);
     this.scaleGizmo = new pc.ScaleGizmo(camera, this.layer);
+    this.scaleGizmo.uniform = true;
+    this.scaleGizmo.axisCenterSize = 0.35;
+    this.scaleGizmo.axisBoxSize = 0.28;
+    this.scaleGizmo.axisLineLength = 1.6;
 
     this.gizmos = {
       translate: this.translateGizmo,

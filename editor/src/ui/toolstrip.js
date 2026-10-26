@@ -8,6 +8,7 @@ export class ToolStrip {
   constructor(container, editor) {
     this.container = container;
     this.editor = editor;
+    this.editor.toolstrip = this;
     this.currentMode = 'translate';
     this.coordSpace = 'world';
     this.snapEnabled = false;
