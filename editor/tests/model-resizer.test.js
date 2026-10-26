@@ -38,3 +38,36 @@ test('Model Resizer: Clamped scaling prevents inverted or zero dimensions', () =
   entity.setLocalScale(entity.getLocalScale().mulScalar(maxRatio));
   assert.ok(entity.getLocalScale().x <= 25.0);
 });
+
+test('Model Turn & Rotation: Clockwise, Anticlockwise, and 180° flip commit to undo/redo history', () => {
+  const normalizeAngle = (a) => ((Math.round(a) % 360) + 360) % 360;
+  const editor = new Editor();
+  const entity = editor.createEntity({ name: 'KnightModel' });
+  assert.strictEqual(normalizeAngle(entity.getEulerAngles().y), 0);
+
+  // Turn Clockwise +45°
+  const initialRot1 = entity.getEulerAngles().clone();
+  entity.setEulerAngles(0, 45, 0);
+  editor.commitEntityTransform(entity, { initialRot: initialRot1 });
+  assert.strictEqual(normalizeAngle(entity.getEulerAngles().y), 45);
+
+  // Turn Anticlockwise -90° (45 - 90 = -45 -> 315°)
+  const initialRot2 = entity.getEulerAngles().clone();
+  let yaw = (initialRot2.y - 90) % 360;
+  if (yaw < 0) yaw += 360;
+  entity.setEulerAngles(0, yaw, 0);
+  editor.commitEntityTransform(entity, { initialRot: initialRot2 });
+  assert.strictEqual(normalizeAngle(entity.getEulerAngles().y), 315);
+
+  // Test Undo: reverts to 45°
+  editor.commandBus.undo();
+  assert.strictEqual(normalizeAngle(entity.getEulerAngles().y), 45);
+
+  // Test Undo again: reverts to 0°
+  editor.commandBus.undo();
+  assert.strictEqual(normalizeAngle(entity.getEulerAngles().y), 0);
+
+  // Test Redo: restores to 45°
+  editor.commandBus.redo();
+  assert.strictEqual(normalizeAngle(entity.getEulerAngles().y), 45);
+});

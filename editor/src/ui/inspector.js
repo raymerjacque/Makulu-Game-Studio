@@ -261,6 +261,44 @@ export class InspectorPanel {
         </div>
       </div>
 
+      <!-- Model Direction & Facing (Turn) -->
+      <div class="inspector-section" style="border-color: rgba(56, 189, 248, 0.35);">
+        <div class="inspector-section-header" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; display: flex; justify-content: space-between; align-items: center;">
+          <span>🔄 Direction & Facing (Turn)</span>
+          <span id="simple-rot-display" style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: #38bdf8;">${Math.round(((ent.getEulerAngles().y % 360) + 360) % 360)}°</span>
+        </div>
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Quick Cardinal Directions -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+            <button class="btn btn-sm" id="btn-face-forward" title="Face Forward (0° / South)" style="font-size: 10px; padding: 4px 2px;">⬇ 0° Fwd</button>
+            <button class="btn btn-sm" id="btn-face-right" title="Face Right (90° / East)" style="font-size: 10px; padding: 4px 2px;">➡ 90° Right</button>
+            <button class="btn btn-sm" id="btn-face-back" title="Face Back (180° / North)" style="font-size: 10px; padding: 4px 2px;">⬆ 180° Back</button>
+            <button class="btn btn-sm" id="btn-face-left" title="Face Left (270° / West)" style="font-size: 10px; padding: 4px 2px;">⬅ 270° Left</button>
+          </div>
+
+          <!-- Slider and Stepper Controls -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn btn-sm btn-icon" id="btn-turn-step-left" title="Turn Left (-15°)" style="width: 26px; height: 26px; font-size: 11px;">↶</button>
+            <input type="range" id="simple-rot-slider" min="0" max="360" step="5" value="${Math.round(((ent.getEulerAngles().y % 360) + 360) % 360)}" style="flex: 1; accent-color: #38bdf8; cursor: pointer;">
+            <button class="btn btn-sm btn-icon" id="btn-turn-step-right" title="Turn Right (+15°)" style="width: 26px; height: 26px; font-size: 11px;">↷</button>
+            <input type="number" id="simple-rot-number" min="0" max="360" step="5" value="${Math.round(((ent.getEulerAngles().y % 360) + 360) % 360)}" class="text-input" style="width: 58px; padding: 3px 6px; text-align: center; font-family: var(--font-mono); font-size: 11px;">
+          </div>
+
+          <!-- Quick Turn Presets -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+            <button class="btn btn-sm" id="btn-turn-ccw-45" style="font-size: 10px; padding: 4px 2px;">↶ Turn -45°</button>
+            <button class="btn btn-sm" id="btn-turn-cw-45" style="font-size: 10px; padding: 4px 2px;">↷ Turn +45°</button>
+            <button class="btn btn-sm" id="btn-turn-flip-180" style="font-size: 10px; padding: 4px 2px;">↻ Flip 180°</button>
+          </div>
+
+          <!-- Activate Canvas Rotate Gizmo Button -->
+          <button class="btn btn-sm" id="btn-activate-rot-gizmo" style="border-color: #38bdf8; color: #38bdf8; background: rgba(56, 189, 248, 0.08); font-weight: 600; gap: 6px; margin-top: 2px;">
+            <span>↻</span>
+            <span>Drag Top Turn Handle on Canvas (E)</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Quick Nudge Placement -->
       <div class="inspector-section">
         <div class="inspector-section-header"><span>🕹️ Easy Placement</span></div>
@@ -522,6 +560,80 @@ export class InspectorPanel {
           this.editor.runtime.gizmoManager.setMode('scale');
         }
         showToast('⤢ Grab the Corner Hook Arrows on the model to drag-resize!', 'success');
+      });
+    }
+
+    // Model Direction & Facing (Turn) Controls
+    const rotSlider = body.querySelector('#simple-rot-slider');
+    const rotNum = body.querySelector('#simple-rot-number');
+    const rotDisplay = body.querySelector('#simple-rot-display');
+
+    const applyRotationY = (deg) => {
+      let val = parseFloat(deg);
+      if (isNaN(val)) val = 0;
+      val = ((val % 360) + 360) % 360;
+
+      const initialRot = ent.getEulerAngles().clone();
+      const initialPos = ent.getPosition().clone();
+      const initialScale = ent.getLocalScale().clone();
+
+      ent.setEulerAngles(initialRot.x, val, initialRot.z);
+      this.editor.commitEntityTransform(ent, { initialRot, initialPos, initialScale });
+      this.editor.events.emit('entity:transformed', ent);
+
+      if (rotSlider) rotSlider.value = Math.round(val);
+      if (rotNum) rotNum.value = Math.round(val);
+      if (rotDisplay) rotDisplay.textContent = `${Math.round(val)}°`;
+    };
+
+    if (rotSlider) {
+      rotSlider.addEventListener('input', (e) => applyRotationY(e.target.value));
+    }
+    if (rotNum) {
+      rotNum.addEventListener('change', (e) => applyRotationY(e.target.value));
+    }
+
+    const btnFaceFwd = body.querySelector('#btn-face-forward');
+    const btnFaceRight = body.querySelector('#btn-face-right');
+    const btnFaceBack = body.querySelector('#btn-face-back');
+    const btnFaceLeft = body.querySelector('#btn-face-left');
+
+    if (btnFaceFwd) btnFaceFwd.addEventListener('click', () => applyRotationY(0));
+    if (btnFaceRight) btnFaceRight.addEventListener('click', () => applyRotationY(90));
+    if (btnFaceBack) btnFaceBack.addEventListener('click', () => applyRotationY(180));
+    if (btnFaceLeft) btnFaceLeft.addEventListener('click', () => applyRotationY(270));
+
+    const btnTurnStepLeft = body.querySelector('#btn-turn-step-left');
+    const btnTurnStepRight = body.querySelector('#btn-turn-step-right');
+    if (btnTurnStepLeft) {
+      btnTurnStepLeft.addEventListener('click', () => {
+        const cur = ent.getEulerAngles().y;
+        applyRotationY(cur - 15);
+      });
+    }
+    if (btnTurnStepRight) {
+      btnTurnStepRight.addEventListener('click', () => {
+        const cur = ent.getEulerAngles().y;
+        applyRotationY(cur + 15);
+      });
+    }
+
+    const btnTurnCCW45 = body.querySelector('#btn-turn-ccw-45');
+    const btnTurnCW45 = body.querySelector('#btn-turn-cw-45');
+    const btnTurnFlip180 = body.querySelector('#btn-turn-flip-180');
+    if (btnTurnCCW45) btnTurnCCW45.addEventListener('click', () => applyRotationY(ent.getEulerAngles().y - 45));
+    if (btnTurnCW45) btnTurnCW45.addEventListener('click', () => applyRotationY(ent.getEulerAngles().y + 45));
+    if (btnTurnFlip180) btnTurnFlip180.addEventListener('click', () => applyRotationY(ent.getEulerAngles().y + 180));
+
+    const btnActivateRotGizmo = body.querySelector('#btn-activate-rot-gizmo');
+    if (btnActivateRotGizmo) {
+      btnActivateRotGizmo.addEventListener('click', () => {
+        if (this.editor.toolstrip) {
+          this.editor.toolstrip.setTransformMode('rotate');
+        } else if (this.editor.runtime?.gizmoManager) {
+          this.editor.runtime.gizmoManager.setMode('rotate');
+        }
+        showToast('↻ Drag the Top Turn Handle on the canvas to rotate the model!', 'success');
       });
     }
 

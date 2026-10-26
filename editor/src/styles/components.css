@@ -629,6 +629,52 @@ input:checked + .toggle-slider:before {
   pointer-events: none;
 }
 
+/* On-Canvas Top Turn / Rotation Handle */
+.resizer-turn-stem {
+  position: absolute;
+  width: 2px;
+  background: repeating-linear-gradient(to bottom, #38bdf8 0, #38bdf8 4px, transparent 4px, transparent 8px);
+  pointer-events: none;
+  z-index: 18;
+}
+
+.resizer-turn-handle {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid #38bdf8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  color: #38bdf8;
+  transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+  z-index: 22;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 8px rgba(56, 189, 248, 0.3);
+  cursor: grab;
+  user-select: none;
+}
+
+.resizer-turn-handle:hover {
+  background: #38bdf8;
+  color: #0f172a;
+  transform: scale(1.22);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.7);
+}
+
+.resizer-turn-handle:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.turn-handle-svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
 /* Floating On-Canvas Transform Pill */
 .resizer-floating-hud {
   position: absolute;
@@ -647,7 +693,7 @@ input:checked + .toggle-slider:before {
   white-space: nowrap;
 }
 
-.hud-mode-group, .hud-scale-group {
+.hud-mode-group, .hud-scale-group, .hud-rotate-group {
   display: flex;
   align-items: center;
   gap: 3px;
@@ -696,6 +742,16 @@ input:checked + .toggle-slider:before {
   text-align: center;
 }
 
+.hud-rot-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+  padding: 0 4px;
+  min-width: 36px;
+  text-align: center;
+}
+
 .resizer-drag-tooltip {
   position: fixed;
   background: rgba(15, 19, 26, 0.95);
@@ -713,6 +769,11 @@ input:checked + .toggle-slider:before {
 
 body.resizing-model {
   cursor: nwse-resize !important;
+  user-select: none !important;
+}
+
+body.rotating-model {
+  cursor: crosshair !important;
   user-select: none !important;
 }
 

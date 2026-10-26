@@ -9,8 +9,10 @@ export class ModelResizerOverlay {
     this.canvas = container.querySelector('#viewport-canvas');
     this.targetEntity = null;
     this.isDragging = false;
+    this.isRotating = false;
     this.dragCorner = null;
     this.dragData = null;
+    this.rotateDragData = null;
 
     this.createDOM();
     this.bindEvents();
@@ -24,6 +26,15 @@ export class ModelResizerOverlay {
     this.overlay.innerHTML = `
       <!-- Bounding Box Outline -->
       <div class="resizer-box-frame"></div>
+
+      <!-- Turn / Rotation Stem and Handle -->
+      <div class="resizer-turn-stem"></div>
+      <div class="resizer-turn-handle" title="Drag to Turn / Rotate Model (Shift for 15° Snap)">
+        <svg viewBox="0 0 24 24" class="turn-handle-svg">
+          <path d="M 12 4 A 8 8 0 1 1 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <polyline points="4,7 4,12 9,12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
 
       <!-- 4 Corner Hook Arrows -->
       <div class="resizer-corner-hook corner-nw" data-corner="nw" title="Drag Corner to Resize Model">
@@ -64,6 +75,13 @@ export class ModelResizerOverlay {
           <button class="hud-btn scale-inc" title="Enlarge Size (+15%)">➕</button>
           <button class="hud-btn scale-reset" title="Reset Scale (1x)">↺ 1x</button>
         </div>
+        <div class="hud-divider"></div>
+        <div class="hud-rotate-group">
+          <button class="hud-btn turn-ccw" title="Turn Left / Anticlockwise (-45°)">↶ -45°</button>
+          <span class="hud-rot-val" title="Current Rotation (Y-axis)">0°</span>
+          <button class="hud-btn turn-cw" title="Turn Right / Clockwise (+45°)">↷ +45°</button>
+          <button class="hud-btn turn-180" title="Turn 180° (Face Backward)">↻ 180°</button>
+        </div>
       </div>
 
       <!-- Live Drag Tooltip -->
@@ -73,8 +91,11 @@ export class ModelResizerOverlay {
     this.container.appendChild(this.overlay);
 
     this.boxFrame = this.overlay.querySelector('.resizer-box-frame');
+    this.turnStem = this.overlay.querySelector('.resizer-turn-stem');
+    this.turnHandle = this.overlay.querySelector('.resizer-turn-handle');
     this.floatingHud = this.overlay.querySelector('.resizer-floating-hud');
     this.scaleValText = this.overlay.querySelector('.hud-scale-val');
+    this.rotValText = this.overlay.querySelector('.hud-rot-val');
     this.tooltip = this.overlay.querySelector('.resizer-drag-tooltip');
     this.cornerHooks = this.overlay.querySelectorAll('.resizer-corner-hook');
   }
@@ -90,6 +111,7 @@ export class ModelResizerOverlay {
     this.editor.events.on('entity:transformed', (ent) => {
       if (this.targetEntity === ent) {
         this.updateScaleDisplay();
+        this.updateRotationDisplay();
         this.updatePositions();
       }
     });
@@ -102,6 +124,43 @@ export class ModelResizerOverlay {
       requestAnimationFrame(updateLoop);
     };
     requestAnimationFrame(updateLoop);
+
+    // Top Turn / Rotation Handle Dragging
+    if (this.turnHandle) {
+      this.turnHandle.addEventListener('mousedown', (e) => {
+        if (!this.targetEntity) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.isRotating = true;
+        const bounds = this.getScreenBounds(this.targetEntity);
+        const rect = this.canvas.getBoundingClientRect();
+        const centerScreen = {
+          x: rect.left + (bounds ? bounds.centerX : rect.width / 2),
+          y: rect.top + (bounds ? bounds.centerY : rect.height / 2)
+        };
+
+        const startAngle = Math.atan2(e.clientY - centerScreen.y, e.clientX - centerScreen.x) * (180 / Math.PI);
+        const initialRot = this.targetEntity.getEulerAngles().clone();
+        const initialPos = this.targetEntity.getPosition().clone();
+        const initialScale = this.targetEntity.getLocalScale().clone();
+
+        this.rotateDragData = {
+          initialRot,
+          initialPos,
+          initialScale,
+          centerScreen,
+          startAngle
+        };
+
+        this.tooltip.style.display = 'block';
+        this.tooltip.style.left = `${e.clientX + 16}px`;
+        this.tooltip.style.top = `${e.clientY - 28}px`;
+        const initialYaw = Math.round(((initialRot.y % 360) + 360) % 360);
+        this.tooltip.textContent = `↻ Turn: ${initialYaw}°`;
+        document.body.classList.add('rotating-model');
+      });
+    }
 
     // Corner Hook Dragging
     this.cornerHooks.forEach(hook => {
@@ -138,6 +197,31 @@ export class ModelResizerOverlay {
     });
 
     window.addEventListener('mousemove', (e) => {
+      // Rotation drag
+      if (this.isRotating && this.targetEntity && this.rotateDragData) {
+        e.preventDefault();
+        const { initialRot, centerScreen, startAngle } = this.rotateDragData;
+        const curAngle = Math.atan2(e.clientY - centerScreen.y, e.clientX - centerScreen.x) * (180 / Math.PI);
+        const delta = curAngle - startAngle;
+
+        let newYaw = initialRot.y - delta;
+        if (e.shiftKey) {
+          // Snap to 15° increments with Shift
+          newYaw = Math.round(newYaw / 15) * 15;
+        }
+        newYaw = ((newYaw % 360) + 360) % 360;
+
+        this.targetEntity.setEulerAngles(initialRot.x, newYaw, initialRot.z);
+        this.editor.events.emit('entity:transformed', this.targetEntity);
+
+        this.tooltip.style.left = `${e.clientX + 16}px`;
+        this.tooltip.style.top = `${e.clientY - 28}px`;
+        this.tooltip.textContent = `↻ Turn: ${Math.round(newYaw)}°${e.shiftKey ? ' (Snap 15°)' : ''}`;
+        this.updateRotationDisplay();
+        return;
+      }
+
+      // Scale drag
       if (!this.isDragging || !this.targetEntity || !this.dragData) return;
       e.preventDefault();
 
@@ -161,6 +245,20 @@ export class ModelResizerOverlay {
     });
 
     window.addEventListener('mouseup', () => {
+      // End rotation drag
+      if (this.isRotating) {
+        this.isRotating = false;
+        document.body.classList.remove('rotating-model');
+        this.tooltip.style.display = 'none';
+
+        if (this.targetEntity && this.rotateDragData) {
+          const { initialRot, initialPos, initialScale } = this.rotateDragData;
+          this.editor.commitEntityTransform(this.targetEntity, { initialRot, initialPos, initialScale });
+        }
+        this.rotateDragData = null;
+      }
+
+      // End scale drag
       if (this.isDragging) {
         this.isDragging = false;
         document.body.classList.remove('resizing-model');
@@ -216,6 +314,32 @@ export class ModelResizerOverlay {
       this.editor.commitEntityTransform(this.targetEntity, { initialScale });
       this.editor.events.emit('entity:transformed', this.targetEntity);
     });
+
+    // Floating HUD Quick Turn Buttons (Clockwise, Anticlockwise, 180 Flip)
+    const btnTurnCCW = this.overlay.querySelector('.turn-ccw');
+    const btnTurnCW = this.overlay.querySelector('.turn-cw');
+    const btnTurn180 = this.overlay.querySelector('.turn-180');
+
+    if (btnTurnCCW) {
+      btnTurnCCW.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.rotateByDegrees(-45);
+      });
+    }
+
+    if (btnTurnCW) {
+      btnTurnCW.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.rotateByDegrees(45);
+      });
+    }
+
+    if (btnTurn180) {
+      btnTurn180.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.rotateByDegrees(180);
+      });
+    }
   }
 
   setGizmoMode(mode) {
@@ -252,6 +376,30 @@ export class ModelResizerOverlay {
     }
   }
 
+  rotateByDegrees(delta) {
+    if (!this.targetEntity) return;
+    const initialRot = this.targetEntity.getEulerAngles().clone();
+    const initialPos = this.targetEntity.getPosition().clone();
+    const initialScale = this.targetEntity.getLocalScale().clone();
+
+    let newYaw = (initialRot.y + delta) % 360;
+    if (newYaw < 0) newYaw += 360;
+
+    this.targetEntity.setEulerAngles(initialRot.x, newYaw, initialRot.z);
+    this.editor.commitEntityTransform(this.targetEntity, { initialRot, initialPos, initialScale });
+    this.editor.events.emit('entity:transformed', this.targetEntity);
+    this.updateRotationDisplay();
+  }
+
+  updateRotationDisplay() {
+    if (!this.targetEntity) return;
+    const rotY = Math.round(this.targetEntity.getEulerAngles().y);
+    const normalized = ((rotY % 360) + 360) % 360;
+    if (this.rotValText) {
+      this.rotValText.textContent = `${normalized}°`;
+    }
+  }
+
   updateVisibility() {
     const app = this.editor.getApp();
     if (!this.targetEntity || this.targetEntity === (app ? app.root : null) || this.editor.isPlaying) {
@@ -261,6 +409,7 @@ export class ModelResizerOverlay {
 
     this.overlay.style.display = 'block';
     this.updateScaleDisplay();
+    this.updateRotationDisplay();
     this.updatePositions();
   }
 
@@ -396,10 +545,21 @@ export class ModelResizerOverlay {
     sw.style.left = `${bounds.left - 14}px`;
     sw.style.top = `${bounds.top + bounds.height - 14}px`;
 
-    // Position Floating Transform Pill above bounding box
-    const hudWidth = 240;
+    // Position Top Turn / Rotation Handle & Stem
+    if (this.turnStem && this.turnHandle) {
+      const centerX = bounds.left + bounds.width / 2;
+      this.turnStem.style.left = `${centerX - 1}px`;
+      this.turnStem.style.top = `${bounds.top - 30}px`;
+      this.turnStem.style.height = `30px`;
+
+      this.turnHandle.style.left = `${centerX - 14}px`;
+      this.turnHandle.style.top = `${bounds.top - 44}px`;
+    }
+
+    // Position Floating Transform Pill above bounding box and turn handle
+    const hudWidth = 360;
     let hudLeft = bounds.left + bounds.width / 2 - hudWidth / 2;
-    let hudTop = bounds.top - 46;
+    let hudTop = bounds.top - 82;
 
     // Viewport containment bounds
     const containerRect = this.container.getBoundingClientRect();
