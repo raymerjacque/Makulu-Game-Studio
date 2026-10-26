@@ -991,7 +991,7 @@ export class BehaviorManager {
           } else if (b.type === 'wall_run_controller') {
             if (this.isKeyDown('w') || this.isKeyDown('arrowup')) {
               if (!b._state) b._state = { wallRunning: false };
-              entity.translateLocal(0, 0.08, -(b.params.speed || 10) * dt * 0.4);
+              entity.translateLocal(0, (b.params.climbRate || 0.5) * dt, -(b.params.speed || 10) * dt * 0.4);
               if (this.isKeyDown(' ') || this.isKeyDown('space')) {
                 if (entity.rigidbody) entity.rigidbody.applyImpulse(0, b.params.jumpForce || 12, 0);
                 else entity.translate(0, 2, 0);
@@ -1014,8 +1014,12 @@ export class BehaviorManager {
                 const dir = b._state.targetPos.clone().sub(curPos);
                 if (dir.lengthSq() > 0.5) {
                   dir.normalize().mulScalar((b.params.pullSpeed || 20) * dt);
-                  if (entity.rigidbody) entity.rigidbody.teleport(curPos.clone().add(dir));
-                  else entity.translate(dir);
+                  if (entity.rigidbody) {
+                    entity.rigidbody.teleport(curPos.clone().add(dir));
+                    entity.rigidbody.linearVelocity = pc.Vec3.ZERO;
+                  } else {
+                    entity.translate(dir);
+                  }
                 }
               }
             } else {
@@ -1026,7 +1030,8 @@ export class BehaviorManager {
             const launchKey = this.isKeyDown('f') || this.isKeyDown('keyf');
             if (!b._state) b._state = { heldEntity: null };
 
-            if (grabKey && !b._state.heldEntity) {
+            if (grabKey && !b._state.heldEntity && !b._grabCooldown) {
+              b._grabCooldown = 0.3;
               app.root.forEach(other => {
                 if (other !== entity && other.rigidbody && other.enabled) {
                   if (entity.getPosition().distance(other.getPosition()) < (b.params.range || 12)) {
@@ -1036,12 +1041,18 @@ export class BehaviorManager {
                   }
                 }
               });
+            } else if (grabKey && b._state.heldEntity && !b._grabCooldown) {
+              b._grabCooldown = 0.3;
+              if (typeof showToast === 'function') showToast(`🧲 Gravity Gun released ${b._state.heldEntity.name}.`, 'info');
+              b._state.heldEntity = null;
             }
+            if (b._grabCooldown > 0) b._grabCooldown -= dt;
 
             if (b._state.heldEntity) {
               const holdPos = entity.getPosition().clone().add(entity.forward.clone().mulScalar(3.0)).add(new pc.Vec3(0, 0.5, 0));
               if (b._state.heldEntity.rigidbody) {
                 b._state.heldEntity.rigidbody.teleport(holdPos);
+                b._state.heldEntity.rigidbody.linearVelocity = pc.Vec3.ZERO;
               } else {
                 b._state.heldEntity.setPosition(holdPos);
               }
@@ -1151,6 +1162,14 @@ export class BehaviorManager {
     const behaviors = this.getBehaviors(entity);
     let remaining = amount;
 
+    // Check tactical cover system
+    const coverB = behaviors.find(b => b.type === 'cover_system');
+    if (coverB && coverB._inCover) {
+      const reduction = coverB.params.damageReduction !== undefined ? coverB.params.damageReduction : 0.75;
+      remaining = Math.round(remaining * (1.0 - reduction));
+      if (typeof showToast === 'function') showToast(`🛡️ In Cover! Damage reduced by ${Math.round(reduction * 100)}%!`, 'info');
+    }
+
     // Check energy shield
     const shieldB = behaviors.find(b => b.type === 'shield_generator');
     if (shieldB) {
@@ -1177,6 +1196,12 @@ export class BehaviorManager {
         if (typeof showToast === 'function') showToast(`💥 ${entity.name} took ${remaining} damage from ${sourceName}! HP: ${healthB.params.currentHp}`, 'warn');
 
         if (healthB.params.currentHp <= 0) {
+          const ragdollB = behaviors.find(b => b.type === 'ragdoll_physics');
+          if (ragdollB && entity.rigidbody) {
+            entity.rigidbody.angularFactor = new pc.Vec3(1, 1, 1);
+            entity.rigidbody.linearFactor = new pc.Vec3(1, 1, 1);
+            entity.rigidbody.applyImpulse((Math.random() - 0.5) * 5, 2, (Math.random() - 0.5) * 5);
+          }
           if (entity._respawnCheckpoint) {
             entity.setPosition(entity._respawnCheckpoint);
             healthB.params.currentHp = maxHp;

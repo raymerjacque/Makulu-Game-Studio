@@ -67,5 +67,36 @@ test('AAA Expansion: Standalone Game Bundler includes new AAA behaviors', () => 
 
   assert.ok(html.includes('wall_run_controller'));
   assert.ok(html.includes('grappling_hook'));
+  assert.ok(html.includes('grav_gun_physicshandler'));
+  assert.ok(html.includes('inventory_crafting'));
+  assert.ok(html.includes('dialogue_system'));
+  assert.ok(html.includes('quest_tracker'));
+  assert.ok(html.includes('cover_system'));
+  assert.ok(html.includes('day_night_weather_cycle'));
   assert.ok(html.includes('AAA Test Game'));
+});
+
+test('Combat System: Cover System reduces damage and Ragdoll Physics triggers on defeat', () => {
+  const editor = new Editor();
+  const behaviors = new BehaviorManager(editor);
+  editor.behaviors = behaviors;
+
+  const player = editor.createEntity({ name: 'CoverAgent' });
+  behaviors.attachBehavior(player, 'health', { maxHp: 100, currentHp: 100 });
+  behaviors.attachBehavior(player, 'cover_system', { damageReduction: 0.75 });
+  behaviors.attachBehavior(player, 'ragdoll_physics', {});
+
+  // Simulate being in cover
+  const coverB = behaviors.getBehaviors(player).find(b => b.type === 'cover_system');
+  coverB._inCover = true;
+
+  // 100 damage with 75% reduction = 25 damage dealt
+  behaviors.applyDamage(player, 100, 'Sniper');
+  const healthB = behaviors.getBehaviors(player).find(b => b.type === 'health');
+  assert.strictEqual(healthB.params.currentHp, 75);
+
+  // When out of cover, full damage applies
+  coverB._inCover = false;
+  behaviors.applyDamage(player, 75, 'LethalBlast');
+  assert.strictEqual(healthB.params.currentHp, 0);
 });

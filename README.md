@@ -111,14 +111,16 @@ Users can configure their own API keys (Bring-Your-Own-Key) with local, private 
 
 ### 🛠️ Autonomous AI Action Capabilities
 The AI Executor translates natural language intent into direct engine modifications with full undo history:
-* **Scene Construction:** Spawn primitives, GLB 3D models, procedural terrains, lights, audio emitters, and particle systems.
-* **Transform Operations:** Translate, rotate (Euler angles), and scale entities.
-* **Material Engineering:** Generate and assign PBR materials with custom diffuse, metalness, roughness, emissive, and opacity via `create_material`.
-* **Behavior Injection:** Attach any of the 53 interactive No-Code gameplay behaviors (`boss_ai`, `stealth_ai`, `vehicle_controller`, `wasd`, `turret_ai`, `shield_generator`, etc.).
-* **Atmosphere & PostFX Control:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
-* **Physics & Constraints:** Dynamically attach Rigidbody, Collision, and 6-DOF / Hinge / Ball Physics Joint constraints.
+* **Procedural Architectural Construction:** Build complete modular rooms, combat arenas, spiral staircases, and cylindrical towers with collisions via `build_architecture`.
+* **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
+* **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
+* **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
+* **Behavior Injection:** Attach any of the **63 interactive No-Code gameplay behaviors** (`wall_run_controller`, `grappling_hook`, `grav_gun_physicshandler`, `boss_ai`, `cover_system`, `quest_tracker`, etc.).
+* **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
+* **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
+* **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
 * **Component Engineering:** Attach Rigidbody, Collision, Light, Render, Audio (`add_sound`), and Particle (`add_particle_system`) components.
-* **Entity & Scene Management:** Select, frame, reparent (`reparent_entity`), duplicate (`duplicate_entity`), delete, or clear entire scenes (`clear_scene`) on command.
+* **Animation State Machines:** Configure 2D/3D state blend trees and parameter conditions via `configure_anim_blend`.
 
 ---
 
@@ -232,6 +234,26 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Atmospheric weather generator that periodically emits falling volumetric snowflakes or raindrops with translucent materials and auto-cleanup.
 53. **🛡️ Energy Shield Component:**
     Regenerative shield layer that absorbs incoming combat damage and hazard strikes before hit points are depleted, automatically recharging after a configurable delay.
+54. **🧗 Parkour Wall-Running:**
+    High-mobility parkour system enabling agile wall navigation along vertical surfaces, wall-slides, and vertical physics ejection jumps on `Spacebar`.
+55. **🪝 Physics Grappling Hook:**
+    Directional grappling beam (`G` key) that anchors to geometry up to 35m away and pulls the player character smoothly toward target latch coordinates.
+56. **🧲 Gravity Gun / Physics Beam:**
+    Half-Life 2 style physics manipulator allowing players to grab nearby dynamic physics props on `E`, suspend them in mid-air, launch them forward as high-velocity kinetic projectiles on `F`, or drop them on `E`.
+57. **🎒 Item Inventory & Crafting System:**
+    Resource collection and recipe synthesis engine. Manages gathered raw ingredients (Wood, Iron Ore, Gems) and produces crafted items, weapons, and tools on `C`.
+58. **💬 Interactive NPC Dialogue Tree:**
+    Storytelling component that detects player approach within a conversation radius and renders custom character dialog, subtitles, and interactive prompts on screen with audio chimes.
+59. **📜 Live HUD Quest Objective Tracker:**
+    Tracks active quest objectives, quotas, and goals (e.g. "Defeat the Boss", "Collect 5 Relics"), rendering live status on the player's screen and celebrating completion.
+60. **🗺️ 2D Screen HUD Minimap & Radar:**
+    Radar surveillance screen component that tracks active entities, enemies, objectives, and landmarks within an adjustable scanning range.
+61. **🛡️ Dynamic Tactical Cover Mechanics:**
+    Tactical shooter mechanic that detects when a player engages cover (`C` / `Shift`), dynamically mitigating incoming projectile and hazard damage by up to 75%.
+62. **🦴 Ragdoll Physics Collapse:**
+    Realistic physics defeat component that disables rigid constraints and unlocks angular/linear degrees of freedom upon zero HP, collapsing characters dynamically with realistic momentum.
+63. **🌦️ Dynamic Day-Night Weather Cycle:**
+    Unified environmental orchestrator that drives continuous 360-degree celestial sunlight rotation and triggers dynamic weather transitions.
 
 ---
 

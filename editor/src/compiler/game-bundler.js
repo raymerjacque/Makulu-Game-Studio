@@ -1277,7 +1277,11 @@ export class GameBundler {
                 if (window.playProceduralSFX) window.playProceduralSFX('explosion');
                 window.triggerScreenShake(0.6, 0.3);
                 const playerB = playerEntity._behaviors || [];
-                const dmg = isEnraged ? (b.properties.damage || 30) * 1.5 : (b.properties.damage || 30);
+                const coverB = playerB.find(cb => cb.type === 'cover_system');
+                let dmg = isEnraged ? (b.properties.damage || 30) * 1.5 : (b.properties.damage || 30);
+                if (coverB && coverB._inCover) {
+                  dmg = Math.round(dmg * (1.0 - (coverB.properties?.damageReduction || 0.75)));
+                }
                 const shieldB = playerB.find(sb => sb.type === 'shield_generator');
                 let remDmg = dmg;
                 if (shieldB && (shieldB.properties.currentShield || 0) > 0) {
@@ -1294,9 +1298,17 @@ export class GameBundler {
                   const healthB = playerB.find(hb => hb.type === 'health');
                   if (healthB) {
                     healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - remDmg);
-                    if (healthB.properties.currentHp <= 0 && playerEntity._respawnCheckpoint) {
-                      playerEntity.setPosition(playerEntity._respawnCheckpoint);
-                      healthB.properties.currentHp = healthB.properties.maxHp || 100;
+                    if (healthB.properties.currentHp <= 0) {
+                      const ragdollB = playerB.find(rb => rb.type === 'ragdoll_physics');
+                      if (ragdollB && playerEntity.rigidbody) {
+                        playerEntity.rigidbody.angularFactor = new pc.Vec3(1, 1, 1);
+                        playerEntity.rigidbody.linearFactor = new pc.Vec3(1, 1, 1);
+                        playerEntity.rigidbody.applyImpulse((Math.random() - 0.5) * 5, 2, (Math.random() - 0.5) * 5);
+                      }
+                      if (playerEntity._respawnCheckpoint) {
+                        playerEntity.setPosition(playerEntity._respawnCheckpoint);
+                        healthB.properties.currentHp = healthB.properties.maxHp || 100;
+                      }
                     }
                   }
                 }
@@ -1477,6 +1489,118 @@ export class GameBundler {
             } else if (b.properties.currentShield < (b.properties.maxShield || 50)) {
               b.properties.currentShield = Math.min(b.properties.maxShield || 50, b.properties.currentShield + (b.properties.rechargeRate || 10) * dt);
             }
+          } else if (b.type === 'wall_run_controller') {
+            if (keys['w'] || keys['arrowup']) {
+              node.translateLocal(0, (b.properties?.climbRate || 0.5) * dt, -(b.properties?.speed || 10) * dt * 0.4);
+              if (keys[' '] || keys['space']) {
+                if (node.rigidbody) node.rigidbody.applyImpulse(0, b.properties?.jumpForce || 12, 0);
+                else node.translate(0, 2, 0);
+                if (window.playProceduralSFX) window.playProceduralSFX('jump');
+              }
+            }
+          } else if (b.type === 'grappling_hook') {
+            const gKey = keys['g'] || keys['keyg'];
+            if (gKey) {
+              if (!b._state) b._state = { active: false, targetPos: null };
+              if (!b._state.active) {
+                b._state.active = true;
+                const fwd = node.forward.clone().normalize().mulScalar(b.properties?.range || 35);
+                b._state.targetPos = node.getPosition().clone().add(fwd);
+                if (window.playProceduralSFX) window.playProceduralSFX('laser');
+              }
+              if (b._state.targetPos) {
+                const curPos = node.getPosition();
+                const dir = b._state.targetPos.clone().sub(curPos);
+                if (dir.lengthSq() > 0.5) {
+                  dir.normalize().mulScalar((b.properties?.pullSpeed || 20) * dt);
+                  if (node.rigidbody) {
+                    node.rigidbody.teleport(curPos.clone().add(dir));
+                    node.rigidbody.linearVelocity = pc.Vec3.ZERO;
+                  } else {
+                    node.translate(dir);
+                  }
+                }
+              }
+            } else {
+              if (b._state) b._state.active = false;
+            }
+          } else if (b.type === 'grav_gun_physicshandler') {
+            const grabKey = keys['e'] || keys['keye'];
+            const launchKey = keys['f'] || keys['keyf'];
+            if (!b._state) b._state = { heldEntity: null };
+
+            if (grabKey && !b._state.heldEntity && !b._grabCooldown) {
+              b._grabCooldown = 0.3;
+              app.root.forEach(other => {
+                if (other !== node && other.rigidbody && other.enabled) {
+                  if (node.getPosition().distance(other.getPosition()) < (b.properties?.range || 12)) {
+                    b._state.heldEntity = other;
+                    if (window.playProceduralSFX) window.playProceduralSFX('boost');
+                  }
+                }
+              });
+            } else if (grabKey && b._state.heldEntity && !b._grabCooldown) {
+              b._grabCooldown = 0.3;
+              b._state.heldEntity = null;
+            }
+            if (b._grabCooldown > 0) b._grabCooldown -= dt;
+
+            if (b._state.heldEntity) {
+              const holdPos = node.getPosition().clone().add(node.forward.clone().mulScalar(3.0)).add(new pc.Vec3(0, 0.5, 0));
+              if (b._state.heldEntity.rigidbody) {
+                b._state.heldEntity.rigidbody.teleport(holdPos);
+                b._state.heldEntity.rigidbody.linearVelocity = pc.Vec3.ZERO;
+              } else {
+                b._state.heldEntity.setPosition(holdPos);
+              }
+
+              if (launchKey) {
+                const launchVec = node.forward.clone().normalize().mulScalar(b.properties?.launchForce || 30);
+                if (b._state.heldEntity.rigidbody) {
+                  b._state.heldEntity.rigidbody.applyImpulse(launchVec.x, launchVec.y, launchVec.z);
+                }
+                if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                window.triggerScreenShake(0.4, 0.2);
+                b._state.heldEntity = null;
+              }
+            }
+          } else if (b.type === 'inventory_crafting') {
+            if (!b._state) b._state = { items: ['Wood', 'Iron Ore'] };
+            const craftKey = keys['c'] || keys['keyc'];
+            if (craftKey && !b._keyCd) {
+              b._keyCd = true;
+              if (window.playProceduralSFX) window.playProceduralSFX('coin');
+            }
+            if (!craftKey) b._keyCd = false;
+          } else if (b.type === 'dialogue_system') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 3.0;
+              if (!b._state) b._state = { active: false };
+              if (dist <= radius && !b._state.active) {
+                b._state.active = true;
+                if (window.playProceduralSFX) window.playProceduralSFX('door');
+              } else if (dist > radius && b._state.active) {
+                b._state.active = false;
+              }
+            }
+          } else if (b.type === 'quest_tracker') {
+            if (b.properties.currentCount === undefined) b.properties.currentCount = 0;
+            if (!b._state) b._state = { completed: false };
+            if (b.properties.currentCount >= (b.properties.requiredCount || 1) && !b._state.completed) {
+              b._state.completed = true;
+              if (window.playProceduralSFX) window.playProceduralSFX('victory');
+            }
+          } else if (b.type === 'minimap_radar') {
+            if (!b._state) b._state = { blips: [] };
+          } else if (b.type === 'cover_system') {
+            const inCoverKey = keys['c'] || keys['shift'];
+            b._inCover = Boolean(inCoverKey);
+          } else if (b.type === 'ragdoll_physics') {
+            // Handled on defeat
+          } else if (b.type === 'day_night_weather_cycle') {
+            const speed = b.properties?.cycleSpeed || 0.05;
+            node.rotate(speed * dt * 20, 0, 0);
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;
             if (b._cooldown > 0) b._cooldown -= dt;
