@@ -284,12 +284,8 @@ export class BehaviorManager {
                 const playerBehaviors = this.getBehaviors(player);
                 const healthB = playerBehaviors.find(hb => hb.type === 'health');
                 if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
-                  healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || healthB.params.maxHp || 100) - dmg);
                   healthB._invincibleTimer = b.params.cooldown || 1.0;
-                  if (typeof showToast === 'function') showToast(`⚠️ Player took ${dmg} damage from ${entity.name}! HP: ${healthB.params.currentHp}`, 'warn');
-                  if (healthB.params.currentHp <= 0) {
-                    if (typeof showToast === 'function') showToast(`💀 GAME OVER! ${player.name} was defeated.`, 'error');
-                  }
+                  this.applyDamage(player, dmg, entity.name);
                 }
               }
             }
@@ -332,14 +328,9 @@ export class BehaviorManager {
                   b._attackTimer -= dt;
                   if (b._attackTimer <= 0) {
                     b._attackTimer = b.params.attackRate || 1.0;
-                    const playerBehaviors = this.getBehaviors(player);
-                    const healthB = playerBehaviors.find(hb => hb.type === 'health');
-                    if (healthB) {
-                      const dmg = b.params.damage || 15;
-                      healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || healthB.params.maxHp || 100) - dmg);
-                      this.triggerScreenShake(0.4, 0.2);
-                      if (typeof showToast === 'function') showToast(`⚔️ Enemy ${entity.name} attacked player for ${dmg} damage! HP: ${healthB.params.currentHp}`, 'warn');
-                    }
+                    const dmg = b.params.damage || 15;
+                    this.applyDamage(player, dmg, `Enemy ${entity.name}`);
+                    this.triggerScreenShake(0.4, 0.2);
                   }
                 }
               }
@@ -577,11 +568,10 @@ export class BehaviorManager {
                 const playerBehaviors = this.getBehaviors(player);
                 const healthB = playerBehaviors.find(hb => hb.type === 'health');
                 if (healthB && (!healthB._invincibleTimer || healthB._invincibleTimer <= 0)) {
-                  healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - dmg);
                   healthB._invincibleTimer = 1.0;
                   this.triggerScreenShake(0.6, 0.3);
                   proceduralSFX.play('explosion');
-                  if (typeof showToast === 'function') showToast(`🔥 Player fell into Lava Hazard! HP: ${healthB.params.currentHp}`, 'error');
+                  this.applyDamage(player, dmg, 'Lava Hazard');
                 }
               }
             }
@@ -711,13 +701,8 @@ export class BehaviorManager {
                     }
                     bullet.translateLocal(0, 0, -bulletSpeed * bdt);
                     if (player && player.enabled && bullet.getPosition().distance(player.getPosition()) < 1.5) {
-                      const playerBehaviors = this.getBehaviors(player);
-                      const healthB = playerBehaviors.find(hb => hb.type === 'health');
-                      if (healthB) {
-                        healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - (b.params.damage || 15));
-                        this.triggerScreenShake(0.3, 0.15);
-                        if (typeof showToast === 'function') showToast(`⚠️ Turret hit player! HP: ${healthB.params.currentHp}`, 'warn');
-                      }
+                      this.applyDamage(player, b.params.damage || 15, `Turret ${entity.name}`);
+                      this.triggerScreenShake(0.3, 0.15);
                       lifetime = 0;
                     }
                   };
@@ -826,19 +811,20 @@ export class BehaviorManager {
 
               entity.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
 
+              // Boss advances toward player if outside melee range
+              if (dist > 3.5 && dist <= 25) {
+                const bSpeed = (b.params.speed || 3.0) * (isEnraged ? 1.5 : 1.0);
+                entity.translateLocal(0, 0, -bSpeed * dt);
+              }
+
               if (!b._attackTimer) b._attackTimer = 0;
               b._attackTimer -= dt;
-              if (b._attackTimer <= 0 && dist < 20) {
+              if (b._attackTimer <= 0 && dist <= 4.0) {
                 b._attackTimer = isEnraged ? (b.params.attackRate || 2.0) * 0.5 : (b.params.attackRate || 2.0);
                 proceduralSFX.play('explosion');
                 this.triggerScreenShake(0.6, 0.3);
-                const playerBehaviors = this.getBehaviors(player);
-                const healthB = playerBehaviors.find(hb => hb.type === 'health');
-                if (healthB && dist < 3.5) {
-                  const dmg = isEnraged ? (b.params.damage || 30) * 1.5 : (b.params.damage || 30);
-                  healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - dmg);
-                  if (typeof showToast === 'function') showToast(`🐉 Boss ${entity.name} ${isEnraged ? 'ENRAGED Slammed' : 'Slammed'} player for ${dmg} DMG!`, 'error');
-                }
+                const dmg = isEnraged ? (b.params.damage || 30) * 1.5 : (b.params.damage || 30);
+                this.applyDamage(player, dmg, `Boss ${entity.name}${isEnraged ? ' (ENRAGED)' : ''}`);
               }
             } else if (b.params.currentHp <= 0 && entity.enabled) {
               entity.enabled = false;
@@ -862,13 +848,12 @@ export class BehaviorManager {
                 if (angle <= visionAngle / 2) {
                   entity.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
                   entity.translateLocal(0, 0, -(b.params.speed || 2.5) * dt);
-                  if (dist < 1.8) {
-                    const playerBehaviors = this.getBehaviors(player);
-                    const healthB = playerBehaviors.find(hb => hb.type === 'health');
-                    if (healthB) {
-                      healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - 25);
-                      if (typeof showToast === 'function') showToast(`🥷 Guard spotted you! Took 25 damage!`, 'warn');
-                    }
+
+                  if (!b._attackTimer) b._attackTimer = 0;
+                  b._attackTimer -= dt;
+                  if (dist < 1.8 && b._attackTimer <= 0) {
+                    b._attackTimer = 1.0;
+                    this.applyDamage(player, b.params.damage || 25, `Guard ${entity.name}`);
                   }
                 }
               }
@@ -898,8 +883,9 @@ export class BehaviorManager {
 
             const camera = app.root.find(node => node.camera);
             if (camera) {
-              const camTarget = entity.getPosition().clone().add(entity.forward.clone().mulScalar(8)).add(new pc.Vec3(0, 4, 0));
-              camera.setPosition(camera.getPosition().lerp(camera.getPosition(), camTarget, dt * 5));
+              const camTarget = entity.getPosition().clone().sub(entity.forward.clone().mulScalar(8)).add(new pc.Vec3(0, 4, 0));
+              const currentPos = camera.getPosition();
+              camera.setPosition(currentPos.clone().lerp(currentPos, camTarget, Math.min(1, dt * 5)));
               camera.lookAt(entity.getPosition());
             }
           } else if (b.type === 'destruction_mesh') {
@@ -913,13 +899,17 @@ export class BehaviorManager {
               const pos = entity.getPosition();
               for (let i = 0; i < debrisCount; i++) {
                 const chunk = new pc.Entity(`Debris_${i}`);
-                chunk.setPosition(pos.clone().add(new pc.Vec3((Math.random()-0.5)*1.5, Math.random()*1.5, (Math.random()-0.5)*1.5)));
+                const chunkOffset = new pc.Vec3((Math.random()-0.5)*1.5, Math.random()*1.5, (Math.random()-0.5)*1.5);
+                chunk.setPosition(pos.clone().add(chunkOffset));
                 chunk.setLocalScale(0.3, 0.3, 0.3);
                 const mat = new pc.StandardMaterial();
                 mat.diffuse = new pc.Color(0.8, 0.4, 0.1);
                 mat.update();
                 chunk.addComponent('render', { type: 'box', material: mat });
                 app.root.addChild(chunk);
+                setTimeout(() => {
+                  try { chunk.destroy(); } catch (e) {}
+                }, 3000);
               }
               if (typeof showToast === 'function') showToast(`💥 ${entity.name} shattered into debris!`, 'info');
             }
@@ -940,7 +930,10 @@ export class BehaviorManager {
             if (!b.state) b.state = { hits: 0, timer: 0 };
             if (b.state.timer > 0) {
               b.state.timer -= dt;
-              if (b.state.timer <= 0) b.state.hits = 0;
+              if (b.state.timer <= 0) {
+                b.state.hits = 0;
+                b.state.timer = 0;
+              }
             }
           } else if (b.type === 'checkpoint_system') {
             const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
@@ -961,12 +954,31 @@ export class BehaviorManager {
             if (!b._weatherTimer) b._weatherTimer = 0;
             b._weatherTimer -= dt;
             if (b._weatherTimer <= 0) {
-              b._weatherTimer = 0.1;
+              b._weatherTimer = 0.08;
               const drop = new pc.Entity('WeatherParticle');
               const pos = entity.getPosition();
-              drop.setPosition(pos.x + (Math.random() - 0.5) * 20, pos.y + 10, pos.z + (Math.random() - 0.5) * 20);
-              drop.setLocalScale(0.1, 0.1, 0.1);
+              const isSnow = (b.params.type || 'snow').toLowerCase() === 'snow';
+              drop.setPosition(pos.x + (Math.random() - 0.5) * 30, pos.y + 12, pos.z + (Math.random() - 0.5) * 30);
+              drop.setLocalScale(isSnow ? 0.12 : 0.04, isSnow ? 0.12 : 0.3, isSnow ? 0.12 : 0.04);
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = isSnow ? new pc.Color(0.9, 0.95, 1.0) : new pc.Color(0.4, 0.6, 0.9);
+              mat.opacity = 0.7;
+              mat.blendType = pc.BLEND_NORMAL;
+              mat.update();
+              drop.addComponent('render', { type: isSnow ? 'sphere' : 'cylinder', material: mat });
               app.root.addChild(drop);
+
+              let dropLife = 1.8;
+              const dropSpeed = isSnow ? 3.5 : 16.0;
+              const updateDrop = (ddt) => {
+                dropLife -= ddt;
+                drop.translate(0, -dropSpeed * ddt, 0);
+                if (dropLife <= 0) {
+                  app.off('update', updateDrop);
+                  try { drop.destroy(); } catch (e) {}
+                }
+              };
+              app.on('update', updateDrop);
             }
           } else if (b.type === 'shield_generator') {
             if (b.params.currentShield === undefined) b.params.currentShield = b.params.maxShield || 50;
@@ -1022,5 +1034,49 @@ export class BehaviorManager {
 
   getBehaviors(entity) {
     return this.activeBehaviors.get(entity) || [];
+  }
+
+  applyDamage(entity, amount, sourceName = 'Hazard') {
+    if (!entity) return;
+    const behaviors = this.getBehaviors(entity);
+    let remaining = amount;
+
+    // Check energy shield
+    const shieldB = behaviors.find(b => b.type === 'shield_generator');
+    if (shieldB) {
+      if (shieldB.params.currentShield === undefined) shieldB.params.currentShield = shieldB.params.maxShield || 50;
+      shieldB._rechargeTimer = shieldB.params.rechargeDelay || 3.0;
+      if (shieldB.params.currentShield > 0) {
+        if (shieldB.params.currentShield >= remaining) {
+          shieldB.params.currentShield -= remaining;
+          remaining = 0;
+          if (typeof showToast === 'function') showToast(`🛡️ Shield absorbed ${amount} damage! (${Math.round(shieldB.params.currentShield)}/${shieldB.params.maxShield || 50})`, 'info');
+        } else {
+          remaining -= shieldB.params.currentShield;
+          shieldB.params.currentShield = 0;
+          if (typeof showToast === 'function') showToast(`🛡️ Shield depleted! Excess ${remaining} DMG dealt to health!`, 'warn');
+        }
+      }
+    }
+
+    if (remaining > 0) {
+      const healthB = behaviors.find(b => b.type === 'health' || b.type === 'target_health');
+      if (healthB) {
+        const maxHp = healthB.params.maxHp || 100;
+        healthB.params.currentHp = Math.max(0, (healthB.params.currentHp !== undefined ? healthB.params.currentHp : maxHp) - remaining);
+        if (typeof showToast === 'function') showToast(`💥 ${entity.name} took ${remaining} damage from ${sourceName}! HP: ${healthB.params.currentHp}`, 'warn');
+
+        if (healthB.params.currentHp <= 0) {
+          if (entity._respawnCheckpoint) {
+            entity.setPosition(entity._respawnCheckpoint);
+            healthB.params.currentHp = maxHp;
+            if (shieldB) shieldB.params.currentShield = shieldB.params.maxShield || 50;
+            if (typeof showToast === 'function') showToast(`🚩 Respawned at checkpoint!`, 'success');
+          } else {
+            if (typeof showToast === 'function') showToast(`💀 GAME OVER! ${entity.name} was defeated.`, 'error');
+          }
+        }
+      }
+    }
   }
 }

@@ -110,13 +110,15 @@ Users can configure their own API keys (Bring-Your-Own-Key) with local, private 
 * **💻 Custom / Local AI (Offline):** Connect directly to local **Ollama**, **LM Studio**, or **vLLM** (`http://localhost:11434/v1/chat/completions`).
 
 ### 🛠️ Autonomous AI Action Capabilities
-The AI Executor translates intent into direct engine modifications with full undo history:
-* **Scene Construction:** Spawn primitives, GLB 3D models, procedural terrains, and lights.
+The AI Executor translates natural language intent into direct engine modifications with full undo history:
+* **Scene Construction:** Spawn primitives, GLB 3D models, procedural terrains, lights, audio emitters, and particle systems.
 * **Transform Operations:** Translate, rotate (Euler angles), and scale entities.
-* **Behavior Injection:** Attach interactive WASD, Spin, Flicker, Patrol, Billboard, or Collectible behaviors.
-* **Atmosphere Control:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) via AI prompts.
-* **Component Engineering:** Dynamically attach Rigidbody, Collision, Light, Render, Audio, and Particle components.
-* **Entity Management:** Select, frame, reparent, duplicate, and delete scene nodes on command.
+* **Material Engineering:** Generate and assign PBR materials with custom diffuse, metalness, roughness, emissive, and opacity via `create_material`.
+* **Behavior Injection:** Attach any of the 53 interactive No-Code gameplay behaviors (`boss_ai`, `stealth_ai`, `vehicle_controller`, `wasd`, `turret_ai`, `shield_generator`, etc.).
+* **Atmosphere & PostFX Control:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
+* **Physics & Constraints:** Dynamically attach Rigidbody, Collision, and 6-DOF / Hinge / Ball Physics Joint constraints.
+* **Component Engineering:** Attach Rigidbody, Collision, Light, Render, Audio (`add_sound`), and Particle (`add_particle_system`) components.
+* **Entity & Scene Management:** Select, frame, reparent (`reparent_entity`), duplicate (`duplicate_entity`), delete, or clear entire scenes (`clear_scene`) on command.
 
 ---
 
@@ -212,6 +214,24 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Dynamically positions and billboard-aligns health status gauges, name tags, or markers above monster and NPC heads facing the active camera.
 44. **🎵 Ambient Background Music Emitter:**
     Zero-config background audio emitter that automatically plays looping procedural audio themes or environmental soundscapes on level start.
+45. **🐉 Multi-Phase Boss AI:**
+    Multi-stage combat boss that pursues the player within agro radius, faces them in 3D, and executes devastating ground slams dealing damage with screen shake and SFX. Enters an enrage phase at half health with accelerated movement and doubled attack rate.
+46. **🥷 Guard Stealth Vision Cone AI:**
+    Stealth mechanics component that calculates line-of-sight vision cones (`visionAngle`, `visionRadius`). When the player breaches the guard's field of view, the guard turns to intercept, sounds alerts, and attacks.
+47. **🏎️ Driveable Vehicle / Hovercraft:**
+    Smooth vehicular physics controller providing responsive steering, forward acceleration (`W` / `Up`), braking/reverse (`S` / `Down`), and an elevated third-person chase camera.
+48. **💥 Breakable Destructible Object:**
+    Destructible props, barricades, and crates that track damage health points. Shatters into multiple dynamic 3D physics debris chunks with explosion SFX upon destruction.
+49. **🎬 Widescreen Cutscene Trigger:**
+    Cinematic volume trigger that detects player entry and plays widescreen narrative captions, screen shake, and musical flourishes for story moments and level intros.
+50. **🎯 Multi-Kill Combo Multiplier:**
+    Tracks combat hit streaks and consecutive kills within a sliding combo window time, boosting player multipliers and score bonuses.
+51. **🚩 Respawn Checkpoint Pad:**
+    Interactive checkpoint pad that activates upon player contact with sound confirmation and automatically restores the player's position and health upon death.
+52. **❄️ Weather Particle Emitter:**
+    Atmospheric weather generator that periodically emits falling volumetric snowflakes or raindrops with translucent materials and auto-cleanup.
+53. **🛡️ Energy Shield Component:**
+    Regenerative shield layer that absorbs incoming combat damage and hazard strikes before hit points are depleted, automatically recharging after a configurable delay.
 
 ---
 

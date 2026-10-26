@@ -62,5 +62,37 @@ test('Game Bundler: Compiles standalone HTML5 game with AAA behaviors and AI act
   assert.ok(html.includes('vehicle_controller'));
   assert.ok(html.includes('shield_generator'));
   assert.ok(html.includes('boss_ai'));
+  assert.ok(html.includes('weather_emitter'));
+  assert.ok(html.includes('combo_score_counter'));
   assert.ok(html.includes('AAA Test Game'));
+});
+
+test('Combat System: Shield Generator absorbs damage and Checkpoint System handles respawn', (t) => {
+  const editor = new Editor();
+  const behaviors = new BehaviorManager(editor);
+  editor.behaviors = behaviors;
+
+  const player = editor.createEntity({ name: 'PlayerHero' });
+  player.setPosition(0, 0, 0);
+
+  behaviors.attachBehavior(player, 'health', { maxHp: 100, currentHp: 100 });
+  behaviors.attachBehavior(player, 'shield_generator', { maxShield: 50, currentShield: 50 });
+
+  // 1. Damage smaller than shield should deplete shield only
+  behaviors.applyDamage(player, 30, 'TestHazard');
+  const shieldB = behaviors.getBehaviors(player).find(b => b.type === 'shield_generator');
+  const healthB = behaviors.getBehaviors(player).find(b => b.type === 'health');
+
+  assert.equal(shieldB.params.currentShield, 20);
+  assert.equal(healthB.params.currentHp, 100);
+
+  // 2. Damage exceeding shield should deplete remaining shield and hit health
+  behaviors.applyDamage(player, 40, 'TestHazard');
+  assert.equal(shieldB.params.currentShield, 0);
+  assert.equal(healthB.params.currentHp, 80);
+
+  // 3. Lethal damage with checkpoint respawns player at checkpoint
+  player._respawnCheckpoint = [10, 5, 10];
+  behaviors.applyDamage(player, 100, 'LethalTrap');
+  assert.equal(healthB.params.currentHp, 100);
 });

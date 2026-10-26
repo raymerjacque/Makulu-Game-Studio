@@ -1264,17 +1264,41 @@ export class GameBundler {
 
               node.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
 
+              // Boss advances toward player if outside melee range
+              if (dist > 3.5 && dist <= 25) {
+                const bSpeed = (b.properties.speed || 3.0) * (isEnraged ? 1.5 : 1.0);
+                node.translateLocal(0, 0, -bSpeed * dt);
+              }
+
               if (!b._attackTimer) b._attackTimer = 0;
               b._attackTimer -= dt;
-              if (b._attackTimer <= 0 && dist < 20) {
+              if (b._attackTimer <= 0 && dist <= 4.0) {
                 b._attackTimer = isEnraged ? (b.properties.attackRate || 2.0) * 0.5 : (b.properties.attackRate || 2.0);
                 if (window.playProceduralSFX) window.playProceduralSFX('explosion');
                 window.triggerScreenShake(0.6, 0.3);
                 const playerB = playerEntity._behaviors || [];
-                const healthB = playerB.find(hb => hb.type === 'health');
-                if (healthB && dist < 3.5) {
-                  const dmg = isEnraged ? (b.properties.damage || 30) * 1.5 : (b.properties.damage || 30);
-                  healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - dmg);
+                const dmg = isEnraged ? (b.properties.damage || 30) * 1.5 : (b.properties.damage || 30);
+                const shieldB = playerB.find(sb => sb.type === 'shield_generator');
+                let remDmg = dmg;
+                if (shieldB && (shieldB.properties.currentShield || 0) > 0) {
+                  shieldB._rechargeTimer = shieldB.properties.rechargeDelay || 3.0;
+                  if (shieldB.properties.currentShield >= remDmg) {
+                    shieldB.properties.currentShield -= remDmg;
+                    remDmg = 0;
+                  } else {
+                    remDmg -= shieldB.properties.currentShield;
+                    shieldB.properties.currentShield = 0;
+                  }
+                }
+                if (remDmg > 0) {
+                  const healthB = playerB.find(hb => hb.type === 'health');
+                  if (healthB) {
+                    healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - remDmg);
+                    if (healthB.properties.currentHp <= 0 && playerEntity._respawnCheckpoint) {
+                      playerEntity.setPosition(playerEntity._respawnCheckpoint);
+                      healthB.properties.currentHp = healthB.properties.maxHp || 100;
+                    }
+                  }
                 }
               }
             } else if (b.properties.currentHp <= 0 && node.enabled) {
@@ -1297,12 +1321,34 @@ export class GameBundler {
                 if (angle <= visionAngle / 2) {
                   node.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
                   node.translateLocal(0, 0, -(b.properties?.speed || 2.5) * dt);
-                  if (dist < 1.8) {
+
+                  if (!b._attackTimer) b._attackTimer = 0;
+                  b._attackTimer -= dt;
+                  if (dist < 1.8 && b._attackTimer <= 0) {
+                    b._attackTimer = 1.0;
                     const playerB = playerEntity._behaviors || [];
-                    const healthB = playerB.find(hb => hb.type === 'health');
-                    if (healthB) {
-                      healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - 25);
-                      window.triggerScreenShake(0.4, 0.2);
+                    const shieldB = playerB.find(sb => sb.type === 'shield_generator');
+                    let remDmg = b.properties?.damage || 25;
+                    if (shieldB && (shieldB.properties.currentShield || 0) > 0) {
+                      shieldB._rechargeTimer = shieldB.properties.rechargeDelay || 3.0;
+                      if (shieldB.properties.currentShield >= remDmg) {
+                        shieldB.properties.currentShield -= remDmg;
+                        remDmg = 0;
+                      } else {
+                        remDmg -= shieldB.properties.currentShield;
+                        shieldB.properties.currentShield = 0;
+                      }
+                    }
+                    if (remDmg > 0) {
+                      const healthB = playerB.find(hb => hb.type === 'health');
+                      if (healthB) {
+                        healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - remDmg);
+                        window.triggerScreenShake(0.4, 0.2);
+                        if (healthB.properties.currentHp <= 0 && playerEntity._respawnCheckpoint) {
+                          playerEntity.setPosition(playerEntity._respawnCheckpoint);
+                          healthB.properties.currentHp = healthB.properties.maxHp || 100;
+                        }
+                      }
                     }
                   }
                 }
@@ -1332,8 +1378,9 @@ export class GameBundler {
             node.translateLocal(0, 0, -b._vspeed * dt);
 
             if (gameCamera) {
-              const camTarget = node.getPosition().clone().add(node.forward.clone().mulScalar(8)).add(new pc.Vec3(0, 4, 0));
-              gameCamera.setPosition(gameCamera.getPosition().lerp(gameCamera.getPosition(), camTarget, dt * 5));
+              const camTarget = node.getPosition().clone().sub(node.forward.clone().mulScalar(8)).add(new pc.Vec3(0, 4, 0));
+              const curPos = gameCamera.getPosition();
+              gameCamera.setPosition(curPos.clone().lerp(curPos, camTarget, Math.min(1, dt * 5)));
               gameCamera.lookAt(node.getPosition());
             }
           } else if (b.type === 'destruction_mesh') {
@@ -1354,6 +1401,9 @@ export class GameBundler {
                 mat.update();
                 chunk.addComponent('render', { type: 'box', material: mat });
                 app.root.addChild(chunk);
+                setTimeout(() => {
+                  try { chunk.destroy(); } catch (e) {}
+                }, 3000);
               }
             }
           } else if (b.type === 'cinematic_cutscene_trigger') {
@@ -1379,6 +1429,45 @@ export class GameBundler {
                   if (window.playProceduralSFX) window.playProceduralSFX('coin');
                 }
               }
+            }
+          } else if (b.type === 'combo_score_counter') {
+            if (!b._state) b._state = { hits: 0, timer: 0 };
+            if (b._state.timer > 0) {
+              b._state.timer -= dt;
+              if (b._state.timer <= 0) {
+                b._state.hits = 0;
+                b._state.timer = 0;
+              }
+            }
+          } else if (b.type === 'weather_emitter') {
+            if (!b._weatherTimer) b._weatherTimer = 0;
+            b._weatherTimer -= dt;
+            if (b._weatherTimer <= 0) {
+              b._weatherTimer = 0.08;
+              const drop = new pc.Entity('WeatherParticle');
+              const pos = node.getPosition();
+              const isSnow = (b.properties?.type || 'snow').toLowerCase() === 'snow';
+              drop.setPosition(pos.x + (Math.random() - 0.5) * 30, pos.y + 12, pos.z + (Math.random() - 0.5) * 30);
+              drop.setLocalScale(isSnow ? 0.12 : 0.04, isSnow ? 0.12 : 0.3, isSnow ? 0.12 : 0.04);
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = isSnow ? new pc.Color(0.9, 0.95, 1.0) : new pc.Color(0.4, 0.6, 0.9);
+              mat.opacity = 0.7;
+              mat.blendType = pc.BLEND_NORMAL;
+              mat.update();
+              drop.addComponent('render', { type: isSnow ? 'sphere' : 'cylinder', material: mat });
+              app.root.addChild(drop);
+
+              let dropLife = 1.8;
+              const dropSpeed = isSnow ? 3.5 : 16.0;
+              const updateDrop = (ddt) => {
+                dropLife -= ddt;
+                drop.translate(0, -dropSpeed * ddt, 0);
+                if (dropLife <= 0) {
+                  app.off('update', updateDrop);
+                  try { drop.destroy(); } catch (e) {}
+                }
+              };
+              app.on('update', updateDrop);
             }
           } else if (b.type === 'shield_generator') {
             if (b.properties.currentShield === undefined) b.properties.currentShield = b.properties.maxShield || 50;
