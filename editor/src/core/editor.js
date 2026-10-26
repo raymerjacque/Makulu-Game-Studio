@@ -182,6 +182,11 @@ export class Editor {
         rootEntity.setLocalScale(...scale);
         rootEntity.addChild(modelEntity);
 
+        // Auto-configure skeletal animations if present in GLB container
+        if (asset.resource && asset.resource.animations && asset.resource.animations.length > 0) {
+          this.setupModelAnimations(rootEntity, modelEntity, asset.resource.animations);
+        }
+
         const command = new Command(
           `Spawn 3D Model: ${name}`,
           () => {
@@ -205,6 +210,80 @@ export class Editor {
         resolve(result);
       });
     });
+  }
+
+  /**
+   * Auto-rig skeletal animations from GLB container asset onto model entity
+   * Creates an AnimStateGraph, assigns all tracks, and maps Idle/Walk/Run locomotion
+   */
+  setupModelAnimations(rootEntity, modelEntity, animations) {
+    if (!animations || animations.length === 0) return null;
+
+    try {
+      const animNames = animations.map(a => a.name);
+      rootEntity._modelAnimations = animNames;
+
+      // Detect standard character movement and idle animation tracks
+      const idleClip = animNames.find(n => /idle|stand|survey|breath/i.test(n)) || animNames[0];
+      const walkClip = animNames.find(n => /walk|stride/i.test(n)) || animNames.find(n => /move|run|sprint/i.test(n)) || animNames[0];
+      const runClip = animNames.find(n => /sprint|run|fast/i.test(n)) || walkClip;
+
+      rootEntity._idleClip = idleClip;
+      rootEntity._walkClip = walkClip;
+      rootEntity._runClip = runClip;
+
+      if (typeof pc !== 'undefined' && pc.AnimStateGraph) {
+        const states = [
+          { name: 'START', speed: 1 },
+          ...animNames.map(name => ({
+            name: name,
+            speed: 1,
+            loop: true,
+            defaultState: (name === idleClip)
+          }))
+        ];
+
+        const transitions = [
+          { from: 'START', to: idleClip }
+        ];
+
+        const stateGraph = new pc.AnimStateGraph({
+          layers: [{
+            name: 'Base',
+            states: states,
+            transitions: transitions
+          }],
+          parameters: {
+            speed: { name: 'speed', type: 'FLOAT', value: 0 }
+          }
+        });
+
+        modelEntity.addComponent('anim', {
+          activate: true,
+          speed: 1.0
+        });
+
+        modelEntity.anim.loadStateGraph(stateGraph);
+
+        animations.forEach(animAsset => {
+          if (animAsset && animAsset.resource) {
+            modelEntity.anim.assignAnimation(animAsset.name, animAsset.resource);
+          }
+        });
+
+        rootEntity._animComp = modelEntity.anim;
+        rootEntity.anim = modelEntity.anim;
+
+        // Auto-play default idle animation so characters are alive immediately
+        if (modelEntity.anim && modelEntity.anim.baseLayer) {
+          modelEntity.anim.baseLayer.play(idleClip);
+        }
+      }
+      return modelEntity.anim || null;
+    } catch (e) {
+      console.warn('Could not auto-configure skeletal animation:', e);
+      return null;
+    }
   }
 
   /**
@@ -599,6 +678,10 @@ export class Editor {
                 receiveShadows: true
               });
               ent.addChild(modelEntity);
+
+              if (asset.resource.animations && asset.resource.animations.length > 0) {
+                this.setupModelAnimations(ent, modelEntity, asset.resource.animations);
+              }
             }
           });
         }

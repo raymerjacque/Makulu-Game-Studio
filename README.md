@@ -343,7 +343,11 @@ Create reactive game mechanics through modular trigger volumes:
 ## 📦 3D Model Store, Procedural Terrain, Prefabs & ECS Engine
 
 * **📦 CC0 3D Model Store & Asset Hub:** Integrated catalog of 19 authentic public-domain (CC0) 3D GLB models (Kenney, Khronos) ready for 1-click spawning: hero characters, armored warriors, ships, trees, rocks, barrels, chests, and gates. Also includes direct links to **Poly Haven** (AAA CC0 HDRIs & textures), **ambientCG** (2,000+ seamless PBR maps), **Poly Pizza**, **Quaternius**, **CGTrader Free Models**, **OpenGameArt**, **Sketchfab**, and **Mixamo**, plus automatic asset registration for custom uploaded `.glb` files.
-* **🦴 Skeletal Animation Playback:** Inspector animation controller automatically traverses root and child hierarchies to trigger and control skeletal animations on complex imported models.
+* **🦴 Dynamic Character Locomotion & Skeletal Animation:** 
+  * **Auto-Rigging on Model Import:** When loading GLB character models (Kenney, Mixamo, Sketchfab), the engine automatically detects all embedded animation tracks, generates a multi-state `AnimStateGraph`, and configures an `AnimComponent`.
+  * **Automatic Movement Blending:** Entities with `wasd`, `first_person_controller`, `patrol`, `enemy_ai`, or `waypoint_patrol` automatically blend between `Idle` and `Walk`/`Run` states based on movement velocity with smooth cross-fading.
+  * **Procedural Limb Locomotion:** For modular or blocky models without skeletal animations, dynamic procedural limb cycles swing arms and legs in opposing phases with subtle stride bobbing.
+  * **Interactive Clip Selector & Inspector Player:** Preview and trigger any skeletal animation clip directly from the Inspector dropdown, adjust playback speed (0.1x - 2.5x), and configure transitions in the Visual Animation Blend Graph modal.
 * **📦 Prefab & Entity Template System:** Save any configured entity hierarchy as a reusable Prefab with 1-click **"Save Prefab"** in the Inspector. Re-instantiate prefabs into the scene with a single click or double-click from `/assets/prefabs`.
 * **🏔️ Procedural Terrain Sculptor:** Multi-octave Perlin noise heightmap mesh generator with customizable resolution (16×16 to 128×128 vertices), max altitude, roughness, seamless edge falloff, and elevation-based vertex coloring (beach sand, lush grass, mountain rock, and snow peak). Includes physics mesh collision.
 * **👁️ 3D Viewport Component Visual Wireframe Helpers:**

@@ -115,7 +115,8 @@ export class BehaviorManager {
               move.add(right);
             }
 
-            if (move.lengthSq() > 0.0001) {
+            const isMoving = move.lengthSq() > 0.0001;
+            if (isMoving) {
               move.normalize().mulScalar(speed * dt);
 
               if (entity.rigidbody) {
@@ -128,6 +129,7 @@ export class BehaviorManager {
 
               this.editor.events.emit('entity:transformed', entity);
             }
+            this.updateLocomotion(entity, speed, isMoving, dt);
           } else if (b.type === 'spin') {
             const speed = b.params.speed || 45;
             const axis = b.params.axis || 'y';
@@ -160,6 +162,7 @@ export class BehaviorManager {
 
             const moveX = b.state.dir * speed * dt;
             entity.translate(moveX, 0, 0);
+            this.updateLocomotion(entity, speed, true, dt);
           } else if (b.type === 'moving_platform') {
             const speed = b.params.speed || 2.5;
             const distance = b.params.distance || 8;
@@ -323,7 +326,9 @@ export class BehaviorManager {
                 if (dist > attackRadius) {
                   const dir = lookPos.sub(pos).normalize().mulScalar(speed * dt);
                   entity.translate(dir);
+                  this.updateLocomotion(entity, speed, true, dt);
                 } else {
+                  this.updateLocomotion(entity, speed, false, dt);
                   if (!b._attackTimer) b._attackTimer = 0;
                   b._attackTimer -= dt;
                   if (b._attackTimer <= 0) {
@@ -333,6 +338,8 @@ export class BehaviorManager {
                     this.triggerScreenShake(0.4, 0.2);
                   }
                 }
+              } else {
+                this.updateLocomotion(entity, speed, false, dt);
               }
             }
           } else if (b.type === 'projectile_shooter') {
@@ -429,11 +436,13 @@ export class BehaviorManager {
             if (this.isKeyDown('q') || this.isKeyDown('arrowleft')) entity.rotate(0, rotSpeed * dt, 0);
             if (this.isKeyDown('e') || this.isKeyDown('arrowright')) entity.rotate(0, -rotSpeed * dt, 0);
 
-            if (move.lengthSq() > 0.0001) {
+            const isMoving = move.lengthSq() > 0.0001;
+            if (isMoving) {
               move.normalize().mulScalar(speed * dt);
               entity.translate(move);
               this.editor.events.emit('entity:transformed', entity);
             }
+            this.updateLocomotion(entity, speed, isMoving, dt);
 
             // Lock main camera to entity head
             const camera = app.root.find(node => node.camera);
@@ -609,9 +618,11 @@ export class BehaviorManager {
 
               if (dist < 0.5) {
                 b.state.index++;
+                this.updateLocomotion(entity, speed, false, dt);
               } else {
                 const dir = targetVec.clone().sub(curPos).normalize().scale(speed * dt);
                 entity.translate(dir);
+                this.updateLocomotion(entity, speed, true, dt);
               }
             }
           } else if (b.type === 'dash_boost') {
@@ -1211,6 +1222,69 @@ export class BehaviorManager {
             if (typeof showToast === 'function') showToast(`💀 GAME OVER! ${entity.name} was defeated.`, 'error');
           }
         }
+      }
+    }
+  }
+
+  /**
+   * Evaluates locomotion and drives either skeletal AnimComponent or procedural limb swing.
+   * Seamlessly transitions between Idle and Walk/Run when entities move with WASD, AI, or Patrol.
+   */
+  updateLocomotion(entity, speed = 8, isMoving = false, dt = 0.016) {
+    if (!entity) return;
+
+    // 1. Skeletal AnimComponent Playback & Blending
+    const animComp = entity._animComp || (entity.findComponent ? entity.findComponent('anim') : null) || entity.anim;
+    if (animComp && animComp.baseLayer) {
+      const activeState = animComp.baseLayer.activeState;
+      const walkClip = entity._walkClip || 'walk';
+      const runClip = entity._runClip || 'run';
+      const idleClip = entity._idleClip || 'idle';
+
+      if (isMoving) {
+        // High speed movement triggers run clip if available
+        const targetClip = (speed > 7.0 && entity._modelAnimations && entity._modelAnimations.includes(runClip)) ? runClip : walkClip;
+        if (activeState !== targetClip) {
+          try {
+            animComp.baseLayer.transition(targetClip, 0.15);
+          } catch (e) {
+            try { animComp.baseLayer.play(targetClip); } catch (err) {}
+          }
+        }
+        if (typeof animComp.setFloat === 'function') animComp.setFloat('speed', speed);
+      } else {
+        if (activeState !== idleClip) {
+          try {
+            animComp.baseLayer.transition(idleClip, 0.2);
+          } catch (e) {
+            try { animComp.baseLayer.play(idleClip); } catch (err) {}
+          }
+        }
+        if (typeof animComp.setFloat === 'function') animComp.setFloat('speed', 0);
+      }
+      return;
+    }
+
+    // 2. Procedural Character Limb Locomotion (for blocky / modular models with limbs)
+    entity._locoPhase = (entity._locoPhase || 0) + (isMoving ? dt * speed * 2.5 : 0);
+    const leftLeg = entity.findByName ? (entity.findByName('leg-left') || entity.findByName('LeftLeg') || entity.findByName('Leg_L')) : null;
+    const rightLeg = entity.findByName ? (entity.findByName('leg-right') || entity.findByName('RightLeg') || entity.findByName('Leg_R')) : null;
+    const leftArm = entity.findByName ? (entity.findByName('arm-left') || entity.findByName('LeftArm') || entity.findByName('Arm_L')) : null;
+    const rightArm = entity.findByName ? (entity.findByName('arm-right') || entity.findByName('RightArm') || entity.findByName('Arm_R')) : null;
+
+    if (leftLeg || rightLeg || leftArm || rightArm) {
+      if (isMoving) {
+        const legAngle = Math.sin(entity._locoPhase) * 26; // degrees
+        const armAngle = -legAngle * 0.7;
+        if (leftLeg) leftLeg.setLocalEulerAngles(legAngle, 0, 0);
+        if (rightLeg) rightLeg.setLocalEulerAngles(-legAngle, 0, 0);
+        if (leftArm) leftArm.setLocalEulerAngles(armAngle, 0, 0);
+        if (rightArm) rightArm.setLocalEulerAngles(-armAngle, 0, 0);
+      } else {
+        if (leftLeg) leftLeg.setLocalEulerAngles(0, 0, 0);
+        if (rightLeg) rightLeg.setLocalEulerAngles(0, 0, 0);
+        if (leftArm) leftArm.setLocalEulerAngles(0, 0, 0);
+        if (rightArm) rightArm.setLocalEulerAngles(0, 0, 0);
       }
     }
   }

@@ -456,11 +456,50 @@ export class GameBundler {
             });
             ent.addChild(modelEntity);
 
-            // Skeletal Animation Player detection
-            const animComponent = ent.findComponent ? ent.findComponent('anim') || modelEntity.findComponent('anim') : null;
-            if (animComponent) {
-              ent._animComp = animComponent;
-              if (animComponent.play) animComponent.play();
+            // Skeletal Animation Player detection & Auto-Configuration
+            if (asset.resource.animations && asset.resource.animations.length > 0) {
+              const animAssets = asset.resource.animations;
+              const animNames = animAssets.map(a => a.name);
+              const idleClip = animNames.find(n => /idle|stand|survey|breath/i.test(n)) || animNames[0];
+              const walkClip = animNames.find(n => /walk|stride/i.test(n)) || animNames.find(n => /move|run|sprint/i.test(n)) || animNames[0];
+              const runClip = animNames.find(n => /sprint|run|fast/i.test(n)) || walkClip;
+
+              ent._modelAnimations = animNames;
+              ent._idleClip = idleClip;
+              ent._walkClip = walkClip;
+              ent._runClip = runClip;
+
+              if (typeof pc !== 'undefined' && pc.AnimStateGraph) {
+                const states = [
+                  { name: 'START', speed: 1 },
+                  ...animNames.map(name => ({
+                    name: name,
+                    speed: 1,
+                    loop: true,
+                    defaultState: name === idleClip
+                  }))
+                ];
+                const transitions = [{ from: 'START', to: idleClip }];
+
+                modelEntity.addComponent('anim', { activate: true, speed: 1.0 });
+                modelEntity.anim.loadStateGraph(new pc.AnimStateGraph({
+                  layers: [{ name: 'Base', states, transitions }],
+                  parameters: { speed: { name: 'speed', type: 'FLOAT', value: 0 } }
+                }));
+
+                animAssets.forEach(a => {
+                  if (a && a.resource) modelEntity.anim.assignAnimation(a.name, a.resource);
+                });
+
+                ent._animComp = modelEntity.anim;
+                if (modelEntity.anim.baseLayer) modelEntity.anim.baseLayer.play(idleClip);
+              }
+            } else {
+              const animComponent = ent.findComponent ? ent.findComponent('anim') || modelEntity.findComponent('anim') : null;
+              if (animComponent) {
+                ent._animComp = animComponent;
+                if (animComponent.play) animComponent.play();
+              }
             }
           }
         });
@@ -633,6 +672,57 @@ export class GameBundler {
 
     const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character') || n.name.toLowerCase().includes('hero') || n.name.toLowerCase().includes('warrior')) || app.root.children[0];
 
+    // Locomotion handler for standalone games (drives skeletal AnimComponent or procedural limbs)
+    const updateLocomotion = (entity, speed, isMoving, dt) => {
+      if (!entity) return;
+      const animComp = entity._animComp || (entity.findComponent ? entity.findComponent('anim') : null) || entity.anim;
+      if (animComp && animComp.baseLayer) {
+        const activeState = animComp.baseLayer.activeState;
+        const walkClip = entity._walkClip || 'walk';
+        const runClip = entity._runClip || 'run';
+        const idleClip = entity._idleClip || 'idle';
+        if (isMoving) {
+          const targetClip = (speed > 7.0 && entity._modelAnimations && entity._modelAnimations.includes(runClip)) ? runClip : walkClip;
+          if (activeState !== targetClip) {
+            try { animComp.baseLayer.transition(targetClip, 0.15); } catch(e) {
+              try { animComp.baseLayer.play(targetClip); } catch(err) {}
+            }
+          }
+          if (typeof animComp.setFloat === 'function') animComp.setFloat('speed', speed);
+        } else {
+          if (activeState !== idleClip) {
+            try { animComp.baseLayer.transition(idleClip, 0.2); } catch(e) {
+              try { animComp.baseLayer.play(idleClip); } catch(err) {}
+            }
+          }
+          if (typeof animComp.setFloat === 'function') animComp.setFloat('speed', 0);
+        }
+        return;
+      }
+
+      // Procedural Limb Locomotion
+      entity._locoPhase = (entity._locoPhase || 0) + (isMoving ? dt * speed * 2.5 : 0);
+      const leftLeg = entity.findByName ? (entity.findByName('leg-left') || entity.findByName('LeftLeg')) : null;
+      const rightLeg = entity.findByName ? (entity.findByName('leg-right') || entity.findByName('RightLeg')) : null;
+      const leftArm = entity.findByName ? (entity.findByName('arm-left') || entity.findByName('LeftArm')) : null;
+      const rightArm = entity.findByName ? (entity.findByName('arm-right') || entity.findByName('RightArm')) : null;
+      if (leftLeg || rightLeg || leftArm || rightArm) {
+        if (isMoving) {
+          const legAngle = Math.sin(entity._locoPhase) * 26;
+          const armAngle = -legAngle * 0.7;
+          if (leftLeg) leftLeg.setLocalEulerAngles(legAngle, 0, 0);
+          if (rightLeg) rightLeg.setLocalEulerAngles(-legAngle, 0, 0);
+          if (leftArm) leftArm.setLocalEulerAngles(armAngle, 0, 0);
+          if (rightArm) rightArm.setLocalEulerAngles(-armAngle, 0, 0);
+        } else {
+          if (leftLeg) leftLeg.setLocalEulerAngles(0, 0, 0);
+          if (rightLeg) rightLeg.setLocalEulerAngles(0, 0, 0);
+          if (leftArm) leftArm.setLocalEulerAngles(0, 0, 0);
+          if (rightArm) rightArm.setLocalEulerAngles(0, 0, 0);
+        }
+      }
+    };
+
     app.on('update', dt => {
       // Screen Shake Evaluation (nudges camera locally without snapping world position)
       if (window._shakeTimer > 0) {
@@ -673,6 +763,7 @@ export class GameBundler {
             if (delta > distance && b._state.dir > 0) b._state.dir = -1;
             if (delta < -distance && b._state.dir < 0) b._state.dir = 1;
             node.translate(b._state.dir * speed * dt, 0, 0);
+            updateLocomotion(node, speed, true, dt);
           } else if (b.type === 'moving_platform') {
             const speed = b.properties?.speed || 2.5;
             const distance = b.properties?.distance || 8;
@@ -841,7 +932,9 @@ export class GameBundler {
                 if (dist > attackRadius) {
                   const dir = lookPos.sub(pos).normalize().mulScalar(speed * dt);
                   node.translate(dir);
+                  updateLocomotion(node, speed, true, dt);
                 } else {
+                  updateLocomotion(node, speed, false, dt);
                   if (!b._attackTimer) b._attackTimer = 0;
                   b._attackTimer -= dt;
                   if (b._attackTimer <= 0) {
@@ -855,6 +948,8 @@ export class GameBundler {
                     }
                   }
                 }
+              } else {
+                updateLocomotion(node, speed, false, dt);
               }
             }
           } else if (b.type === 'first_person_controller') {
@@ -881,10 +976,12 @@ export class GameBundler {
               mouseDeltaX = 0;
             }
 
-            if (move.lengthSq() > 0.0001) {
+            const isMoving = move.lengthSq() > 0.0001;
+            if (isMoving) {
               move.normalize().mulScalar(speed * dt);
               node.translate(move);
             }
+            updateLocomotion(node, speed, isMoving, dt);
 
             if (gameCamera) {
               gameCamera.setPosition(node.getPosition().clone().add(new pc.Vec3(0, 1.6, 0)));
@@ -1074,9 +1171,11 @@ export class GameBundler {
 
               if (dist < 0.5) {
                 b._state.index++;
+                updateLocomotion(node, speed, false, dt);
               } else {
                 const dir = targetVec.clone().sub(curPos).normalize().scale(speed * dt);
                 node.translate(dir);
+                updateLocomotion(node, speed, true, dt);
               }
             }
           } else if (b.type === 'dash_boost') {
@@ -1684,10 +1783,12 @@ export class GameBundler {
       if (keys['a'] || keys['arrowleft']) move.sub(playerEntity.right);
       if (keys['d'] || keys['arrowright']) move.add(playerEntity.right);
 
-      if (move.lengthSq() > 0) {
+      const isPlayerMoving = move.lengthSq() > 0;
+      if (isPlayerMoving) {
         move.normalize().mulScalar(8 * dt);
         playerEntity.translate(move);
       }
+      updateLocomotion(playerEntity, 8.0, isPlayerMoving, dt);
 
       // Evaluate Physics Joint Constraints
       app.root.forEach(node => {

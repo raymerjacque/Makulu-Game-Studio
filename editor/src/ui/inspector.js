@@ -1398,24 +1398,49 @@ export class InspectorPanel {
     }
 
     // Animation Player Component Card (checks root & child entities for anim/animation components)
-    let animComp = ent.anim || ent.animation;
+    let animComp = ent.anim || ent.animation || ent._animComp;
     let animTarget = ent;
     if (!animComp) {
-      animTarget = ent.findComponent ? (ent.findComponent('anim') ? ent : ent.findOne(e => e.anim || e.animation)) : null;
-      if (animTarget) animComp = animTarget.anim || animTarget.animation;
+      animTarget = ent.findComponent ? (ent.findComponent('anim') ? ent : ent.findOne(e => e.anim || e.animation || e._animComp)) : null;
+      if (animTarget) animComp = animTarget.anim || animTarget.animation || animTarget._animComp;
     }
 
     if (animComp) {
       const card = document.createElement('div');
       card.className = 'inspector-section';
+
+      // Gather available clip names
+      let clipNames = ent._modelAnimations || animTarget._modelAnimations || [];
+      if (clipNames.length === 0 && animComp.baseLayer && animComp.baseLayer._controller && animComp.baseLayer._controller._states) {
+        clipNames = Object.keys(animComp.baseLayer._controller._states).filter(s => s !== 'START');
+      }
+
+      const activeState = (animComp.baseLayer && animComp.baseLayer.activeState) || ent._idleClip || 'idle';
+      const clipOptions = clipNames.length > 0
+        ? clipNames.map(name => `<option value="${name}" ${name === activeState ? 'selected' : ''}>${name}</option>`).join('')
+        : `<option value="default">Default Clip</option>`;
+
+      const idleClipName = ent._idleClip || 'idle';
+      const walkClipName = ent._walkClip || 'walk';
+
       card.innerHTML = `
         <div class="inspector-section-header">
           <span>💃 Skeletal Animation Player</span>
           <button class="btn btn-remove-comp" data-comp="anim" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
         </div>
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 11px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+            <span>Current Clip:</span>
+            <span id="anim-active-clip-badge" style="color: #34d399; font-weight: 600; background: rgba(52, 211, 153, 0.12); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(52, 211, 153, 0.25);">${activeState}</span>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Clip</span>
+            <select class="text-input" id="anim-clip-select" style="font-size: 11px;">
+              ${clipOptions}
+            </select>
+          </div>
           <div style="display: flex; gap: 6px;">
-            <button class="btn btn-primary" id="btn-anim-play" style="flex: 1; font-size: 11px;">▶ Play</button>
+            <button class="btn btn-primary" id="btn-anim-play" style="flex: 1; font-size: 11px;">▶ Play Clip</button>
             <button class="btn" id="btn-anim-pause" style="flex: 1; font-size: 11px;">⏸ Pause</button>
           </div>
           <button class="btn" id="btn-open-anim-blend-modal" style="font-size: 11px; color: #c084fc; border-color: #a855f7;">
@@ -1423,19 +1448,48 @@ export class InspectorPanel {
           </button>
           <div class="prop-row">
             <span class="prop-label">Speed</span>
-            <input type="range" min="0.1" max="2.0" step="0.1" class="text-input" id="anim-speed" value="${animComp.speed !== undefined ? animComp.speed : 1.0}">
+            <input type="range" min="0.1" max="2.5" step="0.1" class="text-input" id="anim-speed" value="${animComp.speed !== undefined ? animComp.speed : 1.0}">
+          </div>
+          <div style="font-size: 10.5px; color: #94a3b8; background: rgba(59, 130, 246, 0.08); padding: 6px 8px; border-radius: 4px; border-left: 2px solid #3b82f6; line-height: 1.4;">
+            🏃 <b>Auto-Locomotion:</b> Automatically plays <code>${walkClipName}</code> when moving with WASD or Enemy AI, and returns to <code>${idleClipName}</code> when standing still.
           </div>
         </div>
       `;
 
-      card.querySelector('#btn-anim-play').addEventListener('click', () => {
-        if (animComp) {
-          if (animComp.playing === false || !animComp.playing) {
-            if (animComp.play) animComp.play();
-            else if (animComp.playing !== undefined) animComp.playing = true;
+      const clipSelect = card.querySelector('#anim-clip-select');
+      const badge = card.querySelector('#anim-active-clip-badge');
+
+      clipSelect.addEventListener('change', (e) => {
+        const selectedClip = e.target.value;
+        if (animComp.baseLayer) {
+          try {
+            animComp.baseLayer.transition(selectedClip, 0.15);
+          } catch(err) {
+            try { animComp.baseLayer.play(selectedClip); } catch(e2) {}
           }
-          showToast(`▶ Animation playing on ${animTarget.name}`, 'info');
+          if (badge) badge.textContent = selectedClip;
+        } else if (animComp.play) {
+          animComp.play(selectedClip);
+          if (badge) badge.textContent = selectedClip;
         }
+      });
+
+      card.querySelector('#btn-anim-play').addEventListener('click', () => {
+        const selectedClip = clipSelect.value;
+        if (animComp.baseLayer) {
+          try {
+            animComp.baseLayer.transition(selectedClip, 0.1);
+          } catch(err) {
+            try { animComp.baseLayer.play(selectedClip); } catch(e2) {}
+          }
+          if (badge) badge.textContent = selectedClip;
+        } else if (animComp.play) {
+          animComp.play(selectedClip);
+          if (badge) badge.textContent = selectedClip;
+        } else if (animComp.playing !== undefined) {
+          animComp.playing = true;
+        }
+        showToast(`▶ Playing "${selectedClip}" on ${animTarget.name}`, 'info');
       });
 
       card.querySelector('#btn-anim-pause').addEventListener('click', () => {
