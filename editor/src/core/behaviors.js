@@ -815,6 +815,167 @@ export class BehaviorManager {
               b.state.playing = true;
               proceduralSFX.play('victory', b.params.volume || 0.3);
             }
+          } else if (b.type === 'boss_ai') {
+            if (b.params.currentHp === undefined) b.params.currentHp = b.params.maxHp || 500;
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player && b.params.currentHp > 0) {
+              const pos = entity.getPosition();
+              const plyPos = player.getPosition();
+              const dist = pos.distance(plyPos);
+              const isEnraged = (b.params.currentHp / (b.params.maxHp || 500)) <= (b.params.enrageThreshold || 0.5);
+
+              entity.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
+
+              if (!b._attackTimer) b._attackTimer = 0;
+              b._attackTimer -= dt;
+              if (b._attackTimer <= 0 && dist < 20) {
+                b._attackTimer = isEnraged ? (b.params.attackRate || 2.0) * 0.5 : (b.params.attackRate || 2.0);
+                proceduralSFX.play('explosion');
+                this.triggerScreenShake(0.6, 0.3);
+                const playerBehaviors = this.getBehaviors(player);
+                const healthB = playerBehaviors.find(hb => hb.type === 'health');
+                if (healthB && dist < 3.5) {
+                  const dmg = isEnraged ? (b.params.damage || 30) * 1.5 : (b.params.damage || 30);
+                  healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - dmg);
+                  if (typeof showToast === 'function') showToast(`🐉 Boss ${entity.name} ${isEnraged ? 'ENRAGED Slammed' : 'Slammed'} player for ${dmg} DMG!`, 'error');
+                }
+              }
+            } else if (b.params.currentHp <= 0 && entity.enabled) {
+              entity.enabled = false;
+              proceduralSFX.play('victory');
+              if (typeof showToast === 'function') showToast(`🏆 BOSS DEFEATED! ${entity.name} fell in combat!`, 'success');
+            }
+          } else if (b.type === 'stealth_ai') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const pos = entity.getPosition();
+              const plyPos = player.getPosition();
+              const dist = pos.distance(plyPos);
+              const visionRadius = b.params.visionRadius || 12;
+
+              if (dist <= visionRadius) {
+                const toPlayer = plyPos.clone().sub(pos).normalize();
+                const forward = entity.forward.clone().normalize();
+                const angle = Math.acos(Math.max(-1, Math.min(1, forward.dot(toPlayer)))) * (180 / Math.PI);
+                const visionAngle = b.params.visionAngle || 60;
+
+                if (angle <= visionAngle / 2) {
+                  entity.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
+                  entity.translateLocal(0, 0, -(b.params.speed || 2.5) * dt);
+                  if (dist < 1.8) {
+                    const playerBehaviors = this.getBehaviors(player);
+                    const healthB = playerBehaviors.find(hb => hb.type === 'health');
+                    if (healthB) {
+                      healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - 25);
+                      if (typeof showToast === 'function') showToast(`🥷 Guard spotted you! Took 25 damage!`, 'warn');
+                    }
+                  }
+                }
+              }
+            }
+          } else if (b.type === 'vehicle_controller') {
+            const topSpeed = b.params.topSpeed || 25;
+            const accel = b.params.accel || 15;
+            const steerSpeed = b.params.steerSpeed || 60;
+
+            if (!b.state) b.state = { speed: 0 };
+
+            if (this.isKeyDown('w') || this.isKeyDown('arrowup')) {
+              b.state.speed = Math.min(topSpeed, b.state.speed + accel * dt);
+            } else if (this.isKeyDown('s') || this.isKeyDown('arrowdown')) {
+              b.state.speed = Math.max(-topSpeed * 0.4, b.state.speed - accel * dt);
+            } else {
+              b.state.speed *= Math.pow(0.1, dt);
+            }
+
+            if (Math.abs(b.state.speed) > 0.1) {
+              const dir = b.state.speed > 0 ? 1 : -1;
+              if (this.isKeyDown('a') || this.isKeyDown('arrowleft')) entity.rotate(0, steerSpeed * dt * dir, 0);
+              if (this.isKeyDown('d') || this.isKeyDown('arrowright')) entity.rotate(0, -steerSpeed * dt * dir, 0);
+            }
+
+            entity.translateLocal(0, 0, -b.state.speed * dt);
+
+            const camera = app.root.find(node => node.camera);
+            if (camera) {
+              const camTarget = entity.getPosition().clone().add(entity.forward.clone().mulScalar(8)).add(new pc.Vec3(0, 4, 0));
+              camera.setPosition(camera.getPosition().lerp(camera.getPosition(), camTarget, dt * 5));
+              camera.lookAt(entity.getPosition());
+            }
+          } else if (b.type === 'destruction_mesh') {
+            if (b.params.health === undefined) b.params.health = b.params.maxHealth || 50;
+            if (b.params.health <= 0 && entity.enabled) {
+              entity.enabled = false;
+              proceduralSFX.play('explosion');
+              this.triggerScreenShake(0.5, 0.2);
+
+              const debrisCount = b.params.debrisCount || 6;
+              const pos = entity.getPosition();
+              for (let i = 0; i < debrisCount; i++) {
+                const chunk = new pc.Entity(`Debris_${i}`);
+                chunk.setPosition(pos.clone().add(new pc.Vec3((Math.random()-0.5)*1.5, Math.random()*1.5, (Math.random()-0.5)*1.5)));
+                chunk.setLocalScale(0.3, 0.3, 0.3);
+                const mat = new pc.StandardMaterial();
+                mat.diffuse = new pc.Color(0.8, 0.4, 0.1);
+                mat.update();
+                chunk.addComponent('render', { type: 'box', material: mat });
+                app.root.addChild(chunk);
+              }
+              if (typeof showToast === 'function') showToast(`💥 ${entity.name} shattered into debris!`, 'info');
+            }
+          } else if (b.type === 'cinematic_cutscene_trigger') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.5;
+              if (!b.state) b.state = { played: false };
+              if (dist < radius && !b.state.played) {
+                b.state.played = true;
+                this.triggerScreenShake(0.3, 0.3);
+                proceduralSFX.play('victory');
+                if (typeof showToast === 'function') showToast(`🎬 CUTSCENE: ${b.params.caption || 'A dark shadow falls upon the realm...'}`, 'info');
+              }
+            }
+          } else if (b.type === 'combo_score_counter') {
+            if (!b.state) b.state = { hits: 0, timer: 0 };
+            if (b.state.timer > 0) {
+              b.state.timer -= dt;
+              if (b.state.timer <= 0) b.state.hits = 0;
+            }
+          } else if (b.type === 'checkpoint_system') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.0;
+              if (dist < radius) {
+                player._respawnCheckpoint = entity.getPosition().clone().add(new pc.Vec3(0, 1, 0));
+                if (!b.state) b.state = { active: false };
+                if (!b.state.active) {
+                  b.state.active = true;
+                  proceduralSFX.play('coin');
+                  if (typeof showToast === 'function') showToast(`🚩 Checkpoint activated at ${entity.name}!`, 'success');
+                }
+              }
+            }
+          } else if (b.type === 'weather_emitter') {
+            if (!b._weatherTimer) b._weatherTimer = 0;
+            b._weatherTimer -= dt;
+            if (b._weatherTimer <= 0) {
+              b._weatherTimer = 0.1;
+              const drop = new pc.Entity('WeatherParticle');
+              const pos = entity.getPosition();
+              drop.setPosition(pos.x + (Math.random() - 0.5) * 20, pos.y + 10, pos.z + (Math.random() - 0.5) * 20);
+              drop.setLocalScale(0.1, 0.1, 0.1);
+              app.root.addChild(drop);
+            }
+          } else if (b.type === 'shield_generator') {
+            if (b.params.currentShield === undefined) b.params.currentShield = b.params.maxShield || 50;
+            if (!b._rechargeTimer) b._rechargeTimer = 0;
+            if (b._rechargeTimer > 0) {
+              b._rechargeTimer -= dt;
+            } else if (b.params.currentShield < (b.params.maxShield || 50)) {
+              b.params.currentShield = Math.min(b.params.maxShield || 50, b.params.currentShield + (b.params.rechargeRate || 10) * dt);
+            }
           }
         }
       }

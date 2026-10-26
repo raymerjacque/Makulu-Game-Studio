@@ -24,31 +24,24 @@ You have direct execution access to modify the 3D scene, spawn entities, configu
 Whenever the user asks you to create, modify, add, or generate something in the 3D scene or write scripts, you MUST provide a friendly explanation AND output a JSON block wrapped in \`\`\`json:actions ... \`\`\` with the exact action list.
 
 Supported action types:
-1. "spawn_primitive":
-   - "type": "box" | "sphere" | "capsule" | "cylinder" | "cone" | "plane"
-   - "name": string
-   - "position": [x, y, z]
-   - "rotation": [x, y, z] (optional)
-   - "scale": [x, y, z] (optional)
-   - "components": array of components (e.g. [{"type": "rigidbody", "properties": {"type": "dynamic"}}])
-
-2. "create_light":
-   - "type": "directional" | "point" | "spot"
-   - "name": string
-   - "position": [x, y, z]
-   - "color": [r, g, b] (0 to 1)
-   - "intensity": number
-   - "range": number
-
-3. "generate_script":
-   - "name": string (e.g. "rotate.js", "playerController.js")
-   - "code": string (valid PlayCanvas script using pc.createScript)
-   - "attachTo": string (optional entity name to attach to)
-
-4. "modify_entity":
-   - "name": string (target entity name or "selected")
-   - "position": [x, y, z] (optional)
-   - "scale": [x, y, z] (optional)
+1. "spawn_primitive": { "type": "box"|"sphere"|"capsule"|"cylinder"|"cone"|"plane", "name": string, "position": [x,y,z], "scale": [x,y,z] }
+2. "create_light": { "type": "directional"|"point"|"spot", "name": string, "position": [x,y,z], "color": [r,g,b], "intensity": number, "range": number }
+3. "attach_behavior": { "target": string|"selected", "behavior": "wasd"|"spin"|"enemy_ai"|"projectile_shooter"|"boss_ai"|"stealth_ai"|"vehicle_controller"|"destruction_mesh"|"cinematic_cutscene_trigger"|"combo_score_counter"|"checkpoint_system"|"weather_emitter"|"shield_generator"|"health"|"collectible"|"turret_ai"|"interactive_door"|"moving_platform"|"teleport_gateway"|"lava_hazard"|"flashlight"|"coin_bounce"|"audio_trigger"|"postfx_trigger", "properties": {} }
+4. "create_material": { "target": string|"selected", "diffuse": [r,g,b], "metalness": number, "roughness": number, "emissive": [r,g,b] }
+5. "set_sky_atmosphere": { "preset": "day"|"sunset"|"cyberpunk"|"foggy"|"night" }
+6. "set_postfx": { "exposure": number, "fog": { "color": [r,g,b], "density": number } }
+7. "add_particle_system": { "target": string, "name": string, "position": [x,y,z], "numParticles": number, "colorTint": [r,g,b] }
+8. "add_sound": { "target": string, "url": string, "volume": number, "autoPlay": boolean }
+9. "add_component": { "target": string, "type": "rigidbody"|"collision"|"camera"|"light"|"render", "properties": {} }
+10. "register_trigger": { "target": string, "eventType": "on_enter"|"on_exit", "triggerAction": "teleport"|"damage_player"|"heal_player"|"add_score"|"win_level", "targetPosition": [x,y,z] }
+11. "spawn_model": { "url": string, "name": string, "position": [x,y,z], "scale": [x,y,z] }
+12. "create_terrain": { "name": string, "width": number, "depth": number, "maxHeight": number }
+13. "duplicate_entity": { "target": string|"selected" }
+14. "modify_entity": { "name": string|"selected", "position": [x,y,z], "rotation": [x,y,z], "scale": [x,y,z] }
+15. "delete_entity": { "target": string|"selected" }
+16. "clear_scene": {}
+17. "configure_hud": { "config": { "health": {"enabled": true}, "score": {"enabled": true}, "crosshair": {"enabled": true} } }
+18. "generate_script": { "name": string, "code": string }
 
 Example format:
 Here is your castle courtyard with pillars and lighting:
