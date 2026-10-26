@@ -5,6 +5,16 @@ import { parseScriptAttributes } from '../core/script-attributes.js';
 
 export const BEHAVIOR_CATALOG = [
   { type: 'wasd', icon: '🎮', name: 'WASD Character Controller', defaultParams: { speed: 8 } },
+  { type: 'wall_run_controller', icon: '🧗', name: 'Parkour Wall-Running', defaultParams: { speed: 10, jumpForce: 12 } },
+  { type: 'grappling_hook', icon: '🪝', name: 'Physics Grappling Hook (\'G\')', defaultParams: { range: 35, pullSpeed: 20 } },
+  { type: 'grav_gun_physicshandler', icon: '🧲', name: 'Gravity Gun / Beam (\'E\' / \'F\')', defaultParams: { range: 12, launchForce: 30 } },
+  { type: 'inventory_crafting', icon: '🎒', name: 'Item Inventory & Crafting System', defaultParams: { maxSlots: 10 } },
+  { type: 'dialogue_system', icon: '💬', name: 'Interactive NPC Dialogue Tree', defaultParams: { npcName: 'Elder Wizard', text: 'Welcome Traveler! Beware of the dark dungeon monsters ahead.' } },
+  { type: 'quest_tracker', icon: '📜', name: 'Live HUD Quest Objective Tracker', defaultParams: { questTitle: 'Defeat the Boss', requiredCount: 1 } },
+  { type: 'minimap_radar', icon: '🗺️', name: '2D Screen HUD Minimap & Radar', defaultParams: { radarRange: 40 } },
+  { type: 'cover_system', icon: '🛡️', name: 'Dynamic Tactical Cover Mechanics', defaultParams: { damageReduction: 0.75 } },
+  { type: 'ragdoll_physics', icon: '🦴', name: 'Ragdoll Physics Collapse On Defeat', defaultParams: { jointType: 'ball_and_socket' } },
+  { type: 'day_night_weather_cycle', icon: '🌦️', name: 'Dynamic Day-Night Weather Cycle', defaultParams: { cycleSpeed: 0.05, weather: 'snow' } },
   { type: 'spin', icon: '🔄', name: 'Continuous Spin Animation', defaultParams: { speed: 90, axis: 'y' } },
   { type: 'turret_ai', icon: '🎯', name: 'Auto Turret Tracking AI', defaultParams: { range: 20, fireRate: 1.5, damage: 15 } },
   { type: 'pressure_plate', icon: '🔘', name: 'Interactive Pressure Plate', defaultParams: { radius: 1.5 } },

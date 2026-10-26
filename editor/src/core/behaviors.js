@@ -988,6 +988,116 @@ export class BehaviorManager {
             } else if (b.params.currentShield < (b.params.maxShield || 50)) {
               b.params.currentShield = Math.min(b.params.maxShield || 50, b.params.currentShield + (b.params.rechargeRate || 10) * dt);
             }
+          } else if (b.type === 'wall_run_controller') {
+            if (this.isKeyDown('w') || this.isKeyDown('arrowup')) {
+              if (!b._state) b._state = { wallRunning: false };
+              entity.translateLocal(0, 0.08, -(b.params.speed || 10) * dt * 0.4);
+              if (this.isKeyDown(' ') || this.isKeyDown('space')) {
+                if (entity.rigidbody) entity.rigidbody.applyImpulse(0, b.params.jumpForce || 12, 0);
+                else entity.translate(0, 2, 0);
+                proceduralSFX.play('jump');
+              }
+            }
+          } else if (b.type === 'grappling_hook') {
+            const gKey = this.isKeyDown('g') || this.isKeyDown('keyg');
+            if (gKey) {
+              if (!b._state) b._state = { active: false, targetPos: null };
+              if (!b._state.active) {
+                b._state.active = true;
+                const fwd = entity.forward.clone().normalize().mulScalar(b.params.range || 35);
+                b._state.targetPos = entity.getPosition().clone().add(fwd);
+                proceduralSFX.play('laser');
+                if (typeof showToast === 'function') showToast(`🪝 Grappling Hook Latched! Pulling...`, 'info');
+              }
+              if (b._state.targetPos) {
+                const curPos = entity.getPosition();
+                const dir = b._state.targetPos.clone().sub(curPos);
+                if (dir.lengthSq() > 0.5) {
+                  dir.normalize().mulScalar((b.params.pullSpeed || 20) * dt);
+                  if (entity.rigidbody) entity.rigidbody.teleport(curPos.clone().add(dir));
+                  else entity.translate(dir);
+                }
+              }
+            } else {
+              if (b._state) b._state.active = false;
+            }
+          } else if (b.type === 'grav_gun_physicshandler') {
+            const grabKey = this.isKeyDown('e') || this.isKeyDown('keye');
+            const launchKey = this.isKeyDown('f') || this.isKeyDown('keyf');
+            if (!b._state) b._state = { heldEntity: null };
+
+            if (grabKey && !b._state.heldEntity) {
+              app.root.forEach(other => {
+                if (other !== entity && other.rigidbody && other.enabled) {
+                  if (entity.getPosition().distance(other.getPosition()) < (b.params.range || 12)) {
+                    b._state.heldEntity = other;
+                    proceduralSFX.play('boost');
+                    if (typeof showToast === 'function') showToast(`🧲 Gravity Gun grabbed ${other.name}!`, 'info');
+                  }
+                }
+              });
+            }
+
+            if (b._state.heldEntity) {
+              const holdPos = entity.getPosition().clone().add(entity.forward.clone().mulScalar(3.0)).add(new pc.Vec3(0, 0.5, 0));
+              if (b._state.heldEntity.rigidbody) {
+                b._state.heldEntity.rigidbody.teleport(holdPos);
+              } else {
+                b._state.heldEntity.setPosition(holdPos);
+              }
+
+              if (launchKey) {
+                const launchVec = entity.forward.clone().normalize().mulScalar(b.params.launchForce || 30);
+                if (b._state.heldEntity.rigidbody) {
+                  b._state.heldEntity.rigidbody.applyImpulse(launchVec.x, launchVec.y, launchVec.z);
+                }
+                proceduralSFX.play('explosion');
+                this.triggerScreenShake(0.4, 0.2);
+                if (typeof showToast === 'function') showToast(`🚀 Launched ${b._state.heldEntity.name}!`, 'success');
+                b._state.heldEntity = null;
+              }
+            }
+          } else if (b.type === 'inventory_crafting') {
+            if (!b._state) b._state = { items: ['Wood', 'Iron Ore'], recipes: [{ req: ['Wood', 'Iron Ore'], result: 'Iron Sword' }] };
+            const craftKey = this.isKeyDown('c') || this.isKeyDown('keyc');
+            if (craftKey && !b._keyCd) {
+              b._keyCd = true;
+              proceduralSFX.play('coin');
+              if (typeof showToast === 'function') showToast(`🎒 Crafting: Synthesized Iron Sword from materials!`, 'success');
+            }
+            if (!craftKey) b._keyCd = false;
+          } else if (b.type === 'dialogue_system') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 3.0;
+              if (!b._state) b._state = { active: false };
+              if (dist <= radius && !b._state.active) {
+                b._state.active = true;
+                proceduralSFX.play('door');
+                if (typeof showToast === 'function') showToast(`💬 [${b.params.npcName || 'NPC'}]: "${b.params.text || 'Greetings!'}"`, 'info');
+              } else if (dist > radius && b._state.active) {
+                b._state.active = false;
+              }
+            }
+          } else if (b.type === 'quest_tracker') {
+            if (b.params.currentCount === undefined) b.params.currentCount = 0;
+            if (!b._state) b._state = { completed: false };
+            if (b.params.currentCount >= (b.params.requiredCount || 1) && !b._state.completed) {
+              b._state.completed = true;
+              proceduralSFX.play('victory');
+              if (typeof showToast === 'function') showToast(`📜 QUEST COMPLETE: ${b.params.questTitle || 'Objective Achieved'}!`, 'success');
+            }
+          } else if (b.type === 'minimap_radar') {
+            if (!b._state) b._state = { blips: [] };
+          } else if (b.type === 'cover_system') {
+            const inCoverKey = this.isKeyDown('c') || this.isKeyDown('shift');
+            b._inCover = Boolean(inCoverKey);
+          } else if (b.type === 'ragdoll_physics') {
+            // Evaluated upon defeat
+          } else if (b.type === 'day_night_weather_cycle') {
+            const speed = b.params.cycleSpeed || 0.05;
+            entity.rotate(speed * dt * 20, 0, 0);
           }
         }
       }

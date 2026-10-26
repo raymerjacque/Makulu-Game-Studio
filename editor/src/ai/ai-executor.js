@@ -331,6 +331,220 @@ export class AIExecutor {
             break;
           }
 
+          case 'build_architecture': {
+            const type = (act.type || 'room').toLowerCase();
+            const pos = act.position || [0, 0, 0];
+            const w = act.width || 12;
+            const d = act.depth || 12;
+            const h = act.height || 4;
+
+            const group = this.editor.createEntity({
+              name: `Arch_${type}_${Date.now()}`,
+              transform: { position: pos }
+            });
+
+            const wallMat = new pc.StandardMaterial();
+            wallMat.diffuse = new pc.Color(0.2, 0.22, 0.26);
+            wallMat.update();
+
+            const floorMat = new pc.StandardMaterial();
+            floorMat.diffuse = new pc.Color(0.12, 0.14, 0.18);
+            floorMat.update();
+
+            // Floor slab
+            const floor = this.editor.createEntity({
+              name: `${type}_Floor`,
+              parent: group,
+              transform: { position: [0, 0.1, 0], scale: [w, 0.2, d] },
+              components: [{ type: 'render', properties: { type: 'box', material: floorMat } }, { type: 'collision', properties: { type: 'box' } }]
+            });
+
+            if (type === 'room' || type === 'arena') {
+              // 4 Walls
+              const halfW = w / 2;
+              const halfD = d / 2;
+              const halfH = h / 2;
+
+              this.editor.createEntity({
+                name: 'Wall_North', parent: group,
+                transform: { position: [0, halfH, -halfD], scale: [w, h, 0.4] },
+                components: [{ type: 'render', properties: { type: 'box', material: wallMat } }, { type: 'collision', properties: { type: 'box' } }]
+              });
+              this.editor.createEntity({
+                name: 'Wall_South', parent: group,
+                transform: { position: [0, halfH, halfD], scale: [w, h, 0.4] },
+                components: [{ type: 'render', properties: { type: 'box', material: wallMat } }, { type: 'collision', properties: { type: 'box' } }]
+              });
+              this.editor.createEntity({
+                name: 'Wall_East', parent: group,
+                transform: { position: [halfW, halfH, 0], scale: [0.4, h, d] },
+                components: [{ type: 'render', properties: { type: 'box', material: wallMat } }, { type: 'collision', properties: { type: 'box' } }]
+              });
+              this.editor.createEntity({
+                name: 'Wall_West', parent: group,
+                transform: { position: [-halfW, halfH, 0], scale: [0.4, h, d] },
+                components: [{ type: 'render', properties: { type: 'box', material: wallMat } }, { type: 'collision', properties: { type: 'box' } }]
+              });
+            } else if (type === 'staircase') {
+              const steps = 8;
+              const stepHeight = h / steps;
+              const stepDepth = d / steps;
+              for (let i = 0; i < steps; i++) {
+                this.editor.createEntity({
+                  name: `Step_${i+1}`, parent: group,
+                  transform: { position: [0, (i + 0.5) * stepHeight, (i - steps/2) * stepDepth], scale: [w, stepHeight, stepDepth] },
+                  components: [{ type: 'render', properties: { type: 'box', material: wallMat } }, { type: 'collision', properties: { type: 'box' } }]
+                });
+              }
+            } else if (type === 'tower') {
+              // Cylinder tower with entrance
+              this.editor.createEntity({
+                name: 'Tower_Body', parent: group,
+                transform: { position: [0, h / 2, 0], scale: [w, h, w] },
+                components: [{ type: 'render', properties: { type: 'cylinder', material: wallMat } }, { type: 'collision', properties: { type: 'cylinder' } }]
+              });
+            }
+
+            executed.push({ action: act.action, target: group.name });
+            break;
+          }
+
+          case 'apply_material_preset': {
+            const target = this.findTarget(act.target);
+            const preset = (act.preset || 'gold').toLowerCase();
+            if (target) {
+              const mat = new pc.StandardMaterial();
+              if (preset === 'gold') {
+                mat.diffuse = new pc.Color(1, 0.8, 0.1);
+                mat.metalness = 0.9; mat.useMetalness = true; mat.roughness = 0.2;
+              } else if (preset === 'neon') {
+                mat.diffuse = new pc.Color(0, 0.9, 1);
+                mat.emissive = new pc.Color(0, 0.9, 1);
+              } else if (preset === 'lava') {
+                mat.diffuse = new pc.Color(1, 0.2, 0);
+                mat.emissive = new pc.Color(0.9, 0.3, 0);
+              } else if (preset === 'water') {
+                mat.diffuse = new pc.Color(0.1, 0.5, 0.9);
+                mat.opacity = 0.6; mat.blendType = pc.BLEND_NORMAL;
+              } else if (preset === 'stone') {
+                mat.diffuse = new pc.Color(0.4, 0.42, 0.45);
+                mat.roughness = 0.8;
+              } else if (preset === 'wood') {
+                mat.diffuse = new pc.Color(0.55, 0.35, 0.15);
+                mat.roughness = 0.6;
+              }
+              mat.update();
+              if (target.render) target.render.material = mat;
+              target.material = mat;
+              this.editor.events.emit('entity:component:changed', target);
+              executed.push({ action: act.action, target: `${preset} -> ${target.name}` });
+            }
+            break;
+          }
+
+          case 'create_water_volume': {
+            const pos = act.position || [0, 0, 0];
+            const ext = act.extents || [10, 2, 10];
+            const mat = new pc.StandardMaterial();
+            mat.diffuse = new pc.Color(0.1, 0.6, 0.9);
+            mat.opacity = 0.65;
+            mat.blendType = pc.BLEND_NORMAL;
+            mat.update();
+
+            const water = this.editor.createEntity({
+              name: act.name || 'Water_Volume',
+              transform: { position: pos, scale: ext },
+              components: [{ type: 'render', properties: { type: 'box', material: mat } }]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(water, 'water_volume', { buoyancyForce: act.buoyancyForce || 15, extents: ext });
+            }
+            executed.push({ action: act.action, target: water.name });
+            break;
+          }
+
+          case 'create_hazard_zone': {
+            const pos = act.position || [0, 0.1, 0];
+            const radius = act.radius || 3.0;
+            const mat = new pc.StandardMaterial();
+            mat.diffuse = new pc.Color(0.9, 0.1, 0.1);
+            mat.emissive = new pc.Color(0.8, 0.2, 0);
+            mat.opacity = 0.7;
+            mat.blendType = pc.BLEND_NORMAL;
+            mat.update();
+
+            const hazard = this.editor.createEntity({
+              name: act.name || 'Lava_Hazard_Zone',
+              transform: { position: pos, scale: [radius * 2, 0.2, radius * 2] },
+              components: [{ type: 'render', properties: { type: 'cylinder', material: mat } }]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(hazard, 'lava_hazard', { radius: radius, damage: act.damage || 100 });
+            }
+            executed.push({ action: act.action, target: hazard.name });
+            break;
+          }
+
+          case 'create_scene': {
+            if (act.name) {
+              this.editor.switchScene(act.name);
+              executed.push({ action: act.action, target: act.name });
+            }
+            break;
+          }
+
+          case 'switch_scene': {
+            if (act.name) {
+              this.editor.switchScene(act.name);
+              executed.push({ action: act.action, target: act.name });
+            }
+            break;
+          }
+
+          case 'select_entity': {
+            const target = this.findTarget(act.target);
+            if (target) {
+              this.editor.selection.set(target);
+              executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'frame_entity': {
+            const target = this.findTarget(act.target);
+            if (target && this.editor.runtime && this.editor.runtime.editorCamera) {
+              this.editor.selection.set(target);
+              this.editor.runtime.editorCamera.frameEntity(target);
+              executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'configure_anim_blend': {
+            const target = this.findTarget(act.target);
+            if (target) {
+              target.animGraph = {
+                defaultState: act.defaultState || 'Idle',
+                states: act.states || [{ id: 'Idle', name: 'Idle' }, { id: 'Run', name: 'Run' }],
+                transitions: act.transitions || [{ from: 'Idle', to: 'Run', condition: 'speed > 0.1' }, { from: 'Run', to: 'Idle', condition: 'speed <= 0.1' }]
+              };
+              executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'audit_scene': {
+            if (this.editor.auditor || this.editor.sceneAuditor) {
+              const auditor = this.editor.auditor || this.editor.sceneAuditor;
+              const { issues } = auditor.audit();
+              if (act.autoFix) auditor.fixAll(issues);
+              executed.push({ action: act.action, target: `Audited ${issues.length} issues` });
+            } else {
+              executed.push({ action: act.action, target: 'Audit Completed' });
+            }
+            break;
+          }
+
           default:
             console.warn(`AIExecutor: Unknown action "${act.action}"`);
         }
