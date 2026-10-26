@@ -1254,6 +1254,140 @@ export class GameBundler {
               b._state.playing = true;
               if (window.playProceduralSFX) window.playProceduralSFX('victory', b.properties?.volume || 0.3);
             }
+          } else if (b.type === 'boss_ai') {
+            if (b.properties.currentHp === undefined) b.properties.currentHp = b.properties.maxHp || 500;
+            if (playerEntity && b.properties.currentHp > 0) {
+              const pos = node.getPosition();
+              const plyPos = playerEntity.getPosition();
+              const dist = pos.distance(plyPos);
+              const isEnraged = (b.properties.currentHp / (b.properties.maxHp || 500)) <= (b.properties.enrageThreshold || 0.5);
+
+              node.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
+
+              if (!b._attackTimer) b._attackTimer = 0;
+              b._attackTimer -= dt;
+              if (b._attackTimer <= 0 && dist < 20) {
+                b._attackTimer = isEnraged ? (b.properties.attackRate || 2.0) * 0.5 : (b.properties.attackRate || 2.0);
+                if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                window.triggerScreenShake(0.6, 0.3);
+                const playerB = playerEntity._behaviors || [];
+                const healthB = playerB.find(hb => hb.type === 'health');
+                if (healthB && dist < 3.5) {
+                  const dmg = isEnraged ? (b.properties.damage || 30) * 1.5 : (b.properties.damage || 30);
+                  healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - dmg);
+                }
+              }
+            } else if (b.properties.currentHp <= 0 && node.enabled) {
+              node.enabled = false;
+              if (window.playProceduralSFX) window.playProceduralSFX('victory');
+            }
+          } else if (b.type === 'stealth_ai') {
+            if (playerEntity) {
+              const pos = node.getPosition();
+              const plyPos = playerEntity.getPosition();
+              const dist = pos.distance(plyPos);
+              const visionRadius = b.properties?.visionRadius || 12;
+
+              if (dist <= visionRadius) {
+                const toPlayer = plyPos.clone().sub(pos).normalize();
+                const forward = node.forward.clone().normalize();
+                const angle = Math.acos(Math.max(-1, Math.min(1, forward.dot(toPlayer)))) * (180 / Math.PI);
+                const visionAngle = b.properties?.visionAngle || 60;
+
+                if (angle <= visionAngle / 2) {
+                  node.lookAt(new pc.Vec3(plyPos.x, pos.y, plyPos.z));
+                  node.translateLocal(0, 0, -(b.properties?.speed || 2.5) * dt);
+                  if (dist < 1.8) {
+                    const playerB = playerEntity._behaviors || [];
+                    const healthB = playerB.find(hb => hb.type === 'health');
+                    if (healthB) {
+                      healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - 25);
+                      window.triggerScreenShake(0.4, 0.2);
+                    }
+                  }
+                }
+              }
+            }
+          } else if (b.type === 'vehicle_controller') {
+            const topSpeed = b.properties?.topSpeed || 25;
+            const accel = b.properties?.accel || 15;
+            const steerSpeed = b.properties?.steerSpeed || 60;
+
+            if (!b._vspeed) b._vspeed = 0;
+
+            if (keys['w'] || keys['arrowup']) {
+              b._vspeed = Math.min(topSpeed, b._vspeed + accel * dt);
+            } else if (keys['s'] || keys['arrowdown']) {
+              b._vspeed = Math.max(-topSpeed * 0.4, b._vspeed - accel * dt);
+            } else {
+              b._vspeed *= Math.pow(0.1, dt);
+            }
+
+            if (Math.abs(b._vspeed) > 0.1) {
+              const dir = b._vspeed > 0 ? 1 : -1;
+              if (keys['a'] || keys['arrowleft']) node.rotate(0, steerSpeed * dt * dir, 0);
+              if (keys['d'] || keys['arrowright']) node.rotate(0, -steerSpeed * dt * dir, 0);
+            }
+
+            node.translateLocal(0, 0, -b._vspeed * dt);
+
+            if (gameCamera) {
+              const camTarget = node.getPosition().clone().add(node.forward.clone().mulScalar(8)).add(new pc.Vec3(0, 4, 0));
+              gameCamera.setPosition(gameCamera.getPosition().lerp(gameCamera.getPosition(), camTarget, dt * 5));
+              gameCamera.lookAt(node.getPosition());
+            }
+          } else if (b.type === 'destruction_mesh') {
+            if (b.properties.health === undefined) b.properties.health = b.properties.maxHealth || 50;
+            if (b.properties.health <= 0 && node.enabled) {
+              node.enabled = false;
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+              window.triggerScreenShake(0.5, 0.2);
+
+              const debrisCount = b.properties?.debrisCount || 6;
+              const pos = node.getPosition();
+              for (let i = 0; i < debrisCount; i++) {
+                const chunk = new pc.Entity('Debris_' + i);
+                chunk.setPosition(pos.clone().add(new pc.Vec3((Math.random()-0.5)*1.5, Math.random()*1.5, (Math.random()-0.5)*1.5)));
+                chunk.setLocalScale(0.3, 0.3, 0.3);
+                const mat = new pc.StandardMaterial();
+                mat.diffuse = new pc.Color(0.8, 0.4, 0.1);
+                mat.update();
+                chunk.addComponent('render', { type: 'box', material: mat });
+                app.root.addChild(chunk);
+              }
+            }
+          } else if (b.type === 'cinematic_cutscene_trigger') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.5;
+              if (!b._state) b._state = { played: false };
+              if (dist < radius && !b._state.played) {
+                b._state.played = true;
+                window.triggerScreenShake(0.3, 0.3);
+                if (window.playProceduralSFX) window.playProceduralSFX('victory');
+              }
+            }
+          } else if (b.type === 'checkpoint_system') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.0;
+              if (dist < radius) {
+                playerEntity._respawnCheckpoint = node.getPosition().clone().add(new pc.Vec3(0, 1, 0));
+                if (!b._state) b._state = { active: false };
+                if (!b._state.active) {
+                  b._state.active = true;
+                  if (window.playProceduralSFX) window.playProceduralSFX('coin');
+                }
+              }
+            }
+          } else if (b.type === 'shield_generator') {
+            if (b.properties.currentShield === undefined) b.properties.currentShield = b.properties.maxShield || 50;
+            if (!b._rechargeTimer) b._rechargeTimer = 0;
+            if (b._rechargeTimer > 0) {
+              b._rechargeTimer -= dt;
+            } else if (b.properties.currentShield < (b.properties.maxShield || 50)) {
+              b.properties.currentShield = Math.min(b.properties.maxShield || 50, b.properties.currentShield + (b.properties.rechargeRate || 10) * dt);
+            }
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;
             if (b._cooldown > 0) b._cooldown -= dt;

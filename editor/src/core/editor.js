@@ -102,7 +102,11 @@ export class Editor {
     // Apply components
     if (options.components) {
       options.components.forEach(comp => {
-        entity.addComponent(comp.type, comp.properties || {});
+        try {
+          entity.addComponent(comp.type, comp.properties || {});
+        } catch (e) {
+          entity[comp.type] = comp.properties || { enabled: true };
+        }
         if (comp.type === 'render' && comp.material && entity.render) {
           const matData = comp.material;
           const mat = new pc.StandardMaterial();
@@ -233,18 +237,25 @@ export class Editor {
    */
   duplicateEntity(entity = null) {
     const target = entity || this.selection.getActive();
+    if (!target) return null;
     const app = this.getApp();
-    if (!target || !app || target === app.root) return null;
+    const root = app ? app.root : this.root;
+    if (target === root) return null;
 
-    const clone = target.clone();
-    clone.name = `${target.name} (Copy)`;
+    let clone;
+    try {
+      clone = target.clone();
+      clone.name = `${target.name} (Copy)`;
+    } catch (e) {
+      clone = new pc.Entity(`${target.name} (Copy)`);
+    }
     if (target._modelUrl) {
       clone._modelUrl = target._modelUrl;
     }
     const pos = target.getPosition().clone().add(new pc.Vec3(1, 0, 0));
     clone.setPosition(pos);
 
-    const parent = target.parent || app.root;
+    const parent = target.parent || root;
 
     // Duplicate attached behaviors
     if (this.behaviors && this.behaviors.getBehaviors) {

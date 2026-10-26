@@ -47,7 +47,16 @@ export const BEHAVIOR_CATALOG = [
   { type: 'billboard', icon: '🎯', name: 'Billboard Facing (Face Camera)', defaultParams: {} },
   { type: 'collectible', icon: '💎', name: 'Collectible Item Pickup', defaultParams: { radius: 1.5, score: 10 } },
   { type: 'damage_dealer', icon: '⚔️', name: 'Damage Dealer Hazard', defaultParams: { radius: 2.0, damage: 20 } },
-  { type: 'health_pickup', icon: '💚', name: 'Health Potion Pickup', defaultParams: { radius: 1.5, healAmount: 25 } }
+  { type: 'health_pickup', icon: '💚', name: 'Health Potion Pickup', defaultParams: { radius: 1.5, healAmount: 25 } },
+  { type: 'boss_ai', icon: '🐉', name: 'Multi-Phase Boss AI', defaultParams: { maxHp: 500, attackRate: 2.0, damage: 30, enrageThreshold: 0.5 } },
+  { type: 'stealth_ai', icon: '🥷', name: 'Guard Stealth Vision Cone AI', defaultParams: { visionRadius: 12, visionAngle: 60, speed: 2.5 } },
+  { type: 'vehicle_controller', icon: '🏎️', name: 'Driveable Vehicle / Hovercraft', defaultParams: { topSpeed: 25, accel: 15, steerSpeed: 60 } },
+  { type: 'destruction_mesh', icon: '💥', name: 'Breakable Destructible Object', defaultParams: { health: 50, debrisCount: 8 } },
+  { type: 'cinematic_cutscene_trigger', icon: '🎬', name: 'Widescreen Cutscene Trigger', defaultParams: { duration: 4.0, radius: 2.5, caption: 'A dark shadow falls upon the realm...' } },
+  { type: 'combo_score_counter', icon: '🎯', name: 'Multi-Kill Combo Multiplier', defaultParams: { multiplier: 2, windowTime: 3.0 } },
+  { type: 'checkpoint_system', icon: '🚩', name: 'Respawn Checkpoint Pad', defaultParams: { radius: 2.0 } },
+  { type: 'weather_emitter', icon: '❄️', name: 'Weather Particle Emitter', defaultParams: { type: 'snow', density: 100 } },
+  { type: 'shield_generator', icon: '🛡️', name: 'Energy Shield Component', defaultParams: { maxShield: 50, rechargeRate: 10, rechargeDelay: 3.0 } }
 ];
 
 /**
