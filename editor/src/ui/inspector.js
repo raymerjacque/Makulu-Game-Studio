@@ -121,7 +121,13 @@ export class InspectorPanel {
     const hasCoinBounce = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'coin_bounce') : false;
     const hasLightCycle = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'light_color_cycle') : false;
     const hasWaypointPatrol = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'waypoint_patrol') : false;
-    const hasTrigger = this.editor.triggers ? this.editor.triggers.hasTrigger(ent.name) : false;
+    const hasTurretAI = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'turret_ai') : false;
+    const hasPressurePlate = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'pressure_plate') : false;
+    const hasTeleportGateway = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'teleport_gateway') : false;
+    const hasWaterVolume = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'water_volume') : false;
+    const hasFlashlight = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'flashlight') : false;
+    const hasOverheadHealthbar = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'overhead_healthbar') : false;
+    const hasAmbientAudio = this.editor.behaviors ? this.editor.behaviors.hasBehavior(ent, 'ambient_audio') : false;
 
     body.innerHTML = `
       <!-- Mode Banner -->
@@ -212,333 +218,80 @@ export class InspectorPanel {
             </button>
           `}
 
-          ${hasFlicker ? `
+          ${hasTurretAI ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #f87171; font-weight: 600;">🔫 Auto Turret AI Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-turret-ai-behavior" title="Remove Turret AI" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-turret-ai-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🎯</span> <span>Add Auto Turret Tracking AI</span>
+            </button>
+          `}
+
+          ${hasPressurePlate ? `
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234,179,8,0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #facc15; font-weight: 600;">💡 Flame/Light Flicker Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-flicker-behavior" title="Remove Flicker" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+              <span style="color: #facc15; font-weight: 600;">🔘 Pressure Plate Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-pressure-plate-behavior" title="Remove Pressure Plate" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
             </div>
           ` : `
-            <button class="btn" id="add-flicker-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>💡</span> <span>Add Flame/Light Flicker</span>
+            <button class="btn" id="add-pressure-plate-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔘</span> <span>Make Interactive Pressure Plate</span>
             </button>
           `}
 
-          ${hasPatrol ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #c084fc; font-weight: 600;">🚶 Patrol Movement Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-patrol-behavior" title="Remove Patrol" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-patrol-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🚶</span> <span>Add Patrol Back-and-Forth Movement</span>
-            </button>
-          `}
-
-          ${hasImpulse ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #c084fc; font-weight: 600;">💥 Spacebar Jump Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-impulse-behavior" title="Remove Jump" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-impulse-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>💥</span> <span>Add Spacebar Physics Jump</span>
-            </button>
-          `}
-
-          ${hasSine ? `
+          ${hasTeleportGateway ? `
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,229,255,0.15); border: 1px solid #00e5ff; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #00e5ff; font-weight: 600;">🌊 Sine Wave Floating Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-sine-behavior" title="Remove Floating" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+              <span style="color: #00e5ff; font-weight: 600;">🌀 Teleport Gateway Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-teleport-gateway-behavior" title="Remove Teleport Gateway" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
             </div>
           ` : `
-            <button class="btn" id="add-sine-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🌊</span> <span>Add Sine Wave Floating</span>
+            <button class="btn" id="add-teleport-gateway-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🌀</span> <span>Add Linked Teleport Gateway</span>
             </button>
           `}
 
-          ${hasOrbit ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234,179,8,0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #facc15; font-weight: 600;">💫 Orbit Movement Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-orbit-behavior" title="Remove Orbit" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-orbit-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>💫</span> <span>Add Orbit Movement</span>
-            </button>
-          `}
-
-          ${hasCamFollow ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #4ade80; font-weight: 600;">🎥 Camera Follow Target Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-camfollow-behavior" title="Remove Follow" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-camfollow-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🎥</span> <span>Set Camera Follow Target</span>
-            </button>
-          `}
-
-          ${hasBillboard ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(236,72,153,0.15); border: 1px solid #ec4899; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #f472b6; font-weight: 600;">🎯 Billboard Facing Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-billboard-behavior" title="Remove Billboard" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-billboard-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🎯</span> <span>Make Billboard (Face Camera)</span>
-            </button>
-          `}
-
-          ${hasCollectible ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(251,146,60,0.15); border: 1px solid #fb923c; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #fb923c; font-weight: 600;">💎 Collectible Item Pickup Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-collectible-behavior" title="Remove Collectible" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-collectible-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>💎</span> <span>Make Collectible Item Pickup</span>
-            </button>
-          `}
-
-          ${hasHealth ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #f87171; font-weight: 600;">❤️ Health Component Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-health-behavior" title="Remove Health" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-health-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>❤️</span> <span>Add Health Component (100 HP)</span>
-            </button>
-          `}
-
-          ${hasDamage ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #ef4444; font-weight: 600;">⚔️ Damage Dealer Hazard Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-damage-behavior" title="Remove Damage" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-damage-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>⚔️</span> <span>Make Damage Dealer Hazard</span>
-            </button>
-          `}
-
-          ${hasHealthPickup ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #4ade80; font-weight: 600;">💚 Health Potion Pickup Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-hp-pickup-behavior" title="Remove Health Pickup" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-hp-pickup-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>💚</span> <span>Make Health Potion (+25 HP Pickup)</span>
-            </button>
-          `}
-
-          ${hasEnemyAI ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #ef4444; font-weight: 600;">🤖 Enemy Chase AI Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-enemy-ai-behavior" title="Remove Enemy AI" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-enemy-ai-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🤖</span> <span>Make Enemy Chase AI Hostile</span>
-            </button>
-          `}
-
-          ${hasShooter ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234,179,8,0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #facc15; font-weight: 600;">🔫 Projectile Weapon Shooter Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-shooter-behavior" title="Remove Shooter" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-shooter-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🔫</span> <span>Add Projectile Shooter (Press F / Space)</span>
-            </button>
-          `}
-
-          ${hasMouseLook ? `
+          ${hasWaterVolume ? `
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #60a5fa; font-weight: 600;">👀 First/Third Person Rotation Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-mouselook-behavior" title="Remove Look" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+              <span style="color: #60a5fa; font-weight: 600;">🌊 Water Buoyancy Volume Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-water-volume-behavior" title="Remove Water Volume" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
             </div>
           ` : `
-            <button class="btn" id="add-mouselook-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>👀</span> <span>Add Camera/Player Rotation Controls</span>
+            <button class="btn" id="add-water-volume-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🌊</span> <span>Make Water Buoyancy Volume</span>
             </button>
           `}
 
-          ${hasMovingPlatform ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #60a5fa; font-weight: 600;">🛗 Moving Platform Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-moving-platform-behavior" title="Remove Platform" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-moving-platform-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🛗</span> <span>Make Moving Platform / Elevator</span>
-            </button>
-          `}
-
-          ${hasInteractiveDoor ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #c084fc; font-weight: 600;">🚪 Interactive Proximity Door Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-interactive-door-behavior" title="Remove Door" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-interactive-door-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🚪</span> <span>Make Automatic Proximity Door</span>
-            </button>
-          `}
-
-          ${hasEnemySpawner ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #ef4444; font-weight: 600;">👾 Monster Spawner Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-enemy-spawner-behavior" title="Remove Spawner" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-enemy-spawner-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>👾</span> <span>Make Monster Spawner Portal</span>
-            </button>
-          `}
-
-          ${hasWeaponInventory ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,229,255,0.15); border: 1px solid #00e5ff; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #00e5ff; font-weight: 600;">🎒 Weapon & Ammo Inventory Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-weapon-inventory-behavior" title="Remove Inventory" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-weapon-inventory-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🎒</span> <span>Attach Weapon & Ammo HUD</span>
-            </button>
-          `}
-
-          ${hasFirstPerson ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(14,165,233,0.15); border: 1px solid #0ea5e9; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #38bdf8; font-weight: 600;">👀 First-Person Controller Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-fps-behavior" title="Remove FPS" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-fps-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>👀</span> <span>Make First-Person Player (WASD + Look)</span>
-            </button>
-          `}
-
-          ${hasTargetHealth ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #f87171; font-weight: 600;">🎯 Destructible Target / Boss Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-target-health-behavior" title="Remove Target" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-target-health-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🎯</span> <span>Make Destructible Boss / Target (+100 PTS)</span>
-            </button>
-          `}
-
-          ${hasKeyPickup ? `
+          ${hasFlashlight ? `
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(250,204,21,0.15); border: 1px solid #facc15; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #fde047; font-weight: 600;">🔑 Collectible Key Item Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-key-pickup-behavior" title="Remove Key" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+              <span style="color: #fde047; font-weight: 600;">🔦 Flashlight Spotlight Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-flashlight-behavior" title="Remove Flashlight" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
             </div>
           ` : `
-            <button class="btn" id="add-key-pickup-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🔑</span> <span>Make Collectible Key Item</span>
+            <button class="btn" id="add-flashlight-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🔦</span> <span>Attach Toggleable Flashlight ('L')</span>
             </button>
           `}
 
-          ${hasLockedDoor ? `
+          ${hasOverheadHealthbar ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(34,197,94,0.15); border: 1px solid #22c55e; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+              <span style="color: #4ade80; font-weight: 600;">🏥 Overhead 3D Billboard HUD Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-overhead-healthbar-behavior" title="Remove Billboard HUD" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+            </div>
+          ` : `
+            <button class="btn" id="add-overhead-healthbar-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🏥</span> <span>Add Overhead Billboard Health HUD</span>
+            </button>
+          `}
+
+          ${hasAmbientAudio ? `
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168,85,247,0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #c084fc; font-weight: 600;">🔒 Locked Key Door Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-locked-door-behavior" title="Remove Locked Door" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+              <span style="color: #c084fc; font-weight: 600;">🎵 Ambient Music Emitter Active</span>
+              <button class="btn btn-icon btn-sm" id="remove-ambient-audio-behavior" title="Remove Ambient Music" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
             </div>
           ` : `
-            <button class="btn" id="add-locked-door-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🔒</span> <span>Make Locked Key Door (Requires Key)</span>
-            </button>
-          `}
-
-          ${hasJetpack ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(56,189,248,0.15); border: 1px solid #38bdf8; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #38bdf8; font-weight: 600;">🚀 Jetpack Thruster Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-jetpack-behavior" title="Remove Jetpack" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-jetpack-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🚀</span> <span>Attach Jetpack Thruster (Hold Space)</span>
-            </button>
-          `}
-
-          ${hasLevelPortal ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(16,185,129,0.15); border: 1px solid #10b981; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #34d399; font-weight: 600;">🌀 Level Transition Portal Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-level-portal-behavior" title="Remove Portal" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-level-portal-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🌀</span> <span>Make Level Transition Portal</span>
-            </button>
-          `}
-
-          ${hasAudioTrigger ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #60a5fa; font-weight: 600;">🔊 Audio SFX Proximity Trigger Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-audio-trigger-behavior" title="Remove Audio Trigger" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-audio-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🔊</span> <span>Add Audio SFX Proximity Trigger</span>
-            </button>
-          `}
-
-          ${hasPostfxTrigger ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #c084fc; font-weight: 600;">✨ PostFX Atmosphere Trigger Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-postfx-trigger-behavior" title="Remove PostFX Trigger" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-postfx-trigger-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>✨</span> <span>Add Atmosphere FX Trigger Zone</span>
-            </button>
-          `}
-
-          ${hasLavaHazard ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #f87171; font-weight: 600;">🔥 Lava / Hazard Zone Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-lava-hazard-behavior" title="Remove Lava Hazard" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-lava-hazard-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🔥</span> <span>Add Lava / Hazard Zone (Damage)</span>
-            </button>
-          `}
-
-          ${hasCoinBounce ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #facc15; font-weight: 600;">🪙 Coin Spin & Bounce Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-coin-bounce-behavior" title="Remove Coin Bounce" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-coin-bounce-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🪙</span> <span>Make Bouncing Coin / Pickup</span>
-            </button>
-          `}
-
-          ${hasLightCycle ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #c084fc; font-weight: 600;">🌈 RGB Neon Light Cycle Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-light-cycle-behavior" title="Remove Light Cycle" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-light-cycle-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🌈</span> <span>Make RGB Neon Cycling Light</span>
-            </button>
-          `}
-
-          ${hasWaypointPatrol ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #34d399; font-weight: 600;">🗺️ Waypoint Path Patrol Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-waypoint-patrol-behavior" title="Remove Waypoint Patrol" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-waypoint-patrol-behavior" style="justify-content: flex-start; gap: 8px;">
-              <span>🗺️</span> <span>Add Multi-Waypoint Path Patrol</span>
+            <button class="btn" id="add-ambient-audio-behavior" style="justify-content: flex-start; gap: 8px;">
+              <span>🎵</span> <span>Add Ambient Background Music Emitter</span>
             </button>
           `}
 
@@ -553,17 +306,6 @@ export class InspectorPanel {
           <button class="btn" id="btn-simple-anim-blend" style="justify-content: flex-start; gap: 8px;">
             <span>🕺</span> <span>Visual Animation Blend Graph (States & Transitions)</span>
           </button>
-
-          ${ent.joint ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #facc15; font-weight: 600;">⚙️ Joint (${ent.joint.type}) Active</span>
-              <button class="btn btn-icon btn-sm" id="remove-simple-joint-btn" title="Remove Joint" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
-            </div>
-          ` : `
-            <button class="btn" id="add-simple-joint-btn" style="justify-content: flex-start; gap: 8px;">
-              <span>⚙️</span> <span>Attach Physics Joint (Door Hinge / Slider)</span>
-            </button>
-          `}
         </div>
       </div>
     `;
@@ -639,392 +381,150 @@ export class InspectorPanel {
       this.editor.events.emit('entity:transformed', ent);
     });
 
-    // Behaviors
-    const addSpinBtn = body.querySelector('#add-spin-behavior');
-    if (addSpinBtn) {
-      addSpinBtn.addEventListener('click', () => {
+    // Simple Mode Handlers for new behaviors
+    const addTurretBtn = body.querySelector('#add-turret-ai-behavior');
+    if (addTurretBtn) {
+      addTurretBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'spin', { speed: 45, axis: 'y' });
-          showToast(`🔄 Attached Continuous Spin to ${ent.name}!`, 'success');
-          this.inspect(ent);
+          this.editor.behaviors.attachBehavior(ent, 'turret_ai', { range: 20, fireRate: 1.5, damage: 15 });
+          showToast(`🎯 Attached Auto Turret AI to ${ent.name}!`, 'success');
+          this.updateView();
         }
       });
     }
-
-    const addWinTrigBtn = body.querySelector('#add-win-trigger-behavior');
-    if (addWinTrigBtn) {
-      addWinTrigBtn.addEventListener('click', () => {
-        if (this.editor.triggers) {
-          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
-          this.editor.triggers.registerTrigger(ent.name, {
-            eventType: 'on_enter',
-            action: 'win_level',
-            victoryMessage: '🏆 VICTORY! You completed the level!'
-          });
-          showToast(`🏆 Victory Level Trigger registered on ${ent.name}!`, 'success');
+    const remTurretBtn = body.querySelector('#remove-turret-ai-behavior');
+    if (remTurretBtn) {
+      remTurretBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'turret_ai');
+          showToast(`Removed Turret AI from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
     }
 
-    // Enemy AI Behavior
-    const addEnemyAiBtn = body.querySelector('#add-enemy-ai-behavior');
-    if (addEnemyAiBtn) {
-      addEnemyAiBtn.addEventListener('click', () => {
+    const addPlateBtn = body.querySelector('#add-pressure-plate-behavior');
+    if (addPlateBtn) {
+      addPlateBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'enemy_ai', { speed: 3.5, detectRadius: 15, damage: 15 });
-          showToast(`🤖 Attached Enemy Chase AI to ${ent.name}!`, 'success');
+          this.editor.behaviors.attachBehavior(ent, 'pressure_plate', { radius: 1.5 });
+          showToast(`🔘 Attached Pressure Plate to ${ent.name}!`, 'success');
           this.updateView();
         }
       });
     }
-    const remEnemyAiBtn = body.querySelector('#remove-enemy-ai-behavior');
-    if (remEnemyAiBtn) {
-      remEnemyAiBtn.addEventListener('click', () => {
+    const remPlateBtn = body.querySelector('#remove-pressure-plate-behavior');
+    if (remPlateBtn) {
+      remPlateBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'enemy_ai');
-          showToast(`Removed Enemy AI from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Shooter Behavior
-    const addShooterBtn = body.querySelector('#add-shooter-behavior');
-    if (addShooterBtn) {
-      addShooterBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'projectile_shooter', { speed: 30, damage: 35, cooldown: 0.3 });
-          showToast(`🔫 Attached Projectile Weapon Shooter to ${ent.name}! Press F / Space during ▶ Play!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remShooterBtn = body.querySelector('#remove-shooter-behavior');
-    if (remShooterBtn) {
-      remShooterBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'projectile_shooter');
-          showToast(`Removed Projectile Shooter from ${ent.name}.`, 'info');
+          this.editor.behaviors.removeBehavior(ent, 'pressure_plate');
+          showToast(`Removed Pressure Plate from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
     }
 
-    // Mouse Look Behavior
-    const addMouseLookBtn = body.querySelector('#add-mouselook-behavior');
-    if (addMouseLookBtn) {
-      addMouseLookBtn.addEventListener('click', () => {
+    const addGatewayBtn = body.querySelector('#add-teleport-gateway-behavior');
+    if (addGatewayBtn) {
+      addGatewayBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'mouse_look', { speed: 90 });
-          showToast(`👀 Attached First/Third Person Rotation Controls to ${ent.name}!`, 'success');
+          this.editor.behaviors.attachBehavior(ent, 'teleport_gateway', { cooldown: 2.0, radius: 1.8 });
+          showToast(`🌀 Attached Teleport Gateway to ${ent.name}!`, 'success');
           this.updateView();
         }
       });
     }
-    const remMouseLookBtn = body.querySelector('#remove-mouselook-behavior');
-    if (remMouseLookBtn) {
-      remMouseLookBtn.addEventListener('click', () => {
+    const remGatewayBtn = body.querySelector('#remove-teleport-gateway-behavior');
+    if (remGatewayBtn) {
+      remGatewayBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'mouse_look');
-          showToast(`Removed Rotation Controls from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Moving Platform Behavior
-    const addPlatformBtn = body.querySelector('#add-moving-platform-behavior');
-    if (addPlatformBtn) {
-      addPlatformBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'moving_platform', { speed: 2.5, distance: 8, axis: 'y' });
-          showToast(`🛗 Attached Moving Platform (Elevator) to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remPlatformBtn = body.querySelector('#remove-moving-platform-behavior');
-    if (remPlatformBtn) {
-      remPlatformBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'moving_platform');
-          showToast(`Removed Moving Platform from ${ent.name}.`, 'info');
+          this.editor.behaviors.removeBehavior(ent, 'teleport_gateway');
+          showToast(`Removed Teleport Gateway from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
     }
 
-    // Interactive Door Behavior
-    const addDoorBtn = body.querySelector('#add-interactive-door-behavior');
-    if (addDoorBtn) {
-      addDoorBtn.addEventListener('click', () => {
+    const addWaterBtn = body.querySelector('#add-water-volume-behavior');
+    if (addWaterBtn) {
+      addWaterBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'interactive_door', { radius: 3.0 });
-          showToast(`🚪 Attached Interactive Proximity Door to ${ent.name}!`, 'success');
+          this.editor.behaviors.attachBehavior(ent, 'water_volume', { buoyancyForce: 15, extents: [5, 3, 5] });
+          showToast(`🌊 Attached Water Buoyancy Volume to ${ent.name}!`, 'success');
           this.updateView();
         }
       });
     }
-    const remDoorBtn = body.querySelector('#remove-interactive-door-behavior');
-    if (remDoorBtn) {
-      remDoorBtn.addEventListener('click', () => {
+    const remWaterBtn = body.querySelector('#remove-water-volume-behavior');
+    if (remWaterBtn) {
+      remWaterBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'interactive_door');
-          showToast(`Removed Interactive Door from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Enemy Spawner Behavior
-    const addSpawnerBtn = body.querySelector('#add-enemy-spawner-behavior');
-    if (addSpawnerBtn) {
-      addSpawnerBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'enemy_spawner', { interval: 6.0 });
-          showToast(`👾 Attached Monster Spawner to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remSpawnerBtn = body.querySelector('#remove-enemy-spawner-behavior');
-    if (remSpawnerBtn) {
-      remSpawnerBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'enemy_spawner');
-          showToast(`Removed Monster Spawner from ${ent.name}.`, 'info');
+          this.editor.behaviors.removeBehavior(ent, 'water_volume');
+          showToast(`Removed Water Volume from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
     }
 
-    // Weapon Inventory Behavior
-    const addWeaponBtn = body.querySelector('#add-weapon-inventory-behavior');
-    if (addWeaponBtn) {
-      addWeaponBtn.addEventListener('click', () => {
+    const addFlashlightBtn = body.querySelector('#add-flashlight-behavior');
+    if (addFlashlightBtn) {
+      addFlashlightBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'weapon_inventory', { weaponName: 'Plasma Gun', ammo: 30 });
-          showToast(`🎒 Attached Weapon Inventory (Plasma Gun, 30 ammo) to ${ent.name}!`, 'success');
+          this.editor.behaviors.attachBehavior(ent, 'flashlight', {});
+          showToast(`🔦 Attached Flashlight ('L') to ${ent.name}!`, 'success');
           this.updateView();
         }
       });
     }
-    const remWeaponBtn = body.querySelector('#remove-weapon-inventory-behavior');
-    if (remWeaponBtn) {
-      remWeaponBtn.addEventListener('click', () => {
+    const remFlashlightBtn = body.querySelector('#remove-flashlight-behavior');
+    if (remFlashlightBtn) {
+      remFlashlightBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'weapon_inventory');
-          showToast(`Removed Weapon Inventory from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // First-Person Controller Behavior
-    const addFpsBtn = body.querySelector('#add-fps-behavior');
-    if (addFpsBtn) {
-      addFpsBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'first_person_controller', { speed: 10, rotSpeed: 90 });
-          showToast(`👀 Attached First-Person Controller to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remFpsBtn = body.querySelector('#remove-fps-behavior');
-    if (remFpsBtn) {
-      remFpsBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'first_person_controller');
-          showToast(`Removed First-Person Controller from ${ent.name}.`, 'info');
+          this.editor.behaviors.removeBehavior(ent, 'flashlight');
+          showToast(`Removed Flashlight from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
     }
 
-    // Target Health Behavior
-    const addTargetHealthBtn = body.querySelector('#add-target-health-behavior');
-    if (addTargetHealthBtn) {
-      addTargetHealthBtn.addEventListener('click', () => {
+    const addOverheadBtn = body.querySelector('#add-overhead-healthbar-behavior');
+    if (addOverheadBtn) {
+      addOverheadBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'target_health', { maxHp: 100, currentHp: 100, scoreValue: 100 });
-          showToast(`🎯 Attached Destructible Target Health to ${ent.name}!`, 'success');
+          this.editor.behaviors.attachBehavior(ent, 'overhead_healthbar', {});
+          showToast(`🏥 Attached Overhead Health HUD to ${ent.name}!`, 'success');
           this.updateView();
         }
       });
     }
-    const remTargetHealthBtn = body.querySelector('#remove-target-health-behavior');
-    if (remTargetHealthBtn) {
-      remTargetHealthBtn.addEventListener('click', () => {
+    const remOverheadBtn = body.querySelector('#remove-overhead-healthbar-behavior');
+    if (remOverheadBtn) {
+      remOverheadBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'target_health');
-          showToast(`Removed Target Health from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Key Pickup Behavior
-    const addKeyBtn = body.querySelector('#add-key-pickup-behavior');
-    if (addKeyBtn) {
-      addKeyBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'key_pickup', { keyName: 'Gold Key', radius: 1.8 });
-          showToast(`🔑 Attached Key Pickup to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remKeyBtn = body.querySelector('#remove-key-pickup-behavior');
-    if (remKeyBtn) {
-      remKeyBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'key_pickup');
-          showToast(`Removed Key Pickup from ${ent.name}.`, 'info');
+          this.editor.behaviors.removeBehavior(ent, 'overhead_healthbar');
+          showToast(`Removed Overhead Health HUD from ${ent.name}.`, 'info');
           this.updateView();
         }
       });
     }
 
-    // Locked Door Behavior
-    const addLockedDoorBtn = body.querySelector('#add-locked-door-behavior');
-    if (addLockedDoorBtn) {
-      addLockedDoorBtn.addEventListener('click', () => {
+    const addAmbientBtn = body.querySelector('#add-ambient-audio-behavior');
+    if (addAmbientBtn) {
+      addAmbientBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'locked_door', { requiredKey: 'Gold Key', radius: 3.5 });
-          showToast(`🔒 Attached Locked Door to ${ent.name}!`, 'success');
+          this.editor.behaviors.attachBehavior(ent, 'ambient_audio', { volume: 0.3 });
+          showToast(`🎵 Attached Ambient Music Emitter to ${ent.name}!`, 'success');
           this.updateView();
         }
       });
     }
-    const remLockedDoorBtn = body.querySelector('#remove-locked-door-behavior');
-    if (remLockedDoorBtn) {
-      remLockedDoorBtn.addEventListener('click', () => {
+    const remAmbientBtn = body.querySelector('#remove-ambient-audio-behavior');
+    if (remAmbientBtn) {
+      remAmbientBtn.addEventListener('click', () => {
         if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'locked_door');
-          showToast(`Removed Locked Door from ${ent.name}.`, 'info');
+          this.editor.behaviors.removeBehavior(ent, 'ambient_audio');
+          showToast(`Removed Ambient Music Emitter from ${ent.name}.`, 'info');
           this.updateView();
-        }
-      });
-    }
-
-    // Jetpack Behavior
-    const addJetpackBtn = body.querySelector('#add-jetpack-behavior');
-    if (addJetpackBtn) {
-      addJetpackBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'jetpack', { fuel: 100, maxFuel: 100, thrust: 12 });
-          showToast(`🚀 Attached Jetpack Thruster to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remJetpackBtn = body.querySelector('#remove-jetpack-behavior');
-    if (remJetpackBtn) {
-      remJetpackBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'jetpack');
-          showToast(`Removed Jetpack from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Level Portal Behavior
-    const addPortalBtn = body.querySelector('#add-level-portal-behavior');
-    if (addPortalBtn) {
-      addPortalBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'level_portal', { targetScene: 'Level_2', radius: 2.0 });
-          showToast(`🌀 Attached Level Transition Portal to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remPortalBtn = body.querySelector('#remove-level-portal-behavior');
-    if (remPortalBtn) {
-      remPortalBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'level_portal');
-          showToast(`Removed Level Portal from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Health Behavior
-    const addHealthBtn = body.querySelector('#add-health-behavior');
-    if (addHealthBtn) {
-      addHealthBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'health', { maxHp: 100, currentHp: 100 });
-          showToast(`❤️ Attached Health Component (100 HP) to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remHealthBtn = body.querySelector('#remove-health-behavior');
-    if (remHealthBtn) {
-      remHealthBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'health');
-          showToast(`Removed Health Component from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Damage Dealer Behavior
-    const addDamageBtn = body.querySelector('#add-damage-behavior');
-    if (addDamageBtn) {
-      addDamageBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'damage_dealer', { damage: 20, radius: 1.8 });
-          showToast(`⚔️ Set ${ent.name} as Damage Dealer Hazard (20 Damage)!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remDamageBtn = body.querySelector('#remove-damage-behavior');
-    if (remDamageBtn) {
-      remDamageBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'damage_dealer');
-          showToast(`Removed Damage Dealer Hazard from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Health Pickup Behavior
-    const addHpPickupBtn = body.querySelector('#add-hp-pickup-behavior');
-    if (addHpPickupBtn) {
-      addHpPickupBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'health_pickup', { healAmount: 25, radius: 1.5 });
-          showToast(`💚 Set ${ent.name} as Health Potion Pickup (+25 HP)!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remHpPickupBtn = body.querySelector('#remove-hp-pickup-behavior');
-    if (remHpPickupBtn) {
-      remHpPickupBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'health_pickup');
-          showToast(`Removed Health Pickup from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-    const remSpinBtn = body.querySelector('#remove-spin-behavior');
-    if (remSpinBtn) {
-      remSpinBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'spin');
-          showToast(`Removed Spin Behavior from ${ent.name}.`, 'info');
-          this.inspect(ent);
         }
       });
     }
@@ -1035,7 +535,7 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.attachBehavior(ent, 'wasd', { speed: 8 });
           showToast(`🎮 Attached WASD Player Controller to ${ent.name}! Press ▶ Play to test!`, 'success');
-          this.inspect(ent);
+          this.updateView();
         }
       });
     }
@@ -1045,360 +545,8 @@ export class InspectorPanel {
         if (this.editor.behaviors) {
           this.editor.behaviors.removeBehavior(ent, 'wasd');
           showToast(`Removed WASD Controller from ${ent.name}.`, 'info');
-          this.inspect(ent);
-        }
-      });
-    }
-
-    const addFlickerBtn = body.querySelector('#add-flicker-behavior');
-    if (addFlickerBtn) {
-      addFlickerBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'light_flicker', { variance: 0.5 });
-          showToast(`💡 Attached Light Flicker Behavior to ${ent.name}!`, 'success');
           this.updateView();
         }
-      });
-    }
-    const remFlickerBtn = body.querySelector('#remove-flicker-behavior');
-    if (remFlickerBtn) {
-      remFlickerBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'light_flicker');
-          showToast(`Removed Light Flicker from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    const addPatrolBtn = body.querySelector('#add-patrol-behavior');
-    if (addPatrolBtn) {
-      addPatrolBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'patrol', { speed: 3, distance: 6 });
-          showToast(`🚶 Attached Patrol Behavior to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remPatrolBtn = body.querySelector('#remove-patrol-behavior');
-    if (remPatrolBtn) {
-      remPatrolBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'patrol');
-          showToast(`Removed Patrol Behavior from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    const addImpulseBtn = body.querySelector('#add-impulse-behavior');
-    if (addImpulseBtn) {
-      addImpulseBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          if (!ent.rigidbody) this.editor.addComponent(ent, 'rigidbody', { type: 'dynamic' });
-          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
-          this.editor.behaviors.attachBehavior(ent, 'physics_impulse', { force: 8 });
-          showToast(`💥 Attached Physics Jump to ${ent.name}! Press Spacebar during ▶ Play to jump!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remImpulseBtn = body.querySelector('#remove-impulse-behavior');
-    if (remImpulseBtn) {
-      remImpulseBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'physics_impulse');
-          showToast(`Removed Physics Jump from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Sine Wave Floating
-    const addSineBtn = body.querySelector('#add-sine-behavior');
-    if (addSineBtn) {
-      addSineBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'sine_float', { amplitude: 0.5, frequency: 2.0 });
-          showToast(`🌊 Attached Sine Wave Floating to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remSineBtn = body.querySelector('#remove-sine-behavior');
-    if (remSineBtn) {
-      remSineBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'sine_float');
-          showToast(`Removed Sine Floating from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Orbit Movement
-    const addOrbitBtn = body.querySelector('#add-orbit-behavior');
-    if (addOrbitBtn) {
-      addOrbitBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'orbit', { speed: 1.0, radius: 5.0 });
-          showToast(`💫 Attached Orbit Movement to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remOrbitBtn = body.querySelector('#remove-orbit-behavior');
-    if (remOrbitBtn) {
-      remOrbitBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'orbit');
-          showToast(`Removed Orbit Movement from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Camera Follow Target
-    const addCamFollowBtn = body.querySelector('#add-camfollow-behavior');
-    if (addCamFollowBtn) {
-      addCamFollowBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'camera_follow', { offset: [0, 4, 8] });
-          showToast(`🎥 Set ${ent.name} as Camera Follow Target!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remCamFollowBtn = body.querySelector('#remove-camfollow-behavior');
-    if (remCamFollowBtn) {
-      remCamFollowBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'camera_follow');
-          showToast(`Removed Camera Follow from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Billboard Camera Facing
-    const addBillboardBtn = body.querySelector('#add-billboard-behavior');
-    if (addBillboardBtn) {
-      addBillboardBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'billboard', {});
-          showToast(`🎯 Attached Billboard facing to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remBillboardBtn = body.querySelector('#remove-billboard-behavior');
-    if (remBillboardBtn) {
-      remBillboardBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'billboard');
-          showToast(`Removed Billboard from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Collectible Item Pickup
-    const addCollectibleBtn = body.querySelector('#add-collectible-behavior');
-    if (addCollectibleBtn) {
-      addCollectibleBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'collectible', { radius: 1.5 });
-          showToast(`💎 Set ${ent.name} as Collectible Item Pickup!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remCollectibleBtn = body.querySelector('#remove-collectible-behavior');
-    if (remCollectibleBtn) {
-      remCollectibleBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'collectible');
-          showToast(`Removed Collectible Pickup from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    const addTrigBtn = body.querySelector('#add-trigger-behavior');
-    if (addTrigBtn) {
-      addTrigBtn.addEventListener('click', () => {
-        if (this.editor.triggers) {
-          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
-          this.editor.triggers.registerTrigger(ent.name, {
-            eventType: 'on_enter',
-            action: 'teleport',
-            targetPosition: [0, 2, 0]
-          });
-          showToast(`⚡ Teleport Trigger registered on ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-
-    const addAudioTrigBtn = body.querySelector('#add-audio-trigger-behavior');
-    if (addAudioTrigBtn) {
-      addAudioTrigBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'audio_trigger', { radius: 3.0, sfxType: 'coin' });
-          showToast(`🔊 Attached Audio Proximity Trigger to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remAudioTrigBtn = body.querySelector('#remove-audio-trigger-behavior');
-    if (remAudioTrigBtn) {
-      remAudioTrigBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'audio_trigger');
-          showToast(`Removed Audio Trigger from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    const addPostfxTrigBtn = body.querySelector('#add-postfx-trigger-behavior');
-    if (addPostfxTrigBtn) {
-      addPostfxTrigBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'postfx_trigger', { radius: 4.0, atmosphere: 'cyberpunk' });
-          showToast(`✨ Attached PostFX Atmosphere Trigger to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remPostfxTrigBtn = body.querySelector('#remove-postfx-trigger-behavior');
-    if (remPostfxTrigBtn) {
-      remPostfxTrigBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'postfx_trigger');
-          showToast(`Removed PostFX Trigger from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Lava Hazard
-    const addLavaBtn = body.querySelector('#add-lava-hazard-behavior');
-    if (addLavaBtn) {
-      addLavaBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'lava_hazard', { radius: 2.5, damage: 100 });
-          showToast(`🔥 Attached Lava Hazard Zone to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remLavaBtn = body.querySelector('#remove-lava-hazard-behavior');
-    if (remLavaBtn) {
-      remLavaBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'lava_hazard');
-          showToast(`Removed Lava Hazard from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Coin Bounce
-    const addCoinBtn = body.querySelector('#add-coin-bounce-behavior');
-    if (addCoinBtn) {
-      addCoinBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'coin_bounce', { speed: 90, amplitude: 0.3 });
-          showToast(`🪙 Attached Coin Spin & Bounce to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remCoinBtn = body.querySelector('#remove-coin-bounce-behavior');
-    if (remCoinBtn) {
-      remCoinBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'coin_bounce');
-          showToast(`Removed Coin Bounce from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Light Cycle
-    const addLightCycleBtn = body.querySelector('#add-light-cycle-behavior');
-    if (addLightCycleBtn) {
-      addLightCycleBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'light_color_cycle', { speed: 1.0 });
-          showToast(`🌈 Attached RGB Neon Light Cycle to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remLightCycleBtn = body.querySelector('#remove-light-cycle-behavior');
-    if (remLightCycleBtn) {
-      remLightCycleBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'light_color_cycle');
-          showToast(`Removed Light Cycle from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    // Waypoint Patrol
-    const addWaypointBtn = body.querySelector('#add-waypoint-patrol-behavior');
-    if (addWaypointBtn) {
-      addWaypointBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.attachBehavior(ent, 'waypoint_patrol', { speed: 4.0, waypoints: [[-5, 0, 0], [5, 0, 0], [0, 0, 5]] });
-          showToast(`🗺️ Attached Waypoint Path Patrol to ${ent.name}!`, 'success');
-          this.updateView();
-        }
-      });
-    }
-    const remWaypointBtn = body.querySelector('#remove-waypoint-patrol-behavior');
-    if (remWaypointBtn) {
-      remWaypointBtn.addEventListener('click', () => {
-        if (this.editor.behaviors) {
-          this.editor.behaviors.removeBehavior(ent, 'waypoint_patrol');
-          showToast(`Removed Waypoint Patrol from ${ent.name}.`, 'info');
-          this.updateView();
-        }
-      });
-    }
-
-    const simpleAnimBtn = body.querySelector('#btn-simple-anim-blend');
-    if (simpleAnimBtn) {
-      simpleAnimBtn.addEventListener('click', () => {
-        if (this.animBlendModal) {
-          this.animBlendModal.open(ent);
-        } else {
-          showToast('Animation Blend Graph Modal not available', 'info');
-        }
-      });
-    }
-
-    const addSimpleJointBtn = body.querySelector('#add-simple-joint-btn');
-    if (addSimpleJointBtn) {
-      addSimpleJointBtn.addEventListener('click', () => {
-        ent.joint = { type: 'hinge', targetEntity: '', pivot: [0, 1, 0], axis: [0, 1, 0] };
-        this.editor.addComponent(ent, 'joint');
-        showToast(`⚙️ Attached Physics Hinge Joint to ${ent.name}!`, 'success');
-        this.updateView();
-      });
-    }
-
-    const remSimpleJointBtn = body.querySelector('#remove-simple-joint-btn');
-    if (remSimpleJointBtn) {
-      remSimpleJointBtn.addEventListener('click', () => {
-        delete ent.joint;
-        this.editor.removeComponent(ent, 'joint');
-        showToast(`Removed Physics Joint from ${ent.name}.`, 'info');
-        this.updateView();
       });
     }
   }
@@ -1493,6 +641,13 @@ export class InspectorPanel {
             <option value="trigger">Trigger Volume</option>
           </optgroup>
           <optgroup label="Gameplay Behaviors">
+            <option value="b_turret_ai">🎯 Auto Turret AI</option>
+            <option value="b_pressure_plate">🔘 Interactive Pressure Plate</option>
+            <option value="b_teleport_gateway">🌀 Linked Teleport Gateway</option>
+            <option value="b_water_volume">🌊 Water Buoyancy Volume</option>
+            <option value="b_flashlight">🔦 Toggleable Flashlight ('L')</option>
+            <option value="b_overhead_healthbar">🏥 Overhead 3D Billboard HUD</option>
+            <option value="b_ambient_audio">🎵 Ambient Background Music Emitter</option>
             <option value="b_dash_boost">💨 Dash Boost Thruster</option>
             <option value="b_health_regen">💚 Periodic Health Regeneration</option>
             <option value="b_day_night_cycle">☀️ Day & Night Sun Rotation</option>
@@ -1606,6 +761,13 @@ export class InspectorPanel {
           const bType = type.replace('b_', '');
           if (this.editor.behaviors) {
             const defaults = {
+              turret_ai: { range: 20, fireRate: 1.5, damage: 15 },
+              pressure_plate: { radius: 1.5 },
+              teleport_gateway: { cooldown: 2.0, radius: 1.8 },
+              water_volume: { buoyancyForce: 15, extents: [5, 3, 5] },
+              flashlight: {},
+              overhead_healthbar: {},
+              ambient_audio: { volume: 0.3 },
               dash_boost: { force: 25, cooldown: 1.2 },
               health_regen: { amount: 5, interval: 2.0 },
               day_night_cycle: { speed: 0.1 },

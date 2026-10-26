@@ -420,118 +420,118 @@ export class BehaviorManager {
               };
               app.on('update', updateBullet);
             }
-            } else if (b.type === 'first_person_controller') {
-              const speed = b.params.speed || 10;
-              const rotSpeed = b.params.rotSpeed || 90;
-              const move = new pc.Vec3();
+          } else if (b.type === 'first_person_controller') {
+            const speed = b.params.speed || 10;
+            const rotSpeed = b.params.rotSpeed || 90;
+            const move = new pc.Vec3();
 
-              const forward = new pc.Vec3(entity.forward.x, 0, entity.forward.z);
-              if (forward.lengthSq() > 0.0001) forward.normalize();
-              const right = new pc.Vec3(entity.right.x, 0, entity.right.z);
-              if (right.lengthSq() > 0.0001) right.normalize();
+            const forward = new pc.Vec3(entity.forward.x, 0, entity.forward.z);
+            if (forward.lengthSq() > 0.0001) forward.normalize();
+            const right = new pc.Vec3(entity.right.x, 0, entity.right.z);
+            if (right.lengthSq() > 0.0001) right.normalize();
 
-              if (this.isKeyDown('w') || this.isKeyDown('arrowup')) move.add(forward);
-              if (this.isKeyDown('s') || this.isKeyDown('arrowdown')) move.sub(forward);
-              if (this.isKeyDown('a')) move.sub(right);
-              if (this.isKeyDown('d')) move.add(right);
+            if (this.isKeyDown('w') || this.isKeyDown('arrowup')) move.add(forward);
+            if (this.isKeyDown('s') || this.isKeyDown('arrowdown')) move.sub(forward);
+            if (this.isKeyDown('a')) move.sub(right);
+            if (this.isKeyDown('d')) move.add(right);
 
-              if (this.isKeyDown('q') || this.isKeyDown('arrowleft')) entity.rotate(0, rotSpeed * dt, 0);
-              if (this.isKeyDown('e') || this.isKeyDown('arrowright')) entity.rotate(0, -rotSpeed * dt, 0);
+            if (this.isKeyDown('q') || this.isKeyDown('arrowleft')) entity.rotate(0, rotSpeed * dt, 0);
+            if (this.isKeyDown('e') || this.isKeyDown('arrowright')) entity.rotate(0, -rotSpeed * dt, 0);
 
-              if (move.lengthSq() > 0.0001) {
-                move.normalize().mulScalar(speed * dt);
-                entity.translate(move);
-                this.editor.events.emit('entity:transformed', entity);
-              }
+            if (move.lengthSq() > 0.0001) {
+              move.normalize().mulScalar(speed * dt);
+              entity.translate(move);
+              this.editor.events.emit('entity:transformed', entity);
+            }
 
-              // Lock main camera to entity head
-              const camera = app.root.find(node => node.camera);
-              if (camera) {
-                camera.setPosition(entity.getPosition().clone().add(new pc.Vec3(0, 1.6, 0)));
-                camera.setEulerAngles(entity.getEulerAngles());
-              }
-            } else if (b.type === 'target_health') {
-              if (b.params.currentHp === undefined) b.params.currentHp = b.params.maxHp || 100;
-              if (b.params.currentHp <= 0 && entity.enabled) {
+            // Lock main camera to entity head
+            const camera = app.root.find(node => node.camera);
+            if (camera) {
+              camera.setPosition(entity.getPosition().clone().add(new pc.Vec3(0, 1.6, 0)));
+              camera.setEulerAngles(entity.getEulerAngles());
+            }
+          } else if (b.type === 'target_health') {
+            if (b.params.currentHp === undefined) b.params.currentHp = b.params.maxHp || 100;
+            if (b.params.currentHp <= 0 && entity.enabled) {
+              entity.enabled = false;
+              proceduralSFX.play('explosion');
+              this.triggerScreenShake(0.5, 0.25);
+              if (typeof showToast === 'function') showToast(`💥 Defeated target ${entity.name}! +${b.params.scoreValue || 100} PTS`, 'success');
+            }
+          } else if (b.type === 'key_pickup') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 1.8;
+              if (dist < radius) {
                 entity.enabled = false;
-                proceduralSFX.play('explosion');
-                this.triggerScreenShake(0.5, 0.25);
-                if (typeof showToast === 'function') showToast(`💥 Defeated target ${entity.name}! +${b.params.scoreValue || 100} PTS`, 'success');
+                if (!player._collectedKeys) player._collectedKeys = new Set();
+                const keyName = b.params.keyName || 'Gold Key';
+                player._collectedKeys.add(keyName);
+                proceduralSFX.play('coin');
+                if (typeof showToast === 'function') showToast(`🔑 Picked up key: "${keyName}"!`, 'success');
               }
-            } else if (b.type === 'key_pickup') {
-              const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
-              if (player) {
-                const dist = entity.getPosition().distance(player.getPosition());
-                const radius = b.params.radius || 1.8;
-                if (dist < radius) {
-                  entity.enabled = false;
-                  if (!player._collectedKeys) player._collectedKeys = new Set();
-                  const keyName = b.params.keyName || 'Gold Key';
-                  player._collectedKeys.add(keyName);
-                  proceduralSFX.play('coin');
-                  if (typeof showToast === 'function') showToast(`🔑 Picked up key: "${keyName}"!`, 'success');
-                }
-              }
-            } else if (b.type === 'locked_door') {
-              const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
-              if (player) {
-                const entPos = entity.getPosition();
-                const plyPos = player.getPosition();
-                const distXZ = Math.hypot(entPos.x - plyPos.x, entPos.z - plyPos.z);
-                const radius = b.params.radius || 3.5;
-                const reqKey = b.params.requiredKey || 'Gold Key';
+            }
+          } else if (b.type === 'locked_door') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const entPos = entity.getPosition();
+              const plyPos = player.getPosition();
+              const distXZ = Math.hypot(entPos.x - plyPos.x, entPos.z - plyPos.z);
+              const radius = b.params.radius || 3.5;
+              const reqKey = b.params.requiredKey || 'Gold Key';
 
-                if (!b.state) b.state = { isOpen: false, startY: entPos.y };
-                const hasKey = Boolean(player._collectedKeys && player._collectedKeys.has(reqKey));
+              if (!b.state) b.state = { isOpen: false, startY: entPos.y };
+              const hasKey = Boolean(player._collectedKeys && player._collectedKeys.has(reqKey));
 
-                if (distXZ <= radius && !b.state.isOpen) {
-                  if (hasKey) {
-                    b.state.isOpen = true;
-                    entity.translate(0, 3.5, 0);
-                    proceduralSFX.play('door');
-                    if (typeof showToast === 'function') showToast(`🔓 Unlocked door using "${reqKey}"!`, 'success');
-                  } else {
-                    if (!b._lockNoticeTimer || b._lockNoticeTimer <= 0) {
-                      b._lockNoticeTimer = 2.0;
-                      if (typeof showToast === 'function') showToast(`🔒 Door Locked! Requires "${reqKey}".`, 'warn');
-                    }
-                  }
-                } else if (distXZ > radius && b.state.isOpen) {
-                  b.state.isOpen = false;
-                  entity.setPosition(entPos.x, b.state.startY, entPos.z);
-                }
-
-                if (b._lockNoticeTimer > 0) b._lockNoticeTimer -= dt;
-              }
-            } else if (b.type === 'jetpack') {
-              if (b.params.fuel === undefined) b.params.fuel = b.params.maxFuel || 100;
-              const thrustKey = this.isKeyDown('shift') || this.isKeyDown('space') || this.isKeyDown(' ');
-              if (thrustKey && b.params.fuel > 0) {
-                b.params.fuel = Math.max(0, b.params.fuel - dt * 35);
-                const thrust = b.params.thrust || 12;
-                if (entity.rigidbody) {
-                  entity.rigidbody.applyImpulse(0, thrust * dt, 0);
+              if (distXZ <= radius && !b.state.isOpen) {
+                if (hasKey) {
+                  b.state.isOpen = true;
+                  entity.translate(0, 3.5, 0);
+                  proceduralSFX.play('door');
+                  if (typeof showToast === 'function') showToast(`🔓 Unlocked door using "${reqKey}"!`, 'success');
                 } else {
-                  entity.translate(0, thrust * dt * 0.5, 0);
-                }
-                proceduralSFX.play('boost', 0.2);
-              } else {
-                b.params.fuel = Math.min(b.params.maxFuel || 100, b.params.fuel + dt * 20);
-              }
-            } else if (b.type === 'level_portal') {
-              const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
-              if (player) {
-                const dist = entity.getPosition().distance(player.getPosition());
-                const radius = b.params.radius || 2.0;
-                if (dist < radius) {
-                  const targetScene = b.params.targetScene || 'Level_2';
-                  proceduralSFX.play('victory');
-                  if (typeof showToast === 'function') showToast(`🌀 Portal Activated! Switching to scene "${targetScene}"...`, 'success');
-                  if (this.editor && this.editor.scenes && this.editor.scenes.has(targetScene)) {
-                    this.editor.switchScene(targetScene);
+                  if (!b._lockNoticeTimer || b._lockNoticeTimer <= 0) {
+                    b._lockNoticeTimer = 2.0;
+                    if (typeof showToast === 'function') showToast(`🔒 Door Locked! Requires "${reqKey}".`, 'warn');
                   }
                 }
+              } else if (distXZ > radius && b.state.isOpen) {
+                b.state.isOpen = false;
+                entity.setPosition(entPos.x, b.state.startY, entPos.z);
               }
+
+              if (b._lockNoticeTimer > 0) b._lockNoticeTimer -= dt;
+            }
+          } else if (b.type === 'jetpack') {
+            if (b.params.fuel === undefined) b.params.fuel = b.params.maxFuel || 100;
+            const thrustKey = this.isKeyDown('shift') || this.isKeyDown('space') || this.isKeyDown(' ');
+            if (thrustKey && b.params.fuel > 0) {
+              b.params.fuel = Math.max(0, b.params.fuel - dt * 35);
+              const thrust = b.params.thrust || 12;
+              if (entity.rigidbody) {
+                entity.rigidbody.applyImpulse(0, thrust * dt, 0);
+              } else {
+                entity.translate(0, thrust * dt * 0.5, 0);
+              }
+              proceduralSFX.play('boost', 0.2);
+            } else {
+              b.params.fuel = Math.min(b.params.maxFuel || 100, b.params.fuel + dt * 20);
+            }
+          } else if (b.type === 'level_portal') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.0;
+              if (dist < radius) {
+                const targetScene = b.params.targetScene || 'Level_2';
+                proceduralSFX.play('victory');
+                if (typeof showToast === 'function') showToast(`🌀 Portal Activated! Switching to scene "${targetScene}"...`, 'success');
+                if (this.editor && this.editor.scenes && this.editor.scenes.has(targetScene)) {
+                  this.editor.switchScene(targetScene);
+                }
+              }
+            }
           } else if (b.type === 'audio_trigger') {
             const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
             if (player) {
@@ -674,6 +674,146 @@ export class BehaviorManager {
               if (target && target.enabled) {
                 entity.lookAt(target.getPosition());
               }
+            }
+          } else if (b.type === 'turret_ai') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const range = b.params.range || 20;
+              const fireRate = b.params.fireRate || 1.5;
+              const pos = entity.getPosition();
+              const plyPos = player.getPosition();
+              const dist = pos.distance(plyPos);
+              if (dist <= range) {
+                entity.lookAt(plyPos);
+                if (!b._fireTimer) b._fireTimer = 0;
+                b._fireTimer -= dt;
+                if (b._fireTimer <= 0) {
+                  b._fireTimer = fireRate;
+                  proceduralSFX.play('laser');
+                  const bullet = new pc.Entity(`TurretBullet_${Date.now()}`);
+                  bullet.setPosition(pos.clone().add(entity.forward.clone().mulScalar(-1.2)));
+                  bullet.setEulerAngles(entity.getEulerAngles());
+                  bullet.setLocalScale(0.2, 0.2, 0.4);
+                  const mat = new pc.StandardMaterial();
+                  mat.diffuse = new pc.Color(1, 0, 0.5);
+                  mat.emissive = new pc.Color(1, 0, 0.5);
+                  mat.update();
+                  bullet.addComponent('render', { type: 'sphere', material: mat });
+                  app.root.addChild(bullet);
+                  let lifetime = 2.0;
+                  const bulletSpeed = b.params.bulletSpeed || 25;
+                  const updateTB = (bdt) => {
+                    lifetime -= bdt;
+                    if (lifetime <= 0 || !bullet.parent) {
+                      app.off('update', updateTB);
+                      if (bullet.parent) bullet.destroy();
+                      return;
+                    }
+                    bullet.translateLocal(0, 0, -bulletSpeed * bdt);
+                    if (player && player.enabled && bullet.getPosition().distance(player.getPosition()) < 1.5) {
+                      const playerBehaviors = this.getBehaviors(player);
+                      const healthB = playerBehaviors.find(hb => hb.type === 'health');
+                      if (healthB) {
+                        healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - (b.params.damage || 15));
+                        this.triggerScreenShake(0.3, 0.15);
+                        if (typeof showToast === 'function') showToast(`⚠️ Turret hit player! HP: ${healthB.params.currentHp}`, 'warn');
+                      }
+                      lifetime = 0;
+                    }
+                  };
+                  app.on('update', updateTB);
+                }
+              }
+            }
+          } else if (b.type === 'pressure_plate') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 1.5;
+              if (!b.state) b.state = { pressed: false };
+              if (dist < radius && !b.state.pressed) {
+                b.state.pressed = true;
+                proceduralSFX.play('door');
+                const targetName = b.params.targetEntity;
+                if (targetName) {
+                  const target = app.root.findByName(targetName);
+                  if (target) {
+                    target.enabled = !target.enabled;
+                    if (typeof showToast === 'function') showToast(`🔘 Pressure Plate toggled ${target.name}!`, 'success');
+                  }
+                } else if (typeof showToast === 'function') {
+                  showToast(`🔘 Pressure Plate Stepped On!`, 'info');
+                }
+              } else if (dist >= radius && b.state.pressed) {
+                b.state.pressed = false;
+              }
+            }
+          } else if (b.type === 'teleport_gateway') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              if (!b._teleportCd) b._teleportCd = 0;
+              if (b._teleportCd > 0) b._teleportCd -= dt;
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 1.8;
+              if (dist < radius && b._teleportCd <= 0) {
+                b._teleportCd = b.params.cooldown || 2.0;
+                const destName = b.params.destinationEntity;
+                let destPos = new pc.Vec3(0, 2, 0);
+                if (destName) {
+                  const destEnt = app.root.findByName(destName);
+                  if (destEnt) destPos = destEnt.getPosition().clone().add(new pc.Vec3(0, 1, 0));
+                } else if (b.params.targetPosition) {
+                  destPos = new pc.Vec3(...b.params.targetPosition);
+                }
+                if (player.rigidbody) {
+                  player.rigidbody.teleport(destPos);
+                } else {
+                  player.setPosition(destPos);
+                }
+                proceduralSFX.play('victory');
+                if (typeof showToast === 'function') showToast(`🌀 Teleported to Gateway Destination!`, 'success');
+              }
+            }
+          } else if (b.type === 'water_volume') {
+            const entPos = entity.getPosition();
+            const extents = b.params.extents || [5, 3, 5];
+            const halfX = extents[0] / 2;
+            const halfY = extents[1] / 2;
+            const halfZ = extents[2] / 2;
+            app.root.forEach(other => {
+              if (other !== entity && other.enabled && other.rigidbody && other.rigidbody.type === 'dynamic') {
+                const oPos = other.getPosition();
+                if (Math.abs(oPos.x - entPos.x) <= halfX && Math.abs(oPos.z - entPos.z) <= halfZ && oPos.y <= entPos.y + halfY) {
+                  const buoyancy = b.params.buoyancyForce || 15;
+                  other.rigidbody.applyForce(0, buoyancy * dt * 60, 0);
+                }
+              }
+            });
+          } else if (b.type === 'flashlight') {
+            const toggleKey = this.isKeyDown('l') || this.isKeyDown('keyl');
+            if (!b._keyWasDown) b._keyWasDown = false;
+            if (toggleKey && !b._keyWasDown) {
+              if (entity.light) {
+                entity.light.enabled = !entity.light.enabled;
+                proceduralSFX.play('coin');
+                if (typeof showToast === 'function') showToast(`🔦 Flashlight Toggled (${entity.light.enabled ? 'ON' : 'OFF'})`, 'info');
+              }
+            }
+            b._keyWasDown = toggleKey;
+          } else if (b.type === 'overhead_healthbar') {
+            const camera = app.root.find(node => node.camera);
+            if (camera) {
+              const ePos = entity.getPosition();
+              const cPos = camera.getPosition();
+              const targetLook = new pc.Vec3(cPos.x, ePos.y, cPos.z);
+              entity.lookAt(targetLook);
+              entity.rotateLocal(0, 180, 0);
+            }
+          } else if (b.type === 'ambient_audio') {
+            if (!b.state) b.state = { playing: false };
+            if (!b.state.playing) {
+              b.state.playing = true;
+              proceduralSFX.play('victory', b.params.volume || 0.3);
             }
           }
         }

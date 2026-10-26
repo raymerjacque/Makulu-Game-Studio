@@ -1128,6 +1128,132 @@ export class GameBundler {
                 node.lookAt(target.getPosition());
               }
             }
+          } else if (b.type === 'turret_ai') {
+            if (playerEntity) {
+              const range = b.properties?.range || 20;
+              const fireRate = b.properties?.fireRate || 1.5;
+              const pos = node.getPosition();
+              const plyPos = playerEntity.getPosition();
+              const dist = pos.distance(plyPos);
+              if (dist <= range) {
+                node.lookAt(plyPos);
+                if (!b._fireTimer) b._fireTimer = 0;
+                b._fireTimer -= dt;
+                if (b._fireTimer <= 0) {
+                  b._fireTimer = fireRate;
+                  if (window.playProceduralSFX) window.playProceduralSFX('laser');
+                  const bullet = new pc.Entity('TurretBullet_' + Date.now());
+                  bullet.setPosition(pos.clone().add(node.forward.clone().mulScalar(-1.2)));
+                  bullet.setEulerAngles(node.getEulerAngles());
+                  bullet.setLocalScale(0.2, 0.2, 0.4);
+                  const mat = new pc.StandardMaterial();
+                  mat.diffuse = new pc.Color(1, 0, 0.5);
+                  mat.emissive = new pc.Color(1, 0, 0.5);
+                  mat.update();
+                  bullet.addComponent('render', { type: 'sphere', material: mat });
+                  app.root.addChild(bullet);
+                  let lifetime = 2.0;
+                  const bulletSpeed = b.properties?.bulletSpeed || 25;
+                  const updateTB = (bdt) => {
+                    lifetime -= bdt;
+                    if (lifetime <= 0 || !bullet.parent) {
+                      app.off('update', updateTB);
+                      if (bullet.parent) bullet.destroy();
+                      return;
+                    }
+                    bullet.translateLocal(0, 0, -bulletSpeed * bdt);
+                    if (playerEntity && playerEntity.enabled && bullet.getPosition().distance(playerEntity.getPosition()) < 1.5) {
+                      const playerB = playerEntity._behaviors || [];
+                      const healthB = playerB.find(hb => hb.type === 'health');
+                      if (healthB) {
+                        healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - (b.properties?.damage || 15));
+                        window.triggerScreenShake(0.3, 0.15);
+                      }
+                      lifetime = 0;
+                    }
+                  };
+                  app.on('update', updateTB);
+                }
+              }
+            }
+          } else if (b.type === 'pressure_plate') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 1.5;
+              if (!b._state) b._state = { pressed: false };
+              if (dist < radius && !b._state.pressed) {
+                b._state.pressed = true;
+                if (window.playProceduralSFX) window.playProceduralSFX('door');
+                const targetName = b.properties?.targetEntity;
+                if (targetName) {
+                  const target = app.root.findByName(targetName);
+                  if (target) target.enabled = !target.enabled;
+                }
+              } else if (dist >= radius && b._state.pressed) {
+                b._state.pressed = false;
+              }
+            }
+          } else if (b.type === 'teleport_gateway') {
+            if (playerEntity) {
+              if (!b._teleportCd) b._teleportCd = 0;
+              if (b._teleportCd > 0) b._teleportCd -= dt;
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 1.8;
+              if (dist < radius && b._teleportCd <= 0) {
+                b._teleportCd = b.properties?.cooldown || 2.0;
+                const destName = b.properties?.destinationEntity;
+                let destPos = new pc.Vec3(0, 2, 0);
+                if (destName) {
+                  const destEnt = app.root.findByName(destName);
+                  if (destEnt) destPos = destEnt.getPosition().clone().add(new pc.Vec3(0, 1, 0));
+                } else if (b.properties?.targetPosition) {
+                  destPos = new pc.Vec3(...b.properties.targetPosition);
+                }
+                if (playerEntity.rigidbody) {
+                  playerEntity.rigidbody.teleport(destPos);
+                } else {
+                  playerEntity.setPosition(destPos);
+                }
+                if (window.playProceduralSFX) window.playProceduralSFX('victory');
+              }
+            }
+          } else if (b.type === 'water_volume') {
+            const entPos = node.getPosition();
+            const extents = b.properties?.extents || [5, 3, 5];
+            const halfX = extents[0] / 2;
+            const halfY = extents[1] / 2;
+            const halfZ = extents[2] / 2;
+            app.root.forEach(other => {
+              if (other !== node && other.enabled && other.rigidbody && other.rigidbody.type === 'dynamic') {
+                const oPos = other.getPosition();
+                if (Math.abs(oPos.x - entPos.x) <= halfX && Math.abs(oPos.z - entPos.z) <= halfZ && oPos.y <= entPos.y + halfY) {
+                  const buoyancy = b.properties?.buoyancyForce || 15;
+                  other.rigidbody.applyForce(0, buoyancy * dt * 60, 0);
+                }
+              }
+            });
+          } else if (b.type === 'flashlight') {
+            const toggleKey = keys['l'] || keys['keyl'];
+            if (!b._keyWasDown) b._keyWasDown = false;
+            if (toggleKey && !b._keyWasDown) {
+              if (node.light) node.light.enabled = !node.light.enabled;
+            }
+            b._keyWasDown = toggleKey;
+          } else if (b.type === 'overhead_healthbar') {
+            const cam = app.root.find(c => c.camera);
+            if (cam) {
+              const ePos = node.getPosition();
+              const cPos = cam.getPosition();
+              const targetLook = new pc.Vec3(cPos.x, ePos.y, cPos.z);
+              node.lookAt(targetLook);
+              node.rotateLocal(0, 180, 0);
+            }
+          } else if (b.type === 'ambient_audio') {
+            if (!b._state) b._state = { playing: false };
+            if (!b._state.playing) {
+              b._state.playing = true;
+              if (window.playProceduralSFX) window.playProceduralSFX('victory', b.properties?.volume || 0.3);
+            }
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;
             if (b._cooldown > 0) b._cooldown -= dt;

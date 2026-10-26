@@ -14,6 +14,7 @@ export class AssetsPanel {
     this.materialModal = materialModal;
     this.editor.assetsPanel = this;
     this.activeFolder = 'all';
+    this.assetFilterText = '';
 
     this.assets = [
       { id: '1', name: 'Character_Hero.glb', type: 'models', icon: '🧙‍♂️', size: '131 KB', url: './models/character_hero.glb' },
@@ -36,6 +37,9 @@ export class AssetsPanel {
         <div style="display: flex; align-items: center; gap: 8px;">
           <span>Assets & Library</span>
           <span style="font-size: 10px; color: var(--text-muted);">/assets/${this.activeFolder}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; flex: 1; max-width: 220px; margin: 0 10px;">
+          <input type="text" id="assets-search-input" class="search-input" style="height: 22px; font-size: 11px; padding: 2px 8px;" placeholder="Search assets..." />
         </div>
         <div class="panel-header-actions">
           <button id="btn-open-store" class="btn" style="background: rgba(255,102,0,0.18); border-color: var(--accent-orange); color: var(--accent-orange); font-weight: 600; padding: 2px 8px; font-size: 11px;">📦 3D Store</button>
@@ -85,6 +89,22 @@ export class AssetsPanel {
       </div>
     `;
 
+    // Ensure context menu for assets is attached to document.body
+    let assetMenu = document.getElementById('asset-context-menu');
+    if (!assetMenu) {
+      assetMenu = document.createElement('div');
+      assetMenu.id = 'asset-context-menu';
+      assetMenu.className = 'context-menu';
+      assetMenu.style.display = 'none';
+      assetMenu.innerHTML = `
+        <div class="context-menu-item" data-asset-action="rename">✏️ Rename Asset</div>
+        <div class="context-menu-item" data-asset-action="duplicate">📋 Duplicate Asset</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-asset-action="delete" style="color: #ef4444;">🗑️ Delete Asset</div>
+      `;
+      document.body.appendChild(assetMenu);
+    }
+
     this.renderAssetCards();
   }
 
@@ -93,9 +113,13 @@ export class AssetsPanel {
     if (!grid) return;
     grid.innerHTML = '';
 
-    const filtered = this.activeFolder === 'all'
+    let filtered = this.activeFolder === 'all'
       ? this.assets
       : this.assets.filter(a => a.type === this.activeFolder || (this.activeFolder === 'models' && a.type === 'model'));
+
+    if (this.assetFilterText) {
+      filtered = filtered.filter(a => a.name.toLowerCase().includes(this.assetFilterText));
+    }
 
     filtered.forEach(asset => {
       const card = document.createElement('div');
@@ -110,6 +134,52 @@ export class AssetsPanel {
       // Drag to 3D Viewport
       card.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', JSON.stringify(asset));
+      });
+
+      // Context menu right click
+      card.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const assetMenu = document.getElementById('asset-context-menu');
+        if (!assetMenu) return;
+
+        assetMenu.style.top = `${e.clientY}px`;
+        assetMenu.style.left = `${e.clientX}px`;
+        assetMenu.style.display = 'block';
+
+        const handleAction = (evt) => {
+          evt.stopPropagation();
+          const act = evt.target.dataset.assetAction;
+          if (act === 'rename') {
+            const newName = prompt('Enter new asset name:', asset.name);
+            if (newName && newName.trim()) {
+              asset.name = newName.trim();
+              this.renderAssetCards();
+              showToast(`Renamed asset to "${asset.name}"`, 'info');
+            }
+          } else if (act === 'duplicate') {
+            const dup = { ...asset, id: Date.now().toString(), name: `Copy_of_${asset.name}` };
+            this.assets.push(dup);
+            this.renderAssetCards();
+            showToast(`Duplicated asset "${asset.name}"`, 'success');
+          } else if (act === 'delete') {
+            this.assets = this.assets.filter(a => a.id !== asset.id);
+            this.renderAssetCards();
+            showToast(`Deleted asset "${asset.name}"`, 'info');
+          }
+          assetMenu.style.display = 'none';
+        };
+
+        const closeAssetMenu = () => {
+          assetMenu.style.display = 'none';
+          window.removeEventListener('click', closeAssetMenu);
+        };
+
+        assetMenu.querySelectorAll('.context-menu-item').forEach(m => {
+          m.onclick = handleAction;
+        });
+        setTimeout(() => window.addEventListener('click', closeAssetMenu), 10);
       });
 
       // Double click to open/use
@@ -200,6 +270,15 @@ export class AssetsPanel {
   }
 
   bindEvents() {
+    // Search input
+    const searchInp = this.container.querySelector('#assets-search-input');
+    if (searchInp) {
+      searchInp.addEventListener('input', (e) => {
+        this.assetFilterText = e.target.value.toLowerCase().trim();
+        this.renderAssetCards();
+      });
+    }
+
     // Folder clicks
     this.container.querySelectorAll('.assets-folders .tree-item').forEach(item => {
       item.addEventListener('click', () => {

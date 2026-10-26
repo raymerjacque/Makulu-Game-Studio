@@ -29,47 +29,50 @@ export class HierarchyPanel {
       <div class="tree-container" id="hierarchy-tree"></div>
     `;
 
-    // Ensure context menus are attached to document.body so they are never clipped by panel overflow
-    let addMenu = document.getElementById('add-entity-menu');
-    if (!addMenu) {
-      addMenu = document.createElement('div');
-      addMenu.id = 'add-entity-menu';
-      addMenu.className = 'context-menu';
-      addMenu.style.display = 'none';
-      addMenu.innerHTML = `
-        <div class="context-menu-item" data-action="primitive:box">📦 Box</div>
-        <div class="context-menu-item" data-action="primitive:sphere">⚪ Sphere</div>
-        <div class="context-menu-item" data-action="primitive:capsule">💊 Capsule</div>
-        <div class="context-menu-item" data-action="primitive:cylinder">🥫 Cylinder</div>
-        <div class="context-menu-item" data-action="primitive:cone">▲ Cone</div>
-        <div class="context-menu-item" data-action="primitive:plane">▭ Plane (Ground)</div>
-        <div class="context-menu-separator"></div>
-        <div class="context-menu-item" data-action="light:directional">☀️ Directional Light</div>
-        <div class="context-menu-item" data-action="light:point">💡 Point Light</div>
-        <div class="context-menu-item" data-action="light:spot">🔦 Spot Light</div>
-        <div class="context-menu-separator"></div>
-        <div class="context-menu-item" data-action="camera:persp">🎥 Camera</div>
-        <div class="context-menu-item" data-action="empty">📁 Empty Group</div>
-      `;
-      document.body.appendChild(addMenu);
-    }
+    if (typeof document !== 'undefined') {
+      // Ensure context menus are attached to document.body so they are never clipped by panel overflow
+      let addMenu = document.getElementById('add-entity-menu');
+      if (!addMenu) {
+        addMenu = document.createElement('div');
+        addMenu.id = 'add-entity-menu';
+        addMenu.className = 'context-menu';
+        addMenu.style.display = 'none';
+        addMenu.innerHTML = `
+          <div class="context-menu-item" data-action="primitive:box">📦 Box</div>
+          <div class="context-menu-item" data-action="primitive:sphere">⚪ Sphere</div>
+          <div class="context-menu-item" data-action="primitive:capsule">💊 Capsule</div>
+          <div class="context-menu-item" data-action="primitive:cylinder">🥫 Cylinder</div>
+          <div class="context-menu-item" data-action="primitive:cone">▲ Cone</div>
+          <div class="context-menu-item" data-action="primitive:plane">▭ Plane (Ground)</div>
+          <div class="context-menu-separator"></div>
+          <div class="context-menu-item" data-action="light:directional">☀️ Directional Light</div>
+          <div class="context-menu-item" data-action="light:point">💡 Point Light</div>
+          <div class="context-menu-item" data-action="light:spot">🔦 Spot Light</div>
+          <div class="context-menu-separator"></div>
+          <div class="context-menu-item" data-action="camera:persp">🎥 Camera</div>
+          <div class="context-menu-item" data-action="empty">📁 Empty Group</div>
+        `;
+        document.body.appendChild(addMenu);
+      }
 
-    let itemMenu = document.getElementById('item-context-menu');
-    if (!itemMenu) {
-      itemMenu = document.createElement('div');
-      itemMenu.id = 'item-context-menu';
-      itemMenu.className = 'context-menu';
-      itemMenu.style.display = 'none';
-      itemMenu.innerHTML = `
-        <div class="context-menu-item" data-item-action="rename">✏️ Rename</div>
-        <div class="context-menu-item" data-item-action="frame">🎯 Frame Entity</div>
-        <div class="context-menu-item" data-item-action="duplicate">📋 Duplicate</div>
-        <div class="context-menu-item" data-item-action="add-child">➕ Add Child Entity</div>
-        <div class="context-menu-item" data-item-action="save-prefab">📦 Save as Prefab</div>
-        <div class="context-menu-separator"></div>
-        <div class="context-menu-item" data-item-action="delete" style="color: #ef4444;">🗑️ Delete</div>
-      `;
-      document.body.appendChild(itemMenu);
+      let itemMenu = document.getElementById('item-context-menu');
+      if (!itemMenu) {
+        itemMenu = document.createElement('div');
+        itemMenu.id = 'item-context-menu';
+        itemMenu.className = 'context-menu';
+        itemMenu.style.display = 'none';
+        itemMenu.innerHTML = `
+          <div class="context-menu-item" data-item-action="rename">✏️ Rename</div>
+          <div class="context-menu-item" data-item-action="frame">🎯 Frame Entity</div>
+          <div class="context-menu-item" data-item-action="group">📁 Group Selected (Ctrl+G)</div>
+          <div class="context-menu-item" data-item-action="duplicate">📋 Duplicate</div>
+          <div class="context-menu-item" data-item-action="add-child">➕ Add Child Entity</div>
+          <div class="context-menu-item" data-item-action="save-prefab">📦 Save as Prefab</div>
+          <div class="context-menu-separator"></div>
+          <div class="context-menu-item" data-item-action="delete" style="color: #ef4444;">🗑️ Delete</div>
+        `;
+        document.body.appendChild(itemMenu);
+      }
     }
 
     this.rebuildTree();
@@ -78,14 +81,16 @@ export class HierarchyPanel {
   bindEvents() {
     // Search input filter
     const searchInput = this.container.querySelector('#hierarchy-search');
-    searchInput.addEventListener('input', (e) => {
-      this.filterText = e.target.value.toLowerCase().trim();
-      this.rebuildTree();
-    });
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.filterText = e.target.value.toLowerCase().trim();
+        this.rebuildTree();
+      });
+    }
 
     // Add Entity Button dropdown
     const addBtn = this.container.querySelector('#hierarchy-add-btn');
-    const addMenu = document.getElementById('add-entity-menu');
+    const addMenu = typeof document !== 'undefined' ? document.getElementById('add-entity-menu') : null;
 
     if (addBtn && addMenu) {
       addBtn.addEventListener('click', (e) => {
@@ -96,9 +101,11 @@ export class HierarchyPanel {
         addMenu.style.display = 'block';
       });
 
-      window.addEventListener('click', () => {
-        addMenu.style.display = 'none';
-      });
+      if (typeof window !== 'undefined') {
+        window.addEventListener('click', () => {
+          addMenu.style.display = 'none';
+        });
+      }
 
       addMenu.querySelectorAll('.context-menu-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -109,33 +116,40 @@ export class HierarchyPanel {
       });
     }
 
-    // Keyboard shortcuts (Delete, Ctrl+D duplicate, Ctrl+S export)
-    window.addEventListener('keydown', (e) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+    if (typeof window !== 'undefined') {
+      // Keyboard shortcuts (Delete, Ctrl+D duplicate, Ctrl+S export, Ctrl+G group)
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
 
-      if (e.key === 'Delete') {
-        const active = this.editor.selection.getActive();
-        if (active) this.editor.deleteEntity(active);
-      }
+        if (e.key === 'Delete') {
+          const active = this.editor.selection.getActive();
+          if (active) this.editor.deleteEntity(active);
+        }
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
-        e.preventDefault();
-        const active = this.editor.selection.getActive();
-        if (active) this.editor.duplicateEntity(active);
-      }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+          e.preventDefault();
+          const active = this.editor.selection.getActive();
+          if (active) this.editor.duplicateEntity(active);
+        }
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        const json = this.editor.exportSceneJSON();
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${this.editor.projectName.replace(/\s+/g, '_')}_scene.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    });
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+          e.preventDefault();
+          this.groupSelectedEntities();
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          const json = this.editor.exportSceneJSON();
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${this.editor.projectName.replace(/\s+/g, '_')}_scene.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      });
+    }
 
     // Subscribe to scene and selection changes
     this.editor.events.on('scene:changed', () => this.rebuildTree());
@@ -268,12 +282,23 @@ export class HierarchyPanel {
       lower.startsWith('gizmo')
     ) return;
 
-    const isRoot = node === this.editor.getApp().root;
+    const isRoot = this.editor.getApp() ? node === this.editor.getApp().root : false;
+
+    const nodeMatchesFilter = (n, filter) => {
+      if (!filter) return true;
+      if (n.name.toLowerCase().includes(filter)) return true;
+      if (n.children && n.children.length > 0) {
+        return n.children.some(child => nodeMatchesFilter(child, filter));
+      }
+      return false;
+    };
 
     if (!isRoot) {
-      if (this.filterText && !node.name.toLowerCase().includes(this.filterText)) {
-        // filter check
-      } else {
+      if (!nodeMatchesFilter(node, this.filterText)) {
+        return;
+      }
+
+      if (typeof document !== 'undefined') {
         const item = document.createElement('div');
         item.className = 'tree-item';
         item.dataset.entityId = node.getGuid ? node.getGuid() : node.name;
@@ -333,6 +358,8 @@ export class HierarchyPanel {
               }
             } else if (action === 'frame') {
               if (this.editor.runtime && this.editor.runtime.editorCamera) this.editor.runtime.editorCamera.frameEntity(node);
+            } else if (action === 'group') {
+              this.groupSelectedEntities();
             } else if (action === 'duplicate') {
               this.editor.duplicateEntity(node);
             } else if (action === 'add-child') {
@@ -353,13 +380,13 @@ export class HierarchyPanel {
 
           const closeMenu = () => {
             itemMenu.style.display = 'none';
-            window.removeEventListener('click', closeMenu);
+            if (typeof window !== 'undefined') window.removeEventListener('click', closeMenu);
           };
 
           itemMenu.querySelectorAll('.context-menu-item').forEach(m => {
             m.onclick = handleItemAction;
           });
-          setTimeout(() => window.addEventListener('click', closeMenu), 10);
+          if (typeof window !== 'undefined') setTimeout(() => window.addEventListener('click', closeMenu), 10);
         });
 
         // Double click to frame
@@ -390,7 +417,7 @@ export class HierarchyPanel {
           const draggedId = e.dataTransfer.getData('text/entity-id');
           if (draggedId && draggedId !== (node.getGuid ? node.getGuid() : node.name)) {
             const app = this.editor.getApp();
-            const draggedNode = app.root.findByGuid(draggedId) || app.root.findByName(draggedId);
+            const draggedNode = app ? (app.root.findByGuid(draggedId) || app.root.findByName(draggedId)) : null;
             if (draggedNode && draggedNode !== node) {
               node.addChild(draggedNode);
               this.editor.events.emit('scene:changed');
@@ -409,11 +436,26 @@ export class HierarchyPanel {
     }
   }
 
+  groupSelectedEntities() {
+    const active = this.editor.selection.getActive();
+    const app = this.editor.getApp();
+    if (!active || (app && active === app.root)) return;
+    const group = this.editor.createEntity({
+      name: 'Entity Group',
+      transform: { position: [0, 0, 0] }
+    });
+    if (active.parent && active.parent !== group) {
+      group.addChild(active);
+    }
+    this.editor.selection.set(group);
+    this.editor.events.emit('scene:changed');
+  }
+
   updateSelectionHighlight() {
     const active = this.editor.selection.getActive();
     const items = this.container.querySelectorAll('.tree-item');
     items.forEach(el => {
-      const isSelected = active && (el.querySelector('.tree-label').textContent === active.name);
+      const isSelected = active && (el.querySelector('.tree-label')?.textContent === active.name);
       el.classList.toggle('selected', isSelected);
     });
   }
