@@ -18,6 +18,8 @@ export class AIAssistantUI {
     this.settingsModal = settingsModal;
     this.isMinimized = false;
     this.isOpen = true;
+    this.thinkingElement = null;
+    this.viewportPill = null;
 
     this.render();
     this.bindEvents();
@@ -38,6 +40,10 @@ export class AIAssistantUI {
           <div class="ai-pulse-dot"></div>
           <span>Makulu AI Copilot</span>
           <span id="ai-active-model-tag" style="font-size: 10px; color: var(--accent-orange); font-family: var(--font-mono);">[${active.name}: ${active.model}]</span>
+          <span id="ai-busy-badge" class="ai-header-busy-badge" style="display: none;">
+            <span class="ai-busy-spinner-small"></span>
+            <span>WORKING</span>
+          </span>
         </div>
         <div style="display: flex; align-items: center; gap: 4px;">
           <button id="ai-btn-settings" class="btn" title="AI Settings & Providers (OpenAI, Gemini, Claude, Groq, etc.)" style="padding: 1px 6px; font-size: 11px;">⚙️</button>
@@ -87,6 +93,23 @@ export class AIAssistantUI {
     const chatBody = this.panel.querySelector('#ai-chat-body');
     this.team.messageBus.subscribe((msg) => {
       if (!msg.content || msg.type === 'agent_state_changed') return;
+
+      // Update active thinking status and HUD pill
+      if (msg.type === 'plan') {
+        this.updateThinkingStatus(msg.from, 'Decomposing task into specialist blueprints...');
+      } else if (msg.type === 'task') {
+        const cleanContent = msg.content.replace(/\*+/g, '').replace(/&mdash;/g, '-');
+        this.updateThinkingStatus(msg.from, cleanContent);
+      } else if (msg.type === 'action') {
+        this.updateThinkingStatus(msg.from, 'Constructing entities and applying components...');
+      } else if (msg.type === 'inspection') {
+        this.updateThinkingStatus('QA Inspector', 'Auditing physics collision, lighting & scale...');
+      } else if (msg.type === 'critique') {
+        this.updateThinkingStatus('QA Inspector', 'Identified defects; initiating repair loop...');
+      } else if (msg.type === 'repair') {
+        this.updateThinkingStatus('Repair Specialist', 'Applying surgical fixes to scene...');
+      }
+
       const card = document.createElement('div');
       card.className = 'ai-message assistant';
 
@@ -114,7 +137,13 @@ export class AIAssistantUI {
           </div>
         </div>
       `;
-      chatBody.appendChild(card);
+
+      // Keep the animated thinking indicator pinned at the bottom while agents talk
+      if (this.thinkingElement && this.thinkingElement.parentElement === chatBody) {
+        chatBody.insertBefore(card, this.thinkingElement);
+      } else {
+        chatBody.appendChild(card);
+      }
       chatBody.scrollTop = chatBody.scrollHeight;
     });
   }
@@ -260,9 +289,11 @@ export class AIAssistantUI {
     userMsg.className = 'ai-message user';
     userMsg.innerHTML = `<div class="ai-bubble">${this.escapeHTML(promptText)}</div>`;
     chatBody.appendChild(userMsg);
+    chatBody.scrollTop = chatBody.scrollHeight;
 
     // AI Team Swarm Mode execution
     if (this.swarmView && this.swarmView.isTeamModeActive) {
+      this.showThinkingIndicator('AI Team Swarm Active', '👑 Lead Director planning multi-agent execution...');
       try {
         await this.team.executeTeamTask(promptText, { maxRepairRounds: 2, useLLM: true });
       } catch (err) {
@@ -274,27 +305,19 @@ export class AIAssistantUI {
           </div>
         `;
         chatBody.appendChild(errMsg);
+      } finally {
+        this.hideThinkingIndicator();
       }
       chatBody.scrollTop = chatBody.scrollHeight;
       return;
     }
 
     // Fallback: Single Copilot Direct Mode
-    const assistantMsg = document.createElement('div');
-    assistantMsg.className = 'ai-message assistant';
-    assistantMsg.innerHTML = `
-      <div class="ai-bubble">
-        <span style="display: inline-flex; align-items: center; gap: 6px;">
-          <span class="ai-pulse-dot" style="width: 6px; height: 6px;"></span>
-          Co-Creator is generating...
-        </span>
-      </div>
-    `;
-    chatBody.appendChild(assistantMsg);
-    chatBody.scrollTop = chatBody.scrollHeight;
+    this.showThinkingIndicator('AI Co-Creator Generating...', 'Analyzing scene and formulating actions...');
 
     try {
       const response = await this.client.sendMessage(promptText);
+      this.updateThinkingStatus('AI Executor', 'Executing scene actions...');
       const actions = this.executor.parseActions(response);
 
       let actionCardHTML = '';
@@ -312,21 +335,182 @@ export class AIAssistantUI {
       // Format response text (strip the raw action json from display for clean UX)
       const cleanText = response.replace(/```json:actions[\s\S]*?```/g, '').trim();
 
+      const assistantMsg = document.createElement('div');
+      assistantMsg.className = 'ai-message assistant';
       assistantMsg.innerHTML = `
         <div class="ai-bubble">
           ${cleanText ? cleanText.replace(/\n/g, '<br>') : 'I have created the requested scene setup!'}
           ${actionCardHTML}
         </div>
       `;
+      chatBody.appendChild(assistantMsg);
     } catch (err) {
-      assistantMsg.innerHTML = `
+      const errMsg = document.createElement('div');
+      errMsg.className = 'ai-message assistant';
+      errMsg.innerHTML = `
         <div class="ai-bubble" style="border-color: #ef4444; color: #fca5a5;">
           ⚠️ AI Request Error: ${err.message}. Please check your connection to the MakuluLinux AI server.
         </div>
       `;
+      chatBody.appendChild(errMsg);
+    } finally {
+      this.hideThinkingIndicator();
     }
 
     chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  /**
+   * Display high-visibility animated thinking / busy indicator
+   */
+  showThinkingIndicator(title = 'AI is Thinking...', statusText = 'Analyzing request and preparing scene actions...') {
+    this.hideThinkingIndicator();
+
+    const chatBody = this.panel.querySelector('#ai-chat-body');
+    if (!chatBody) return;
+
+    this.thinkingElement = document.createElement('div');
+    this.thinkingElement.className = 'ai-message assistant ai-thinking-wrapper';
+    this.thinkingElement.innerHTML = `
+      <div class="ai-bubble ai-thinking-card">
+        <div class="ai-thinking-header">
+          <div class="ai-thinking-spinner"></div>
+          <div class="ai-thinking-title">
+            <span class="ai-thinking-title-text">${this.escapeHTML(title)}</span>
+            <div class="ai-wave-dots">
+              <span class="ai-wave-dot"></span>
+              <span class="ai-wave-dot"></span>
+              <span class="ai-wave-dot"></span>
+            </div>
+          </div>
+        </div>
+        <div class="ai-thinking-status">
+          <div class="ai-thinking-main-text">
+            <span class="ai-thinking-agent-icon">⚡</span>
+            <span class="ai-thinking-status-label">${this.escapeHTML(statusText)}</span>
+          </div>
+          <div class="ai-thinking-subtext">Executing multi-step generative pipeline</div>
+        </div>
+        <div class="ai-shimmer-container">
+          <div class="ai-shimmer-bar"></div>
+        </div>
+      </div>
+    `;
+
+    chatBody.appendChild(this.thinkingElement);
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    this.setHeaderBusy(true);
+    this.setTopBarBusy(true, title);
+    this.showViewportHUDPill(title, statusText);
+  }
+
+  /**
+   * Update text in thinking indicator in real-time
+   */
+  updateThinkingStatus(agentName, statusText) {
+    if (this.thinkingElement) {
+      const label = this.thinkingElement.querySelector('.ai-thinking-status-label');
+      const subtext = this.thinkingElement.querySelector('.ai-thinking-subtext');
+      const icon = this.thinkingElement.querySelector('.ai-thinking-agent-icon');
+      if (label) label.textContent = statusText;
+      if (subtext) subtext.textContent = `Active specialist: ${agentName}`;
+      if (icon) icon.textContent = '⚙️';
+    }
+
+    this.updateViewportHUDPill(agentName, statusText);
+    this.setTopBarBusy(true, `${agentName} working...`);
+  }
+
+  /**
+   * Hide thinking indicator and reset busy indicators
+   */
+  hideThinkingIndicator() {
+    if (this.thinkingElement && this.thinkingElement.parentElement) {
+      this.thinkingElement.parentElement.removeChild(this.thinkingElement);
+    }
+    this.thinkingElement = null;
+
+    this.setHeaderBusy(false);
+    this.setTopBarBusy(false);
+    this.hideViewportHUDPill();
+  }
+
+  /**
+   * Header busy badge
+   */
+  setHeaderBusy(isBusy) {
+    const badge = this.panel ? this.panel.querySelector('#ai-busy-badge') : null;
+    if (badge) {
+      badge.style.display = isBusy ? 'inline-flex' : 'none';
+    }
+  }
+
+  /**
+   * TopBar Quick Prompt busy state
+   */
+  setTopBarBusy(isBusy, status = 'AI is busy...') {
+    const wrap = document.querySelector('.quick-prompt-wrap');
+    const input = document.querySelector('#top-quick-prompt');
+    const icon = document.querySelector('.quick-prompt-icon');
+    if (!wrap || !input) return;
+
+    if (isBusy) {
+      wrap.classList.add('is-busy');
+      input.disabled = true;
+      if (!input.hasAttribute('data-orig-placeholder')) {
+        input.setAttribute('data-orig-placeholder', input.placeholder || 'Ask AI Copilot...');
+      }
+      input.placeholder = `⚡ ${status}`;
+      if (icon) icon.classList.add('spin-anim');
+    } else {
+      wrap.classList.remove('is-busy');
+      input.disabled = false;
+      const orig = input.getAttribute('data-orig-placeholder') || 'Ask AI Copilot...';
+      input.placeholder = orig;
+      if (icon) icon.classList.remove('spin-anim');
+    }
+  }
+
+  /**
+   * Floating Viewport HUD Pill
+   */
+  showViewportHUDPill(title, statusText) {
+    this.hideViewportHUDPill();
+    const vp = document.getElementById('viewport-container');
+    if (!vp) return;
+
+    this.viewportPill = document.createElement('div');
+    this.viewportPill.className = 'viewport-ai-activity-pill';
+    this.viewportPill.innerHTML = `
+      <div class="ai-thinking-spinner" style="width: 14px; height: 14px; border-width: 2px;"></div>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span style="font-size: 11px; font-weight: 700; color: #f59e0b;">${this.escapeHTML(title)}</span>
+        <span class="viewport-ai-status-sub" style="font-size: 10px; color: #94a3b8; font-weight: 400;">${this.escapeHTML(statusText)}</span>
+      </div>
+    `;
+    vp.appendChild(this.viewportPill);
+  }
+
+  updateViewportHUDPill(agentName, statusText) {
+    if (!this.viewportPill) return;
+    const sub = this.viewportPill.querySelector('.viewport-ai-status-sub');
+    if (sub) {
+      sub.textContent = `${agentName}: ${statusText}`;
+    }
+  }
+
+  hideViewportHUDPill() {
+    if (this.viewportPill && this.viewportPill.parentElement) {
+      const pill = this.viewportPill;
+      pill.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      pill.style.opacity = '0';
+      pill.style.transform = 'translate(-50%, -10px)';
+      setTimeout(() => {
+        if (pill.parentElement) pill.parentElement.removeChild(pill);
+      }, 300);
+    }
+    this.viewportPill = null;
   }
 
   escapeHTML(str) {

@@ -757,7 +757,7 @@ export class TopBar {
 
     const submitPrompt = () => {
       const text = promptInput.value.trim();
-      if (!text) return;
+      if (!text || promptInput.disabled) return;
       promptInput.value = '';
       if (this.aiController) {
         this.aiController.sendUserPrompt(text);
@@ -768,6 +768,32 @@ export class TopBar {
     promptInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitPrompt();
     });
+  }
+
+  /**
+   * Toggle visual busy state for topbar quick prompt
+   */
+  setAIBusy(isBusy, status = 'AI is busy...') {
+    const wrap = this.container.querySelector('.quick-prompt-wrap');
+    const promptInput = this.container.querySelector('#top-quick-prompt');
+    const icon = this.container.querySelector('.quick-prompt-icon');
+    if (!wrap || !promptInput) return;
+
+    if (isBusy) {
+      wrap.classList.add('is-busy');
+      promptInput.disabled = true;
+      if (!promptInput.hasAttribute('data-orig-placeholder')) {
+        promptInput.setAttribute('data-orig-placeholder', promptInput.placeholder || 'Ask AI Copilot...');
+      }
+      promptInput.placeholder = `⚡ ${status}`;
+      if (icon) icon.classList.add('spin-anim');
+    } else {
+      wrap.classList.remove('is-busy');
+      promptInput.disabled = false;
+      const orig = promptInput.getAttribute('data-orig-placeholder') || 'Ask AI Copilot...';
+      promptInput.placeholder = orig;
+      if (icon) icon.classList.remove('spin-anim');
+    }
   }
 
   /**
