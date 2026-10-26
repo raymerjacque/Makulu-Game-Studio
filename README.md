@@ -198,6 +198,20 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Simulates organic atmospheric flashlight, torch, or lantern illumination with dynamic outer cone angle jitter and fluctuation.
 37. **🎯 Target Camera / Entity Lock-On:**
     Continuously rotates an entity or camera to face and track a designated target, enemy monster, or boss in real-time.
+38. **🎯 Auto Turret Tracking AI:**
+    Scans for player entities within an adjustable range, aims turret barrels directly at the character, and periodically launches glowing plasma bolts dealing damage on contact.
+39. **🔘 Interactive Pressure Plate:**
+    Step-activated floor plate that detects player entry within a trigger radius, playing mechanical audio cues and toggling target entity visibility or state (secret doors, traps, bridges).
+40. **🌀 Linked Teleport Gateway:**
+    Proximity gateway portal that instantly teleports players or physics rigidbodies to a linked destination entity or coordinate location with recharge cooldown and audio feedback.
+41. **🌊 Water Buoyancy Volume:**
+    Volumetric 3D water zone with customizable width, depth, and height extents that applies upward buoyancy physics force to dynamic rigidbodies for realistic floating and submerged simulation.
+42. **🔦 Toggleable Flashlight:**
+    Equips player characters or cameras with an interactive spotlight that can be toggled ON and OFF dynamically during gameplay via the `L` key with audio click feedback.
+43. **🏥 Overhead 3D Billboard HUD:**
+    Dynamically positions and billboard-aligns health status gauges, name tags, or markers above monster and NPC heads facing the active camera.
+44. **🎵 Ambient Background Music Emitter:**
+    Zero-config background audio emitter that automatically plays looping procedural audio themes or environmental soundscapes on level start.
 
 ---
 
@@ -308,10 +322,15 @@ Create reactive game mechanics through modular trigger volumes:
 * **🗂️ Multi-Scene Management & Hierarchy Power Tools:**
   * **Multi-Scene Switcher:** Create and navigate between multiple levels (`Main Scene`, `Level_2`, etc.) with automatic background state retention and scene JSON snapshotting.
   * **Scene Power Tools:** 1-click **Rename (`✏️`)**, **Duplicate (`📋`)**, and **Delete (`🗑️`)** scene actions directly in the TopBar.
-  * **Entity Right-Click Context Menu:** Overflow-safe body-docked context menu to Rename, Frame (`F`), Duplicate (`Ctrl+D`), Add Child Entity, **📦 Save as Prefab**, or Delete.
+  * **Entity Right-Click Context Menu:** Overflow-safe body-docked context menu to Rename, Frame (`F`), Duplicate (`Ctrl+D`), Add Child Entity, **📁 Group Entity (`Ctrl+G`)**, **📦 Save as Prefab**, or Delete.
+  * **Hierarchy Entity Grouping (`Ctrl+G`):** Instantly nest selected entities into organized parent groups for cleaner scene graphs.
+  * **Recursive Hierarchy Search:** Substring search filter automatically preserves ancestor group folders for matched nested child nodes.
   * **Eye-Icon Visibility Toggles:** 1-click hide (`🙈`) or show (`👁️`) individual entities without deleting them.
   * **Drag & Drop Reparenting:** Organize complex scenes by dragging entities onto parents directly in the hierarchy tree.
   * **📂 Scene Import & 💾 Export:** Save and load full scene graphs as portable JSON files with complete component, model, trigger, and behavior state.
+* **📁 Enhanced Asset Browser & File Management:**
+  * **Live Asset Search Filter:** Instant filename substring filtering via the dedicated Assets search bar.
+  * **Asset Right-Click Context Menu:** Right-click any asset in the project library to Rename, Duplicate, or Delete.
 
 ---
 
@@ -343,6 +362,7 @@ Share games instantly across any platform:
 | **`R`** | Scale Gizmo | 3D Viewport |
 | **`F`** | Frame Selected (Center camera on object) | 3D Viewport |
 | **`Ctrl + D`** | Duplicate Selected Entity | Hierarchy / Viewport |
+| **`Ctrl + G`** | Group Selected Entity | Hierarchy / Viewport |
 | **`Ctrl + S`** | Export Scene JSON | Global |
 | **`Ctrl + Z`** | Undo Last Scene / AI Action | Global |
 | **`Ctrl + Y`** | Redo Last Action | Global |

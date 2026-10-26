@@ -1143,7 +1143,7 @@ export class GameBundler {
                   b._fireTimer = fireRate;
                   if (window.playProceduralSFX) window.playProceduralSFX('laser');
                   const bullet = new pc.Entity('TurretBullet_' + Date.now());
-                  bullet.setPosition(pos.clone().add(node.forward.clone().mulScalar(-1.2)));
+                  bullet.setPosition(pos.clone().add(node.forward.clone().mulScalar(1.2)));
                   bullet.setEulerAngles(node.getEulerAngles());
                   bullet.setLocalScale(0.2, 0.2, 0.4);
                   const mat = new pc.StandardMaterial();
@@ -1164,7 +1164,7 @@ export class GameBundler {
                     bullet.translateLocal(0, 0, -bulletSpeed * bdt);
                     if (playerEntity && playerEntity.enabled && bullet.getPosition().distance(playerEntity.getPosition()) < 1.5) {
                       const playerB = playerEntity._behaviors || [];
-                      const healthB = playerB.find(hb => hb.type === 'health');
+                      const healthB = playerB.find(hb => hb.type === 'health' || hb.type === 'target_health');
                       if (healthB) {
                         healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - (b.properties?.damage || 15));
                         window.triggerScreenShake(0.3, 0.15);
@@ -1186,7 +1186,7 @@ export class GameBundler {
                 if (window.playProceduralSFX) window.playProceduralSFX('door');
                 const targetName = b.properties?.targetEntity;
                 if (targetName) {
-                  const target = app.root.findByName(targetName);
+                  const target = app.root.findByName(targetName) || app.root.find(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
                   if (target) target.enabled = !target.enabled;
                 }
               } else if (dist >= radius && b._state.pressed) {
@@ -1204,7 +1204,7 @@ export class GameBundler {
                 const destName = b.properties?.destinationEntity;
                 let destPos = new pc.Vec3(0, 2, 0);
                 if (destName) {
-                  const destEnt = app.root.findByName(destName);
+                  const destEnt = app.root.findByName(destName) || app.root.find(e => e.name && e.name.toLowerCase().includes(destName.toLowerCase()));
                   if (destEnt) destPos = destEnt.getPosition().clone().add(new pc.Vec3(0, 1, 0));
                 } else if (b.properties?.targetPosition) {
                   destPos = new pc.Vec3(...b.properties.targetPosition);

@@ -691,7 +691,7 @@ export class BehaviorManager {
                   b._fireTimer = fireRate;
                   proceduralSFX.play('laser');
                   const bullet = new pc.Entity(`TurretBullet_${Date.now()}`);
-                  bullet.setPosition(pos.clone().add(entity.forward.clone().mulScalar(-1.2)));
+                  bullet.setPosition(pos.clone().add(entity.forward.clone().mulScalar(1.2)));
                   bullet.setEulerAngles(entity.getEulerAngles());
                   bullet.setLocalScale(0.2, 0.2, 0.4);
                   const mat = new pc.StandardMaterial();
@@ -736,7 +736,7 @@ export class BehaviorManager {
                 proceduralSFX.play('door');
                 const targetName = b.params.targetEntity;
                 if (targetName) {
-                  const target = app.root.findByName(targetName);
+                  const target = app.root.findByName(targetName) || app.root.find(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
                   if (target) {
                     target.enabled = !target.enabled;
                     if (typeof showToast === 'function') showToast(`🔘 Pressure Plate toggled ${target.name}!`, 'success');
@@ -760,7 +760,7 @@ export class BehaviorManager {
                 const destName = b.params.destinationEntity;
                 let destPos = new pc.Vec3(0, 2, 0);
                 if (destName) {
-                  const destEnt = app.root.findByName(destName);
+                  const destEnt = app.root.findByName(destName) || app.root.find(e => e.name && e.name.toLowerCase().includes(destName.toLowerCase()));
                   if (destEnt) destPos = destEnt.getPosition().clone().add(new pc.Vec3(0, 1, 0));
                 } else if (b.params.targetPosition) {
                   destPos = new pc.Vec3(...b.params.targetPosition);

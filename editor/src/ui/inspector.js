@@ -3,6 +3,53 @@ import { MaterialPreviewRenderer } from './material-preview.js';
 import { showToast } from './toast.js';
 import { parseScriptAttributes } from '../core/script-attributes.js';
 
+export const BEHAVIOR_CATALOG = [
+  { type: 'wasd', icon: '🎮', name: 'WASD Character Controller', defaultParams: { speed: 8 } },
+  { type: 'spin', icon: '🔄', name: 'Continuous Spin Animation', defaultParams: { speed: 90, axis: 'y' } },
+  { type: 'turret_ai', icon: '🎯', name: 'Auto Turret Tracking AI', defaultParams: { range: 20, fireRate: 1.5, damage: 15 } },
+  { type: 'pressure_plate', icon: '🔘', name: 'Interactive Pressure Plate', defaultParams: { radius: 1.5 } },
+  { type: 'teleport_gateway', icon: '🌀', name: 'Linked Teleport Gateway', defaultParams: { cooldown: 2.0, radius: 1.8 } },
+  { type: 'water_volume', icon: '🌊', name: 'Water Buoyancy Volume', defaultParams: { buoyancyForce: 15, extents: [5, 3, 5] } },
+  { type: 'flashlight', icon: '🔦', name: 'Toggleable Flashlight (\'L\')', defaultParams: {} },
+  { type: 'overhead_healthbar', icon: '🏥', name: 'Overhead 3D Billboard HUD', defaultParams: {} },
+  { type: 'ambient_audio', icon: '🎵', name: 'Ambient Background Music', defaultParams: { volume: 0.3 } },
+  { type: 'dash_boost', icon: '💨', name: 'Dash Boost Thruster', defaultParams: { force: 25, cooldown: 1.2 } },
+  { type: 'health_regen', icon: '💚', name: 'Periodic Health Regeneration', defaultParams: { amount: 5, interval: 2.0 } },
+  { type: 'day_night_cycle', icon: '☀️', name: 'Day & Night Sun Rotation', defaultParams: { speed: 0.1 } },
+  { type: 'spotlight_flicker', icon: '🔦', name: 'Torch / Spotlight Cone Flicker', defaultParams: { baseOuterAngle: 45, variance: 8 } },
+  { type: 'target_lock_on', icon: '🎯', name: 'Target Camera / Entity Lock-On', defaultParams: { targetEntity: 'Enemy' } },
+  { type: 'first_person_controller', icon: '👀', name: 'First-Person Controller', defaultParams: { speed: 10, rotSpeed: 90 } },
+  { type: 'target_health', icon: '🎯', name: 'Target / Enemy Health & Defeat', defaultParams: { maxHp: 100, currentHp: 100, scoreValue: 100 } },
+  { type: 'key_pickup', icon: '🔑', name: 'Key Item Pickup', defaultParams: { keyName: 'Gold Key', radius: 1.8 } },
+  { type: 'locked_door', icon: '🔒', name: 'Locked Key Door', defaultParams: { requiredKey: 'Gold Key', radius: 3.5 } },
+  { type: 'jetpack', icon: '🚀', name: 'Jetpack & Double Jump', defaultParams: { fuel: 100, maxFuel: 100, thrust: 12 } },
+  { type: 'level_portal', icon: '🌀', name: 'Level Transition Portal', defaultParams: { targetScene: 'Level_2', radius: 2.0 } },
+  { type: 'enemy_ai', icon: '🤖', name: 'Hostile Enemy Chase AI', defaultParams: { speed: 3.5, detectRadius: 15, damage: 15 } },
+  { type: 'projectile_shooter', icon: '🔫', name: 'Projectile Weapon Shooter', defaultParams: { speed: 30, damage: 35, cooldown: 0.3 } },
+  { type: 'mouse_look', icon: '👀', name: 'Mouse Look / Rotation Controls', defaultParams: { speed: 90 } },
+  { type: 'patrol', icon: '🚶', name: 'Patrol Movement', defaultParams: { speed: 3, distance: 6 } },
+  { type: 'moving_platform', icon: '🛗', name: 'Moving Platform / Elevator', defaultParams: { speed: 2.5, distance: 8, axis: 'y' } },
+  { type: 'interactive_door', icon: '🚪', name: 'Interactive Proximity Door', defaultParams: { radius: 3.0 } },
+  { type: 'enemy_spawner', icon: '👾', name: 'Monster Spawner Portal', defaultParams: { interval: 6.0 } },
+  { type: 'weapon_inventory', icon: '🎒', name: 'Weapon Inventory & Ammo HUD', defaultParams: { weaponName: 'Plasma Gun', ammo: 30 } },
+  { type: 'health', icon: '❤️', name: 'Health Component (Player HP)', defaultParams: { maxHp: 100, currentHp: 100 } },
+  { type: 'lava_hazard', icon: '🔥', name: 'Lava / Acid Hazard Zone', defaultParams: { radius: 2.5, damage: 100 } },
+  { type: 'coin_bounce', icon: '🪙', name: 'Coin Spin & Floating Bounce', defaultParams: { speed: 90, amplitude: 0.3 } },
+  { type: 'light_color_cycle', icon: '🌈', name: 'RGB Neon Light Cycle', defaultParams: { speed: 1.0 } },
+  { type: 'waypoint_patrol', icon: '🗺️', name: 'Multi-Waypoint Path Patrol', defaultParams: { speed: 4.0 } },
+  { type: 'audio_trigger', icon: '🔊', name: 'Audio Zone Trigger', defaultParams: { radius: 3.0, sfxType: 'coin' } },
+  { type: 'postfx_trigger', icon: '✨', name: 'PostFX Atmosphere Trigger', defaultParams: { radius: 4.0, atmosphere: 'cyberpunk' } },
+  { type: 'light_flicker', icon: '💡', name: 'Torch / Flame Light Flicker', defaultParams: { minIntensity: 0.5, maxIntensity: 2.0, speed: 10 } },
+  { type: 'physics_impulse', icon: '💥', name: 'Spacebar Physics Jump', defaultParams: { force: 8 } },
+  { type: 'sine_float', icon: '🌊', name: 'Sine Wave Floating', defaultParams: { speed: 2, amplitude: 0.5 } },
+  { type: 'orbit', icon: '💫', name: 'Orbit Movement', defaultParams: { speed: 45, radius: 4 } },
+  { type: 'camera_follow', icon: '🎥', name: 'Camera Follow Target', defaultParams: { offset: [0, 5, 8], speed: 4 } },
+  { type: 'billboard', icon: '🎯', name: 'Billboard Facing (Face Camera)', defaultParams: {} },
+  { type: 'collectible', icon: '💎', name: 'Collectible Item Pickup', defaultParams: { radius: 1.5, score: 10 } },
+  { type: 'damage_dealer', icon: '⚔️', name: 'Damage Dealer Hazard', defaultParams: { radius: 2.0, damage: 20 } },
+  { type: 'health_pickup', icon: '💚', name: 'Health Potion Pickup', defaultParams: { radius: 1.5, healAmount: 25 } }
+];
+
 /**
  * Entity & Component Inspector Panel
  * Dynamically switches between Beginner-Friendly Simple Mode and Technical Pro Mode.
@@ -196,9 +243,35 @@ export class InspectorPanel {
           <span>⚡ No-Code Game Behaviors</span>
         </div>
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Active Behaviors on this Entity -->
+          ${(() => {
+            const activeB = this.editor.behaviors ? (this.editor.behaviors.getBehaviors(ent) || []) : [];
+            if (!activeB.length) return '';
+            return `
+              <div style="font-size: 10px; font-weight: 700; color: var(--accent-orange); margin-bottom: 2px;">ACTIVE ON OBJECT (${activeB.length}):</div>
+              ${activeB.map(b => `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,102,0,0.15); border: 1px solid var(--accent-orange); border-radius: 6px; padding: 6px 10px; font-size: 11px;">
+                  <span style="color: var(--accent-orange); font-weight: 600;">⚡ ${b.type} Active</span>
+                  <button class="btn btn-icon btn-sm btn-simple-remove-b" data-btype="${b.type}" title="Remove ${b.type}" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
+                </div>
+              `).join('')}
+              <div style="border-bottom: 1px solid var(--border-subtle); margin: 4px 0;"></div>
+            `;
+          })()}
+
+          <!-- Add Any Behavior Dropdown -->
+          <div style="margin-bottom: 4px;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">ADD ANY BEHAVIOR:</div>
+            <select id="simple-add-behavior-select" class="select-input" style="padding: 6px; font-size: 11px; font-weight: 600; text-align: center; border-color: var(--accent-orange); color: var(--accent-orange); width: 100%;">
+              <option value="">+ Add Game Behavior (${BEHAVIOR_CATALOG.length})</option>
+              ${BEHAVIOR_CATALOG.map(b => `<option value="${b.type}">${b.icon} ${b.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-top: 4px;">QUICK POPULAR SHORTCUTS:</div>
           ${hasWasd ? `
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(16,185,129,0.15); border: 1px solid #10b981; border-radius: 6px; padding: 6px 10px; font-size: 11px;">
-              <span style="color: #10b981; font-weight: 600;">🎮 WASD Controller Active (WASD/Arrows)</span>
+              <span style="color: #10b981; font-weight: 600;">🎮 WASD Controller Active</span>
               <button class="btn btn-icon btn-sm" id="remove-wasd-behavior" title="Remove Controller" style="color: #ef4444; width: 22px; height: 22px; font-size: 11px; padding: 0;">✕</button>
             </div>
           ` : `
@@ -380,6 +453,33 @@ export class InspectorPanel {
       ent.setEulerAngles(0, 0, 0);
       this.editor.events.emit('entity:transformed', ent);
     });
+
+    // Remove behavior buttons in Simple Mode
+    body.querySelectorAll('.btn-simple-remove-b').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const bType = btn.dataset.btype;
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, bType);
+          showToast(`Removed behavior: ${bType}`, 'info');
+          this.updateView();
+        }
+      });
+    });
+
+    // Simple Mode Add Any Behavior Dropdown
+    const simpleAddSelect = body.querySelector('#simple-add-behavior-select');
+    if (simpleAddSelect) {
+      simpleAddSelect.addEventListener('change', () => {
+        const bType = simpleAddSelect.value;
+        if (bType && this.editor.behaviors) {
+          const entry = BEHAVIOR_CATALOG.find(b => b.type === bType);
+          this.editor.behaviors.attachBehavior(ent, bType, entry ? { ...entry.defaultParams } : {});
+          showToast(`Attached behavior: ${bType}`, 'success');
+          this.updateView();
+        }
+      });
+    }
 
     // Simple Mode Handlers for new behaviors
     const addTurretBtn = body.querySelector('#add-turret-ai-behavior');
@@ -641,40 +741,7 @@ export class InspectorPanel {
             <option value="trigger">Trigger Volume</option>
           </optgroup>
           <optgroup label="Gameplay Behaviors">
-            <option value="b_turret_ai">🎯 Auto Turret AI</option>
-            <option value="b_pressure_plate">🔘 Interactive Pressure Plate</option>
-            <option value="b_teleport_gateway">🌀 Linked Teleport Gateway</option>
-            <option value="b_water_volume">🌊 Water Buoyancy Volume</option>
-            <option value="b_flashlight">🔦 Toggleable Flashlight ('L')</option>
-            <option value="b_overhead_healthbar">🏥 Overhead 3D Billboard HUD</option>
-            <option value="b_ambient_audio">🎵 Ambient Background Music Emitter</option>
-            <option value="b_dash_boost">💨 Dash Boost Thruster</option>
-            <option value="b_health_regen">💚 Periodic Health Regeneration</option>
-            <option value="b_day_night_cycle">☀️ Day & Night Sun Rotation</option>
-            <option value="b_spotlight_flicker">🔦 Torch / Spotlight Cone Flicker</option>
-            <option value="b_target_lock_on">🎯 Target Camera / Entity Lock-On</option>
-            <option value="b_first_person_controller">👀 First-Person Controller</option>
-            <option value="b_target_health">🎯 Target/Enemy Health & Defeat</option>
-            <option value="b_key_pickup">🔑 Key Item Pickup</option>
-            <option value="b_locked_door">🔒 Locked Key Door</option>
-            <option value="b_jetpack">🚀 Jetpack & Double Jump</option>
-            <option value="b_level_portal">🌀 Level Transition Portal</option>
-            <option value="b_enemy_ai">🤖 Enemy Chase AI</option>
-            <option value="b_projectile_shooter">🔫 Projectile Weapon Shooter</option>
-            <option value="b_mouse_look">👀 Mouse Look / Rotation</option>
-            <option value="b_patrol">🚶 Patrol Movement</option>
-            <option value="b_moving_platform">🛗 Moving Platform / Elevator</option>
-            <option value="b_interactive_door">🚪 Interactive Proximity Door</option>
-            <option value="b_enemy_spawner">👾 Monster Spawner Portal</option>
-            <option value="b_weapon_inventory">🎒 Weapon Inventory & Ammo</option>
-            <option value="b_wasd">🎮 WASD Character Movement</option>
-            <option value="b_health">❤️ Health Component</option>
-            <option value="b_lava_hazard">🔥 Lava / Acid Hazard Zone</option>
-            <option value="b_coin_bounce">🪙 Coin Spin & Floating Bounce</option>
-            <option value="b_light_color_cycle">🌈 RGB Neon Light Cycle</option>
-            <option value="b_waypoint_patrol">🗺️ Multi-Waypoint Path Patrol</option>
-            <option value="b_audio_trigger">🔊 Audio Zone Trigger</option>
-            <option value="b_postfx_trigger">✨ PostFX Atmosphere Trigger</option>
+            ${BEHAVIOR_CATALOG.map(b => `<option value="b_${b.type}">${b.icon} ${b.name}</option>`).join('')}
           </optgroup>
         </select>
       </div>
@@ -760,43 +827,8 @@ export class InspectorPanel {
         if (type.startsWith('b_')) {
           const bType = type.replace('b_', '');
           if (this.editor.behaviors) {
-            const defaults = {
-              turret_ai: { range: 20, fireRate: 1.5, damage: 15 },
-              pressure_plate: { radius: 1.5 },
-              teleport_gateway: { cooldown: 2.0, radius: 1.8 },
-              water_volume: { buoyancyForce: 15, extents: [5, 3, 5] },
-              flashlight: {},
-              overhead_healthbar: {},
-              ambient_audio: { volume: 0.3 },
-              dash_boost: { force: 25, cooldown: 1.2 },
-              health_regen: { amount: 5, interval: 2.0 },
-              day_night_cycle: { speed: 0.1 },
-              spotlight_flicker: { baseOuterAngle: 45, variance: 8 },
-              target_lock_on: { targetEntity: 'Enemy' },
-              first_person_controller: { speed: 10, rotSpeed: 90 },
-              target_health: { maxHp: 100, currentHp: 100, scoreValue: 100 },
-              key_pickup: { keyName: 'Gold Key', radius: 1.8 },
-              locked_door: { requiredKey: 'Gold Key', radius: 3.5 },
-              jetpack: { fuel: 100, maxFuel: 100, thrust: 12 },
-              level_portal: { targetScene: 'Level_2', radius: 2.0 },
-              enemy_ai: { speed: 3.5, detectRadius: 15, damage: 15 },
-              projectile_shooter: { speed: 30, damage: 35, cooldown: 0.3 },
-              mouse_look: { speed: 90 },
-              patrol: { speed: 3, distance: 6 },
-              moving_platform: { speed: 2.5, distance: 8, axis: 'y' },
-              interactive_door: { radius: 3.0 },
-              enemy_spawner: { interval: 6.0 },
-              weapon_inventory: { weaponName: 'Plasma Gun', ammo: 30 },
-              wasd: { speed: 8 },
-              health: { maxHp: 100, currentHp: 100 },
-              lava_hazard: { radius: 2.5, damage: 100 },
-              coin_bounce: { speed: 90, amplitude: 0.3 },
-              light_color_cycle: { speed: 1.0 },
-              waypoint_patrol: { speed: 4.0 },
-              audio_trigger: { radius: 3.0, sfxType: 'coin' },
-              postfx_trigger: { radius: 4.0, atmosphere: 'cyberpunk' }
-            };
-            this.editor.behaviors.attachBehavior(ent, bType, defaults[bType] || {});
+            const entry = BEHAVIOR_CATALOG.find(b => b.type === bType);
+            this.editor.behaviors.attachBehavior(ent, bType, entry ? { ...entry.defaultParams } : {});
             showToast(`Attached behavior: ${bType}`, 'success');
             this.updateView();
           }
