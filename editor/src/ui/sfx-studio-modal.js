@@ -18,6 +18,7 @@ export class SFXStudioModal {
   }
 
   render() {
+    if (typeof document === 'undefined') return;
     this.modal = document.createElement('div');
     this.modal.id = 'sfx-studio-modal';
     this.modal.style.cssText = `
@@ -97,6 +98,7 @@ export class SFXStudioModal {
   }
 
   bindEvents() {
+    if (!this.modal) return;
     this.modal.querySelector('#sfx-btn-close').addEventListener('click', () => this.close());
 
     window.addEventListener('keydown', (e) => {

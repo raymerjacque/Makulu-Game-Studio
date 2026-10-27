@@ -115,7 +115,7 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **63 interactive No-Code gameplay behaviors** (`wall_run_controller`, `grappling_hook`, `grav_gun_physicshandler`, `boss_ai`, `cover_system`, `quest_tracker`, etc.).
+* **Behavior Injection:** Attach any of the **68 interactive No-Code gameplay behaviors** (`wall_run_controller`, `grappling_hook`, `grav_gun_physicshandler`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, etc.).
 * **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
@@ -340,20 +340,33 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Realistic physics defeat component that disables rigid constraints and unlocks angular/linear degrees of freedom upon zero HP, collapsing characters dynamically with realistic momentum.
 63. **🌦️ Dynamic Day-Night Weather Cycle:**
     Unified environmental orchestrator that drives continuous 360-degree celestial sunlight rotation and triggers dynamic weather transitions.
+64. **🌿 Procedural Wind Foliage Sway:**
+    Harmonic sinusoidal foliage bending and leaf oscillation for trees, bushes, and flora with configurable wind speed and bending amplitude.
+65. **🛤️ Waypointed Path Spline Motion:**
+    Smooth path traversal and corridor following for mining carts, floating elevators, patrol drones, and guided projectiles.
+66. **📳 Earthquake Hazard Screen Shake Zone:**
+    Proximity-based environmental hazard volume that dynamically triggers camera jitter and screen vibration when players enter seismically unstable zones.
+67. **💥 Exploding Red Barrel Hazard:**
+    Action-game destructible hazard prop that triggers procedural explosion sound effects, screen rumble impulses, and radial splash damage upon proximity or impact.
+68. **🔊 Acoustic Spatial Audio Zone:**
+    Environmental acoustic reverberation volume that tracks player presence and dynamically modulates spatial echo, room presence, and sound muffling.
 
 ---
 
-## 🎵 Built-in Procedural Audio Synthesizer
+## 🎵 Built-in Procedural Audio Synthesizer Studio
 
-MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthesizer** (`proceduralSFX`) that generates game audio on the fly without needing external audio files:
-* **🔫 Laser / Shoot:** Rapid frequency sweep for projectile weapons and plasma blasters.
-* **💥 Explosion & Impact:** Filtered low-pass noise burst for bullet hits, destructible targets, and hazards.
-* **🪙 Coin & Pickup:** Dual-tone sine chime for collectibles, powerups, and score pickups.
-* **🚀 Jump & Jetpack Boost:** Square-wave pitch climb for impulses and jetpack thrusting.
-* **🔓 Door Unlock:** Triangle-wave harmonic chord for sliding proximity doors.
-* **💔 Hurt & Damage:** Sawtooth drop tone for player and enemy combat damage.
-* **🏆 Victory Fanfare:** Ascending celebratory arpeggio for level complete and portal triggers.
-* **Universal Compilation:** Inlined directly into compiled standalone `.html` games for instant audio on any device.
+MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthesizer Studio** accessible from the TopBar (`Tools ▾ -> 🔊 Procedural Audio Synth Studio`):
+* **Live Audio Synthesis:** Synthesizes sound effects on the fly without needing external audio files:
+  * **🔫 Laser / Shoot:** Rapid frequency sweep for projectile weapons and plasma blasters.
+  * **💥 Explosion & Impact:** Filtered low-pass noise burst for bullet hits, destructible targets, and hazards.
+  * **🪙 Coin & Pickup:** Dual-tone sine chime for collectibles, powerups, and score pickups.
+  * **🚀 Jump & Jetpack Boost:** Square-wave pitch climb for impulses and jetpack thrusting.
+  * **🔓 Door Unlock:** Triangle-wave harmonic chord for sliding proximity doors.
+  * **💔 Hurt & Damage:** Sawtooth drop tone for player and enemy combat damage.
+  * **🏆 Victory Fanfare:** Ascending celebratory arpeggio for level complete and portal triggers.
+  * **💨 Dash Boost:** High-velocity wind-rush burst for directional dash maneuvers.
+* **1-Click Asset Exporting:** Export any synthesized sound effect directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
+* **Universal Compilation:** Inlined directly into compiled standalone `.html` games for instant zero-dependency audio on any device.
 
 ---
 
