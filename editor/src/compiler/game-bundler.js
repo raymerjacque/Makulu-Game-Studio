@@ -345,7 +345,7 @@ export class GameBundler {
     app.scene.ambientLight = new pc.Color(0.25, 0.25, 0.28);
     app.scene.toneMapping = pc.TONEMAP_ACES;
 
-    // Set Atmosphere & Fog from Scene Data
+    // Set Atmosphere, Fog & PostFX Pipeline from Scene Data
     const preset = SCENE_DATA.atmosphere || 'day';
     if (preset === 'sunset') {
       app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
@@ -368,6 +368,30 @@ export class GameBundler {
     } else {
       app.scene.ambientLight = new pc.Color(0.25, 0.25, 0.28);
       app.scene.fog = pc.FOG_NONE;
+    }
+
+    if (SCENE_DATA.postProcessing) {
+      const pfx = SCENE_DATA.postProcessing;
+      if (pfx.exposure !== undefined) app.scene.exposure = pfx.exposure;
+      if (pfx.toneMapping === 'aces') app.scene.toneMapping = pc.TONEMAP_ACES;
+      else if (pfx.toneMapping === 'filmic') app.scene.toneMapping = pc.TONEMAP_FILMIC;
+      else if (pfx.toneMapping === 'linear') app.scene.toneMapping = pc.TONEMAP_LINEAR;
+
+      if (pfx.fog && pfx.fog.enabled) {
+        app.scene.fog = pc.FOG_EXP2;
+        if (pfx.fog.color) {
+          const hex = pfx.fog.color;
+          const r = parseInt(hex.slice(1, 3), 16) / 255;
+          const g = parseInt(hex.slice(3, 5), 16) / 255;
+          const b = parseInt(hex.slice(5, 7), 16) / 255;
+          app.scene.fogColor = new pc.Color(r, g, b);
+        }
+        if (pfx.fog.density !== undefined) app.scene.fogDensity = pfx.fog.density;
+      }
+
+      if (pfx.bloom && pfx.bloom.enabled) {
+        app.scene.exposure = (app.scene.exposure || 1.0) * (pfx.bloom.intensity || 1.0);
+      }
     }
 
     if (SCENE_DATA.gravity && app.systems && app.systems.rigidbody) {
@@ -1587,6 +1611,44 @@ export class GameBundler {
               b._rechargeTimer -= dt;
             } else if (b.properties.currentShield < (b.properties.maxShield || 50)) {
               b.properties.currentShield = Math.min(b.properties.maxShield || 50, b.properties.currentShield + (b.properties.rechargeRate || 10) * dt);
+            }
+          } else if (b.type === 'sway_foliage') {
+            const speed = b.properties?.speed || 2.5;
+            const amplitude = b.properties?.amplitude || 5.0;
+            if (!b._state) b._state = { time: 0, baseRot: node.getEulerAngles().clone() };
+            b._state.time += dt * speed;
+            node.setEulerAngles(b._state.baseRot.x + Math.sin(b._state.time) * amplitude, b._state.baseRot.y, b._state.baseRot.z + Math.cos(b._state.time * 0.8) * (amplitude * 0.5));
+          } else if (b.type === 'spline_follower') {
+            const speed = b.properties?.speed || 3.0;
+            node.translateLocal(0, 0, -speed * dt);
+          } else if (b.type === 'screen_shake_zone') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 5.0;
+              if (dist < radius) {
+                window.triggerScreenShake(b.properties?.intensity || 0.6, 0.1);
+              }
+            }
+          } else if (b.type === 'exploding_barrel') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist < 1.8 && node.enabled) {
+                node.enabled = false;
+                if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                window.triggerScreenShake(0.8, 0.4);
+                const playerB = playerEntity._behaviors || [];
+                const healthB = playerB.find(hb => hb.type === 'health');
+                if (healthB) {
+                  const dmg = b.properties?.blastDamage || 80;
+                  healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - dmg);
+                }
+              }
+            }
+          } else if (b.type === 'audio_reverb_zone') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 8.0;
+              b._playerInZone = dist <= radius;
             }
           } else if (b.type === 'wall_run_controller') {
             if (keys['w'] || keys['arrowup']) {

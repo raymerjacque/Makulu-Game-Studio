@@ -127,6 +127,9 @@ export class TopBar {
               <div class="topbar-dropdown-item" id="menu-action-hud">
                 <span class="item-label">📺 2D Screen UI & HUD Designer...</span>
               </div>
+              <div class="topbar-dropdown-item" id="menu-action-sfx-studio">
+                <span class="item-label">🔊 Procedural Audio Synth Studio...</span>
+              </div>
               <div class="topbar-dropdown-item" id="menu-action-timeline">
                 <span class="item-label">🎬 Animation Timeline Sequencer...</span>
               </div>
@@ -544,6 +547,16 @@ export class TopBar {
     if (hudItem) {
       hudItem.addEventListener('click', () => {
         if (this.hudModal) this.hudModal.open();
+      });
+    }
+
+    // Procedural Audio Synth Studio
+    const sfxItem = this.container.querySelector('#menu-action-sfx-studio');
+    if (sfxItem) {
+      sfxItem.addEventListener('click', () => {
+        if (this.extraModals && this.extraModals.sfxStudioModal) {
+          this.extraModals.sfxStudioModal.open();
+        }
       });
     }
 

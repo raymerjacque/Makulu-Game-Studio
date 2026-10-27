@@ -164,6 +164,10 @@ class ProceduralSFXManager {
 
 export const proceduralSFX = new ProceduralSFXManager();
 
+export function playProceduralSFX(type, volume = 0.5) {
+  proceduralSFX.play(type, volume);
+}
+
 /**
  * Stringified runtime for standalone HTML game compilation
  */

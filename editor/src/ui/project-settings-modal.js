@@ -150,14 +150,16 @@ export class ProjectSettingsModal {
       const title = this.modal.querySelector('#proj-title-input').value.trim();
       const gravityY = parseFloat(this.modal.querySelector('#proj-gravity-y').value) || -9.8;
       const tonemap = this.modal.querySelector('#proj-tonemap-select').value;
+        const shadowRes = parseInt(this.modal.querySelector('#proj-shadow-resolution').value, 10) || 1024;
 
         const texTarget = this.modal.querySelector('#proj-texture-target').value;
         const texQuality = this.modal.querySelector('#proj-texture-quality').value;
         const texAniso = parseInt(this.modal.querySelector('#proj-texture-aniso').value, 10);
         const texMipmaps = this.modal.querySelector('#proj-texture-mipmaps').checked;
 
-      if (title) this.editor.projectName = title;
+        if (title) this.editor.projectName = title;
 
+        this.editor.shadowResolution = shadowRes;
         this.editor.textureCompressionSettings = {
           targetFormat: texTarget,
           qualityLevel: texQuality,
@@ -165,21 +167,28 @@ export class ProjectSettingsModal {
           generateMipmaps: texMipmaps
         };
 
-      const app = this.editor.getApp();
-      if (app) {
-        if (app.systems && app.systems.rigidbody) {
-          app.systems.rigidbody.gravity.set(0, gravityY, 0);
-        }
-        if (app.scene) {
-          if (tonemap === 'aces') app.scene.toneMapping = pc.TONEMAP_ACES;
-          else if (tonemap === 'linear') app.scene.toneMapping = pc.TONEMAP_LINEAR;
-          else if (tonemap === 'filmic') app.scene.toneMapping = pc.TONEMAP_FILMIC;
-        }
-      }
+        const app = this.editor.getApp();
+        if (app) {
+          if (app.systems && app.systems.rigidbody) {
+            app.systems.rigidbody.gravity.set(0, gravityY, 0);
+          }
+          if (app.scene) {
+            if (tonemap === 'aces') app.scene.toneMapping = pc.TONEMAP_ACES;
+            else if (tonemap === 'linear') app.scene.toneMapping = pc.TONEMAP_LINEAR;
+            else if (tonemap === 'filmic') app.scene.toneMapping = pc.TONEMAP_FILMIC;
+          }
 
-        showToast(`⚙️ Updated Project, Physics & Texture Compression Settings!`, 'success');
-      this.close();
-    });
+          // Apply shadow resolution across all lights in the scene
+          app.root.forEach(entity => {
+            if (entity.light) {
+              entity.light.shadowResolution = shadowRes;
+            }
+          });
+        }
+
+        showToast(`⚙️ Updated Project, Physics & Shadow Settings!`, 'success');
+        this.close();
+      });
   }
 
   open() {

@@ -147,6 +147,12 @@ export class PostProcessingModal {
     const fogDensity = this.modal.querySelector('#fx-fog-density');
     const fogDensityVal = this.modal.querySelector('#fx-fog-density-val');
 
+    const bloomToggle = this.modal.querySelector('#fx-bloom-toggle');
+    const bloomIntensity = this.modal.querySelector('#fx-bloom-intensity');
+    const bloomIntensityVal = this.modal.querySelector('#fx-bloom-intensity-val');
+    const bloomThreshold = this.modal.querySelector('#fx-bloom-threshold');
+    const bloomThresholdVal = this.modal.querySelector('#fx-bloom-threshold-val');
+
     exposureSlider.addEventListener('input', () => {
       exposureVal.textContent = parseFloat(exposureSlider.value).toFixed(1);
     });
@@ -155,34 +161,61 @@ export class PostProcessingModal {
       fogDensityVal.textContent = parseFloat(fogDensity.value).toFixed(3);
     });
 
+    bloomIntensity.addEventListener('input', () => {
+      bloomIntensityVal.textContent = parseFloat(bloomIntensity.value).toFixed(1);
+    });
+
+    bloomThreshold.addEventListener('input', () => {
+      bloomThresholdVal.textContent = parseFloat(bloomThreshold.value).toFixed(2);
+    });
+
     this.modal.querySelector('#fx-btn-apply').addEventListener('click', () => {
-      if (!this.editor.runtime || !this.editor.runtime.app) {
-        showToast('Engine runtime not ready', 'error');
-        return;
-      }
+      this.config = {
+        toneMapping: tonemapSelect.value,
+        exposure: parseFloat(exposureSlider.value),
+        fog: {
+          enabled: fogToggle.checked,
+          color: fogColor.value,
+          density: parseFloat(fogDensity.value)
+        },
+        bloom: {
+          enabled: bloomToggle.checked,
+          intensity: parseFloat(bloomIntensity.value),
+          threshold: parseFloat(bloomThreshold.value)
+        }
+      };
 
-      const app = this.editor.runtime.app;
+      this.editor.postProcessingConfig = this.config;
 
-      // Tone Mapping
-      const tonemapVal = tonemapSelect.value;
-      if (tonemapVal === 'aces') app.scene.toneMapping = pc.TONEMAP_ACES;
-      else if (tonemapVal === 'filmic') app.scene.toneMapping = pc.TONEMAP_FILMIC;
-      else if (tonemapVal === 'linear') app.scene.toneMapping = pc.TONEMAP_LINEAR;
-      else app.scene.toneMapping = pc.TONEMAP_NONE;
+      if (this.editor.runtime && this.editor.runtime.app) {
+        const app = this.editor.runtime.app;
 
-      app.scene.exposure = parseFloat(exposureSlider.value);
+        // Tone Mapping
+        const tonemapVal = tonemapSelect.value;
+        if (tonemapVal === 'aces') app.scene.toneMapping = pc.TONEMAP_ACES;
+        else if (tonemapVal === 'filmic') app.scene.toneMapping = pc.TONEMAP_FILMIC;
+        else if (tonemapVal === 'linear') app.scene.toneMapping = pc.TONEMAP_LINEAR;
+        else app.scene.toneMapping = pc.TONEMAP_NONE;
 
-      // Fog
-      if (fogToggle.checked) {
-        app.scene.fog = pc.FOG_EXP2;
-        const hex = fogColor.value;
-        const r = parseInt(hex.slice(1, 3), 16) / 255;
-        const g = parseInt(hex.slice(3, 5), 16) / 255;
-        const b = parseInt(hex.slice(5, 7), 16) / 255;
-        app.scene.fogColor = new pc.Color(r, g, b);
-        app.scene.fogDensity = parseFloat(fogDensity.value);
-      } else {
-        app.scene.fog = pc.FOG_NONE;
+        app.scene.exposure = parseFloat(exposureSlider.value);
+
+        // Fog
+        if (fogToggle.checked) {
+          app.scene.fog = pc.FOG_EXP2;
+          const hex = fogColor.value;
+          const r = parseInt(hex.slice(1, 3), 16) / 255;
+          const g = parseInt(hex.slice(3, 5), 16) / 255;
+          const b = parseInt(hex.slice(5, 7), 16) / 255;
+          app.scene.fogColor = new pc.Color(r, g, b);
+          app.scene.fogDensity = parseFloat(fogDensity.value);
+        } else {
+          app.scene.fog = pc.FOG_NONE;
+        }
+
+        // Apply bloom configuration to runtime if method exists
+        if (typeof this.editor.runtime.setBloomFX === 'function') {
+          this.editor.runtime.setBloomFX(this.config.bloom);
+        }
       }
 
       showToast('✨ Applied Post-Processing render pipeline settings!', 'success');

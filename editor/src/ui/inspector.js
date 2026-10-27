@@ -66,7 +66,12 @@ export const BEHAVIOR_CATALOG = [
   { type: 'combo_score_counter', icon: '🎯', name: 'Multi-Kill Combo Multiplier', defaultParams: { multiplier: 2, windowTime: 3.0 } },
   { type: 'checkpoint_system', icon: '🚩', name: 'Respawn Checkpoint Pad', defaultParams: { radius: 2.0 } },
   { type: 'weather_emitter', icon: '❄️', name: 'Weather Particle Emitter', defaultParams: { type: 'snow', density: 100 } },
-  { type: 'shield_generator', icon: '🛡️', name: 'Energy Shield Component', defaultParams: { maxShield: 50, rechargeRate: 10, rechargeDelay: 3.0 } }
+  { type: 'shield_generator', icon: '🛡️', name: 'Energy Shield Component', defaultParams: { maxShield: 50, rechargeRate: 10, rechargeDelay: 3.0 } },
+  { type: 'sway_foliage', icon: '🌿', name: 'Procedural Wind Foliage Sway', defaultParams: { speed: 2.5, amplitude: 5.0 } },
+  { type: 'spline_follower', icon: '🛤️', name: 'Waypointed Path Spline Motion', defaultParams: { speed: 3.0, loop: true } },
+  { type: 'screen_shake_zone', icon: '📳', name: 'Earthquake Hazard Screen Shake Zone', defaultParams: { radius: 5.0, intensity: 0.6 } },
+  { type: 'exploding_barrel', icon: '💥', name: 'Exploding Red Barrel Hazard', defaultParams: { blastRadius: 6.0, blastDamage: 80 } },
+  { type: 'audio_reverb_zone', icon: '🔊', name: 'Acoustic Spatial Audio Zone', defaultParams: { radius: 8.0, echoFactor: 0.5 } }
 ];
 
 /**
@@ -852,6 +857,72 @@ export class InspectorPanel {
           this.editor.behaviors.removeBehavior(ent, 'wasd');
           showToast(`Removed WASD Controller from ${ent.name}.`, 'info');
           this.updateView();
+        }
+      });
+    }
+
+    const addSpinBtn = body.querySelector('#add-spin-behavior');
+    if (addSpinBtn) {
+      addSpinBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.attachBehavior(ent, 'spin', { speed: 90, axis: 'y' });
+          showToast(`🔄 Attached Continuous Spin to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+    const remSpinBtn = body.querySelector('#remove-spin-behavior');
+    if (remSpinBtn) {
+      remSpinBtn.addEventListener('click', () => {
+        if (this.editor.behaviors) {
+          this.editor.behaviors.removeBehavior(ent, 'spin');
+          showToast(`Removed Spin from ${ent.name}.`, 'info');
+          this.updateView();
+        }
+      });
+    }
+
+    const addTrigBtn = body.querySelector('#add-trigger-behavior');
+    if (addTrigBtn) {
+      addTrigBtn.addEventListener('click', () => {
+        if (this.editor.triggers) {
+          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+          this.editor.triggers.registerTrigger(ent.name, {
+            eventType: 'on_enter',
+            action: 'teleport',
+            radius: 2.0,
+            targetPosition: [0, 2, 0]
+          });
+          showToast(`⚡ Teleport Trigger Volume added to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+
+    const addWinTrigBtn = body.querySelector('#add-win-trigger-behavior');
+    if (addWinTrigBtn) {
+      addWinTrigBtn.addEventListener('click', () => {
+        if (this.editor.triggers) {
+          if (!ent.collision) this.editor.addComponent(ent, 'collision', { type: 'box' });
+          this.editor.triggers.registerTrigger(ent.name, {
+            eventType: 'on_enter',
+            action: 'win_level',
+            radius: 2.5,
+            victoryMessage: 'Congratulations! Level Completed!'
+          });
+          showToast(`🏆 Level Victory Trigger Volume added to ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+
+    const simpleAnimBlendBtn = body.querySelector('#btn-simple-anim-blend');
+    if (simpleAnimBlendBtn) {
+      simpleAnimBlendBtn.addEventListener('click', () => {
+        if (this.animBlendModal) {
+          this.animBlendModal.open(ent);
+        } else {
+          showToast('Animation Blend Graph Modal not available', 'warn');
         }
       });
     }

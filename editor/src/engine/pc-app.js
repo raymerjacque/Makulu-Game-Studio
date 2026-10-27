@@ -85,6 +85,7 @@ export class EngineRuntime {
 
   setAtmosphere(preset) {
     if (!this.app || !this.app.scene) return;
+    this.currentAtmosphere = preset;
 
     if (preset === 'sunset') {
       this.app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
@@ -108,6 +109,14 @@ export class EngineRuntime {
       // Clear Day
       this.app.scene.ambientLight = new pc.Color(0.22, 0.24, 0.28);
       this.app.scene.fog = pc.FOG_NONE;
+    }
+  }
+
+  setBloomFX(bloomConfig) {
+    if (!this.app || !this.app.scene) return;
+    this.bloomConfig = bloomConfig;
+    if (bloomConfig && bloomConfig.enabled) {
+      this.app.scene.exposure = (this.app.scene.exposure || 1.0) * (bloomConfig.intensity || 1.0);
     }
   }
 
