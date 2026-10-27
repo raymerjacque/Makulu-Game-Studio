@@ -20,6 +20,7 @@ import { PostProcessingModal } from './ui/postprocessing-modal.js';
 import { TimelinePanel } from './ui/timeline.js';
 import { HUDModal } from './ui/hud-modal.js';
 import { AnimBlendModal } from './ui/anim-blend-modal.js';
+import { SFXStudioModal } from './ui/sfx-studio-modal.js';
 import { ConsoleDrawer } from './ui/console-drawer.js';
 import { BehaviorManager } from './core/behaviors.js';
 import { ModelResizerOverlay } from './ui/model-resizer-overlay.js';
@@ -65,6 +66,7 @@ async function bootstrap() {
   const timelinePanel = new TimelinePanel(editor);
   const hudModal = new HUDModal(editor);
   const animBlendModal = new AnimBlendModal(editor);
+  const sfxStudioModal = new SFXStudioModal(editor);
   const consoleDrawer = new ConsoleDrawer(document.body, editor, aiUI);
 
   const behaviors = new BehaviorManager(editor);
@@ -89,7 +91,8 @@ async function bootstrap() {
       materialModal,
       codeEditor,
       consoleDrawer,
-      animBlendModal
+      animBlendModal,
+      sfxStudioModal
     }
   );
   new ToolStrip(toolStripContainer, editor);

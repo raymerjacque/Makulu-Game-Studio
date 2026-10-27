@@ -632,6 +632,7 @@ export class Editor {
       project: this.projectName,
       scene: this.activeSceneName,
       atmosphere: this.runtime ? this.runtime.currentAtmosphere || 'day' : 'day',
+      postProcessing: this.postProcessingConfig || null,
       gravity: (app && app.systems && app.systems.rigidbody && app.systems.rigidbody.gravity) ? [app.systems.rigidbody.gravity.x, app.systems.rigidbody.gravity.y, app.systems.rigidbody.gravity.z] : [0, -9.8, 0],
       textureCompression: this.textureCompressionSettings || { targetFormat: 'auto', qualityLevel: 'normal', maxAnisotropy: 4, generateMipmaps: true },
       animGraph: this.animGraph || null,
@@ -653,6 +654,7 @@ export class Editor {
       if (data.project) this.projectName = data.project;
       if (data.scene) this.activeSceneName = data.scene;
       if (data.hud) this.hudConfig = data.hud;
+      if (data.postProcessing) this.postProcessingConfig = data.postProcessing;
       if (data.textureCompression) this.textureCompressionSettings = data.textureCompression;
       if (data.animGraph) this.animGraph = data.animGraph;
 

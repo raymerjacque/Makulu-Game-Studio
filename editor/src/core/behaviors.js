@@ -999,6 +999,51 @@ export class BehaviorManager {
             } else if (b.params.currentShield < (b.params.maxShield || 50)) {
               b.params.currentShield = Math.min(b.params.maxShield || 50, b.params.currentShield + (b.params.rechargeRate || 10) * dt);
             }
+          } else if (b.type === 'sway_foliage') {
+            const speed = b.params.speed || 2.5;
+            const amplitude = b.params.amplitude || 5.0;
+            if (!b._state) b._state = { time: 0, baseRot: entity.getEulerAngles().clone() };
+            b._state.time += dt * speed;
+            entity.setEulerAngles(b._state.baseRot.x + Math.sin(b._state.time) * amplitude, b._state.baseRot.y, b._state.baseRot.z + Math.cos(b._state.time * 0.8) * (amplitude * 0.5));
+          } else if (b.type === 'spline_follower') {
+            const speed = b.params.speed || 3.0;
+            if (!b._state) b._state = { progress: 0 };
+            b._state.progress += dt * speed * 0.1;
+            entity.translateLocal(0, 0, -speed * dt);
+          } else if (b.type === 'screen_shake_zone') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 5.0;
+              if (dist < radius) {
+                if (typeof window.triggerScreenShake === 'function') {
+                  window.triggerScreenShake(b.params.intensity || 0.6, 0.1);
+                }
+              }
+            }
+          } else if (b.type === 'exploding_barrel') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist < 1.8 && entity.enabled) {
+                entity.enabled = false;
+                proceduralSFX.play('explosion');
+                if (typeof window.triggerScreenShake === 'function') window.triggerScreenShake(0.8, 0.4);
+                const playerB = this.getBehaviors(player) || [];
+                const healthB = playerB.find(hb => hb.type === 'health');
+                if (healthB) {
+                  const dmg = b.params.blastDamage || 80;
+                  healthB.params.currentHp = Math.max(0, (healthB.params.currentHp || 100) - dmg);
+                }
+              }
+            }
+          } else if (b.type === 'audio_reverb_zone') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 8.0;
+              b._playerInZone = dist <= radius;
+            }
           } else if (b.type === 'wall_run_controller') {
             if (this.isKeyDown('w') || this.isKeyDown('arrowup')) {
               if (!b._state) b._state = { wallRunning: false };
