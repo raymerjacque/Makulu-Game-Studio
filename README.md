@@ -115,7 +115,7 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **68 interactive No-Code gameplay behaviors** (`wall_run_controller`, `grappling_hook`, `grav_gun_physicshandler`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, etc.).
+* **Behavior Injection:** Attach any of the **73 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `grappling_hook`, `grav_gun_physicshandler`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
 * **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
@@ -350,6 +350,16 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Action-game destructible hazard prop that triggers procedural explosion sound effects, screen rumble impulses, and radial splash damage upon proximity or impact.
 68. **🔊 Acoustic Spatial Audio Zone:**
     Environmental acoustic reverberation volume that tracks player presence and dynamically modulates spatial echo, room presence, and sound muffling.
+69. **🎥 Third-Person Action Controller:**
+    Over-the-shoulder chase camera & WASD steering with rotational alignment for third-person action games, RPGs, and adventure titles.
+70. **⚡ Sprint & Stamina Resource Bar:**
+    Shift-sprint mobility system with stamina depletion, fatigue slowdown, auto-recharge curves, and live 2D HUD bar integration.
+71. **🔴 Damage Material Flash Feedback:**
+    Visual hit feedback flashing entity material emissive red upon combat or hazard damage with automatic decay restoration.
+72. **🪜 Proximity Climbable Ladder / Rope:**
+    Proximity vertical ladder and rope climbing using W/S keys with automatic velocity and gravity cancellation.
+73. **⏱️ Slow Motion Bullet-Time Zone:**
+    Time dilation and Matrix-style bullet-time environmental zone that slows simulation delta time for intense action sequences.
 
 ---
 
@@ -365,7 +375,7 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
   * **💔 Hurt & Damage:** Sawtooth drop tone for player and enemy combat damage.
   * **🏆 Victory Fanfare:** Ascending celebratory arpeggio for level complete and portal triggers.
   * **💨 Dash Boost:** High-velocity wind-rush burst for directional dash maneuvers.
-* **1-Click Asset Exporting:** Export any synthesized sound effect directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
+* **1-Click 16-Bit PCM WAV Exporting:** Generates authentic 16-bit PCM WAV Base64 Data URLs and exports them directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
 * **Universal Compilation:** Inlined directly into compiled standalone `.html` games for instant zero-dependency audio on any device.
 
 ---
@@ -374,6 +384,7 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
 
 Design and customize responsive screen UI overlays directly from the TopBar (`Tools ▾ -> 📺 HUD`):
 * **❤️ Health Bar Overlay:** Toggleable health bar with customizable label, max health, custom fill colors, and animated depletion.
+* **⚡ Stamina / Sprint Bar Overlay:** Toggleable stamina bar with customizable label, max stamina, sprint drain rate, and yellow/gold fill styling.
 * **⭐ Score Counter:** Dynamic score counter with prefix label and live updates from collectible coins and trigger points.
 * **🎯 Reticle & Crosshair:** Visual center aim reticle (dot, cross, circle) for aiming and interaction.
 * **🔫 Ammo & Weapon Overlay:** Live weapon name and ammo counter (`hud-ammo-counter`) linked to the weapon inventory.
