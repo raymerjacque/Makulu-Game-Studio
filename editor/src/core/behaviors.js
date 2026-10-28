@@ -1162,6 +1162,96 @@ export class BehaviorManager {
             b._inCover = Boolean(inCoverKey);
           } else if (b.type === 'ragdoll_physics') {
             // Evaluated upon defeat
+          } else if (b.type === 'third_person_controller') {
+            const speed = b.params.speed || 8;
+            const rotSpeed = b.params.rotSpeed || 90;
+            const camDist = b.params.cameraDistance || 6;
+            const camHeight = b.params.cameraHeight || 2.5;
+
+            const move = new pc.Vec3();
+            const forward = new pc.Vec3(entity.forward.x, 0, entity.forward.z);
+            if (forward.lengthSq() > 0.0001) forward.normalize();
+            const right = new pc.Vec3(entity.right.x, 0, entity.right.z);
+            if (right.lengthSq() > 0.0001) right.normalize();
+
+            let speedMult = 1.0;
+            const staminaB = this.getBehaviors(entity).find(sb => sb.type === 'stamina_system');
+            if (staminaB && staminaB._isSprinting) {
+              speedMult = 1.6;
+            }
+
+            if (this.isKeyDown('w') || this.isKeyDown('arrowup')) move.add(forward);
+            if (this.isKeyDown('s') || this.isKeyDown('arrowdown')) move.sub(forward);
+
+            if (this.isKeyDown('a') || this.isKeyDown('arrowleft')) entity.rotate(0, rotSpeed * dt, 0);
+            if (this.isKeyDown('d') || this.isKeyDown('arrowright')) entity.rotate(0, -rotSpeed * dt, 0);
+
+            const isMoving = move.lengthSq() > 0.0001;
+            if (isMoving) {
+              move.normalize().mulScalar(speed * speedMult * dt);
+              entity.translate(move);
+              this.editor.events.emit('entity:transformed', entity);
+            }
+            this.updateLocomotion(entity, speed * speedMult, isMoving, dt);
+
+            const camera = app.root.find(node => node.camera);
+            if (camera) {
+              const targetCamPos = entity.getPosition().clone().sub(entity.forward.clone().mulScalar(camDist)).add(new pc.Vec3(0, camHeight, 0));
+              const curCamPos = camera.getPosition();
+              curCamPos.lerp(curCamPos, targetCamPos, Math.min(1.0, dt * 6.0));
+              camera.setPosition(curCamPos);
+              camera.lookAt(entity.getPosition().clone().add(new pc.Vec3(0, 1.2, 0)));
+            }
+          } else if (b.type === 'stamina_system') {
+            if (b.params.currentStamina === undefined) b.params.currentStamina = b.params.maxStamina || 100;
+            const maxStamina = b.params.maxStamina || 100;
+            const shiftKey = this.isKeyDown('shift') || this.isKeyDown('lshift');
+            const isMoving = Boolean(this.isKeyDown('w') || this.isKeyDown('s') || this.isKeyDown('a') || this.isKeyDown('d') || this.isKeyDown('arrowup') || this.isKeyDown('arrowdown'));
+
+            if (shiftKey && isMoving && b.params.currentStamina > 0) {
+              b._isSprinting = true;
+              b.params.currentStamina = Math.max(0, b.params.currentStamina - (b.params.drainRate || 25) * dt);
+            } else {
+              b._isSprinting = false;
+              b.params.currentStamina = Math.min(maxStamina, b.params.currentStamina + (b.params.rechargeRate || 15) * dt);
+            }
+
+            const fill = typeof document !== 'undefined' ? document.getElementById('hud-stamina-fill') : null;
+            if (fill) fill.style.width = Math.max(0, Math.min(100, (b.params.currentStamina / maxStamina) * 100)) + '%';
+          } else if (b.type === 'damage_flash') {
+            if (b._flashTimer && b._flashTimer > 0) {
+              b._flashTimer -= dt;
+              if (b._flashTimer <= 0 && entity.render && entity.render.material) {
+                if (b._origEmissive) entity.render.material.emissive = b._origEmissive;
+                else entity.render.material.emissive = new pc.Color(0, 0, 0);
+                entity.render.material.update();
+              }
+            }
+          } else if (b.type === 'climbable_ladder') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 1.8;
+              if (dist <= radius) {
+                const climbSpeed = b.params.climbSpeed || 5.0;
+                if (this.isKeyDown('w') || this.isKeyDown('arrowup')) {
+                  player.translate(0, climbSpeed * dt, 0);
+                  if (player.rigidbody) player.rigidbody.linearVelocity = pc.Vec3.ZERO;
+                } else if (this.isKeyDown('s') || this.isKeyDown('arrowdown')) {
+                  player.translate(0, -climbSpeed * dt, 0);
+                  if (player.rigidbody) player.rigidbody.linearVelocity = pc.Vec3.ZERO;
+                }
+              }
+            }
+          } else if (b.type === 'slow_motion_zone') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 6.0;
+              if (dist <= radius) {
+                dt = dt * (b.params.timeScale !== undefined ? b.params.timeScale : 0.3);
+              }
+            }
           } else if (b.type === 'day_night_weather_cycle') {
             const speed = b.params.cycleSpeed || 0.05;
             entity.rotate(speed * dt * 20, 0, 0);
@@ -1245,6 +1335,17 @@ export class BehaviorManager {
     }
 
     if (remaining > 0) {
+      // Check damage_flash behavior
+      const flashB = behaviors.find(b => b.type === 'damage_flash');
+      if (flashB && entity.render && entity.render.material) {
+        flashB._flashTimer = flashB.params.flashDuration || 0.2;
+        if (!flashB._origEmissive) {
+          flashB._origEmissive = entity.render.material.emissive ? entity.render.material.emissive.clone() : new pc.Color(0, 0, 0);
+        }
+        entity.render.material.emissive = new pc.Color(1, 0, 0);
+        entity.render.material.update();
+      }
+
       const healthB = behaviors.find(b => b.type === 'health' || b.type === 'target_health');
       if (healthB) {
         const maxHp = healthB.params.maxHp || 100;

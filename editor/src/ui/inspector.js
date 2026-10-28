@@ -5,6 +5,11 @@ import { parseScriptAttributes } from '../core/script-attributes.js';
 
 export const BEHAVIOR_CATALOG = [
   { type: 'wasd', icon: '🎮', name: 'WASD Character Controller', defaultParams: { speed: 8 } },
+  { type: 'third_person_controller', icon: '🎥', name: 'Third-Person Action Controller', defaultParams: { speed: 8, rotSpeed: 90, cameraDistance: 6, cameraHeight: 2.5 } },
+  { type: 'stamina_system', icon: '⚡', name: 'Sprint & Stamina Resource Bar', defaultParams: { maxStamina: 100, currentStamina: 100, drainRate: 25, rechargeRate: 15 } },
+  { type: 'damage_flash', icon: '🔴', name: 'Damage Material Flash Feedback', defaultParams: { flashDuration: 0.2 } },
+  { type: 'climbable_ladder', icon: '🪜', name: 'Proximity Climbable Ladder / Rope', defaultParams: { climbSpeed: 5, radius: 1.8 } },
+  { type: 'slow_motion_zone', icon: '⏱️', name: 'Slow Motion Bullet-Time Zone', defaultParams: { timeScale: 0.3, radius: 6.0 } },
   { type: 'wall_run_controller', icon: '🧗', name: 'Parkour Wall-Running', defaultParams: { speed: 10, jumpForce: 12 } },
   { type: 'grappling_hook', icon: '🪝', name: 'Physics Grappling Hook (\'G\')', defaultParams: { range: 35, pullSpeed: 20 } },
   { type: 'grav_gun_physicshandler', icon: '🧲', name: 'Gravity Gun / Beam (\'E\' / \'F\')', defaultParams: { range: 12, launchForce: 30 } },

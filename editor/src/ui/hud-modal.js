@@ -57,6 +57,27 @@ export class HUDModal {
             </div>
           </div>
 
+          <!-- Stamina Bar Config -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 700; font-size: 12px; color: #eab308;">⚡ Stamina / Sprint Bar Overlay</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="hud-stamina-enabled" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px;">
+              <div>
+                <label style="color: var(--text-muted); display: block; margin-bottom: 4px;">Stamina Label</label>
+                <input type="text" id="hud-stamina-label" class="text-input" value="STAMINA">
+              </div>
+              <div>
+                <label style="color: var(--text-muted); display: block; margin-bottom: 4px;">Max Stamina Value</label>
+                <input type="number" id="hud-stamina-max" class="text-input" value="100" min="1" max="1000">
+              </div>
+            </div>
+          </div>
+
           <!-- Score Counter Config -->
           <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -244,6 +265,12 @@ export class HUDModal {
       this.container.querySelector('#hud-health-label').value = config.health.label || 'HP';
       this.container.querySelector('#hud-health-max').value = config.health.max || 100;
       this.container.querySelector('#hud-health-color').value = config.health.color || '#ef4444';
+    }
+
+    if (config.stamina) {
+      this.container.querySelector('#hud-stamina-enabled').checked = config.stamina.enabled !== false;
+      this.container.querySelector('#hud-stamina-label').value = config.stamina.label || 'STAMINA';
+      this.container.querySelector('#hud-stamina-max').value = config.stamina.max || 100;
     }
 
     if (config.score) {

@@ -53,6 +53,7 @@ export class Editor {
     // Default 2D Screen UI HUD Configuration
     this.hudConfig = {
       health: { enabled: true, label: 'HP', max: 100, color: '#ef4444' },
+      stamina: { enabled: true, label: 'STAMINA', max: 100, color: '#eab308' },
       score: { enabled: true, label: 'Score:', initial: 0 },
       crosshair: { enabled: true, style: 'dot' },
       gameOver: { enabled: true, title: 'GAME OVER', message: 'Your health reached 0. Press Restart to try again.' },

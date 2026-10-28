@@ -668,7 +668,7 @@ export class TopBar {
     const webItem = this.container.querySelector('#menu-action-website');
     if (webItem) {
       webItem.addEventListener('click', () => {
-        window.open('https://www.makululinux.com', '_blank');
+        window.open('https://www.makululinux.org', '_blank');
       });
     }
 
