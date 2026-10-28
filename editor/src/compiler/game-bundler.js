@@ -86,6 +86,20 @@ export class GameBundler {
       gap: 4px;
     }
 
+    #hud-stamina-bar-wrap {
+      position: absolute;
+      top: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(234,179,8,0.3);
+      border-radius: 8px;
+      padding: 4px 8px;
+      backdrop-filter: blur(8px);
+      display: none;
+    }
+
     #hud-health-label-wrap {
       display: flex;
       justify-content: space-between;
@@ -284,6 +298,15 @@ export class GameBundler {
       </div>
     </div>
 
+    <div id="hud-stamina-bar-wrap">
+      <div style="display: flex; justify-content: space-between; color: #eab308; font-size: 9px; font-weight: 700; margin-bottom: 2px;">
+        <span id="hud-stamina-title">STAMINA</span>
+      </div>
+      <div style="width: 100%; height: 5px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden;">
+        <div id="hud-stamina-fill" style="height: 100%; width: 100%; background: #eab308; transition: width 0.1s linear;"></div>
+      </div>
+    </div>
+
     <div id="hud-score-counter" style="display: none;">
       <span id="hud-score-text">Score: 0</span>
     </div>
@@ -426,6 +449,15 @@ export class GameBundler {
         barWrap.style.display = 'flex';
         document.getElementById('hud-health-title').textContent = hudConfig.health.label || 'HP';
         document.getElementById('hud-health-fill').style.background = hudConfig.health.color || '#ef4444';
+      }
+    }
+
+    if (hudConfig.stamina && hudConfig.stamina.enabled !== false) {
+      const staminaWrap = document.getElementById('hud-stamina-bar-wrap');
+      if (staminaWrap) {
+        staminaWrap.style.display = 'block';
+        const titleEl = document.getElementById('hud-stamina-title');
+        if (titleEl) titleEl.textContent = hudConfig.stamina.label || 'STAMINA';
       }
     }
 
@@ -1759,6 +1791,90 @@ export class GameBundler {
             b._inCover = Boolean(inCoverKey);
           } else if (b.type === 'ragdoll_physics') {
             // Handled on defeat
+          } else if (b.type === 'third_person_controller') {
+            const speed = b.properties?.speed || 8;
+            const rotSpeed = b.properties?.rotSpeed || 90;
+            const camDist = b.properties?.cameraDistance || 6;
+            const camHeight = b.properties?.cameraHeight || 2.5;
+
+            const move = new pc.Vec3();
+            const forward = new pc.Vec3(node.forward.x, 0, node.forward.z);
+            if (forward.lengthSq() > 0.0001) forward.normalize();
+            const right = new pc.Vec3(node.right.x, 0, node.right.z);
+            if (right.lengthSq() > 0.0001) right.normalize();
+
+            let speedMult = 1.0;
+            const staminaB = (node._behaviors || []).find(sb => sb.type === 'stamina_system');
+            if (staminaB && staminaB._isSprinting) speedMult = 1.6;
+
+            if (keys['w'] || keys['arrowup']) move.add(forward);
+            if (keys['s'] || keys['arrowdown']) move.sub(forward);
+
+            if (keys['a'] || keys['arrowleft']) node.rotate(0, rotSpeed * dt, 0);
+            if (keys['d'] || keys['arrowright']) node.rotate(0, -rotSpeed * dt, 0);
+
+            const isMoving = move.lengthSq() > 0.0001;
+            if (isMoving) {
+              move.normalize().mulScalar(speed * speedMult * dt);
+              node.translate(move);
+            }
+            updateLocomotion(node, speed * speedMult, isMoving, dt);
+
+            if (gameCamera) {
+              const targetCamPos = node.getPosition().clone().sub(node.forward.clone().mulScalar(camDist)).add(new pc.Vec3(0, camHeight, 0));
+              const curCamPos = gameCamera.getPosition();
+              curCamPos.lerp(curCamPos, targetCamPos, Math.min(1.0, dt * 6.0));
+              gameCamera.setPosition(curCamPos);
+              gameCamera.lookAt(node.getPosition().clone().add(new pc.Vec3(0, 1.2, 0)));
+            }
+          } else if (b.type === 'stamina_system') {
+            if (b.properties.currentStamina === undefined) b.properties.currentStamina = b.properties.maxStamina || 100;
+            const maxStamina = b.properties.maxStamina || 100;
+            const shiftKey = keys['shift'] || keys['lshift'];
+            const isMoving = Boolean(keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown']);
+
+            if (shiftKey && isMoving && b.properties.currentStamina > 0) {
+              b._isSprinting = true;
+              b.properties.currentStamina = Math.max(0, b.properties.currentStamina - (b.properties.drainRate || 25) * dt);
+            } else {
+              b._isSprinting = false;
+              b.properties.currentStamina = Math.min(maxStamina, b.properties.currentStamina + (b.properties.rechargeRate || 15) * dt);
+            }
+
+            const fill = document.getElementById('hud-stamina-fill');
+            if (fill) fill.style.width = Math.max(0, Math.min(100, (b.properties.currentStamina / maxStamina) * 100)) + '%';
+          } else if (b.type === 'damage_flash') {
+            if (b._flashTimer && b._flashTimer > 0) {
+              b._flashTimer -= dt;
+              if (b._flashTimer <= 0 && node.render && node.render.material) {
+                if (b._origEmissive) node.render.material.emissive = b._origEmissive;
+                else node.render.material.emissive = new pc.Color(0, 0, 0);
+                node.render.material.update();
+              }
+            }
+          } else if (b.type === 'climbable_ladder') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 1.8;
+              if (dist <= radius) {
+                const climbSpeed = b.properties?.climbSpeed || 5.0;
+                if (keys['w'] || keys['arrowup']) {
+                  playerEntity.translate(0, climbSpeed * dt, 0);
+                  if (playerEntity.rigidbody) playerEntity.rigidbody.linearVelocity = pc.Vec3.ZERO;
+                } else if (keys['s'] || keys['arrowdown']) {
+                  playerEntity.translate(0, -climbSpeed * dt, 0);
+                  if (playerEntity.rigidbody) playerEntity.rigidbody.linearVelocity = pc.Vec3.ZERO;
+                }
+              }
+            }
+          } else if (b.type === 'slow_motion_zone') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 6.0;
+              if (dist <= radius) {
+                dt = dt * (b.properties?.timeScale !== undefined ? b.properties.timeScale : 0.3);
+              }
+            }
           } else if (b.type === 'day_night_weather_cycle') {
             const speed = b.properties?.cycleSpeed || 0.05;
             node.rotate(speed * dt * 20, 0, 0);

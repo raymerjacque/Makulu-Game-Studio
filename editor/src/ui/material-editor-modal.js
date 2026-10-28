@@ -203,18 +203,19 @@ export class MaterialEditorModal {
     // Save as Asset
     const saveAssetBtn = this.modal.querySelector('#btn-save-mat-asset');
     saveAssetBtn.addEventListener('click', () => {
-      this.editor.materials.set(this.currentMaterialProps.name, this.currentMaterialProps);
+      const matData = { ...this.currentMaterialProps };
+      this.editor.materials.set(matData.name, matData);
       if (this.editor.assetsPanel) {
         this.editor.assetsPanel.addAsset({
           id: Date.now().toString(),
-          name: `${this.currentMaterialProps.name}.mat`,
+          name: `${matData.name}.mat`,
           type: 'materials',
           icon: '🎨',
           size: '2.0 KB',
-          materialData: this.currentMaterialProps
+          materialData: matData
         });
       }
-      showToast(`💾 Saved PBR Material "${this.currentMaterialProps.name}" to Project Library!`, 'success');
+      showToast(`💾 Saved PBR Material "${matData.name}" to Project Library!`, 'success');
       this.close();
     });
   }

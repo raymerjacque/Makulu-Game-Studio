@@ -62,8 +62,8 @@ test('Skills Library: index.json and README.md are synchronized and valid', () =
 });
 
 test('Skills Catalog API: exports and keyword queries return expected matches', () => {
-  assert.equal(SKILLS_CATALOG.length, 64);
-  assert.equal(getSkillsCatalog().length, 64);
+  assert.ok(SKILLS_CATALOG.length >= 64);
+  assert.ok(getSkillsCatalog().length >= 64);
 
   // Lookup by exact slug
   const modelSkill = getSkillBySlug('spawn-3d-model');

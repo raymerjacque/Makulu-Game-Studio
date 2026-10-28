@@ -796,5 +796,55 @@ export class ComponentVisualHelpers {
       jointEntity.addComponent('render', { type: joint.type === 'hinge' ? 'cylinder' : 'sphere', material: mat });
       this.helperEntity.addChild(jointEntity);
     }
+
+    // Camera Frustum Wireframe Pyramid Gizmo
+    if (active.camera) {
+      const camEntity = new pc.Entity('CameraFrustumGizmo');
+      camEntity.setPosition(active.getPosition());
+      camEntity.setRotation(active.getRotation());
+
+      const mat = new pc.StandardMaterial();
+      mat.diffuse = new pc.Color(0.8, 0.3, 1.0); // Magenta wireframe
+      mat.wireframe = true;
+      mat.update();
+
+      camEntity.setLocalScale(1.2, 0.9, 1.8);
+      camEntity.addComponent('render', { type: 'cone', material: mat });
+      this.helperEntity.addChild(camEntity);
+    }
+
+    // Interactive Trigger Volume Bounding Shape Gizmo
+    if (this.editor && this.editor.triggers && this.editor.triggers.hasTrigger(active.name)) {
+      const trigConfig = this.editor.triggers.getTrigger(active.name);
+      const radius = trigConfig ? (trigConfig.radius || 2.0) : 2.0;
+
+      const trigEntity = new pc.Entity('TriggerVolumeGizmo');
+      trigEntity.setPosition(active.getPosition());
+      trigEntity.setLocalScale(radius * 2, radius * 2, radius * 2);
+
+      const mat = new pc.StandardMaterial();
+      mat.diffuse = new pc.Color(0.0, 0.9, 1.0); // Cyan wireframe
+      mat.wireframe = true;
+      mat.update();
+
+      trigEntity.addComponent('render', { type: 'sphere', material: mat });
+      this.helperEntity.addChild(trigEntity);
+    }
+
+    // Particle System Emitter Bounds Helper
+    if (active.particlesystem) {
+      const psEntity = new pc.Entity('ParticleEmitterGizmo');
+      psEntity.setPosition(active.getPosition());
+      psEntity.setRotation(active.getRotation());
+
+      const mat = new pc.StandardMaterial();
+      mat.diffuse = new pc.Color(1.0, 0.6, 0.0); // Amber wireframe
+      mat.wireframe = true;
+      mat.update();
+
+      psEntity.setLocalScale(1.0, 1.0, 1.0);
+      psEntity.addComponent('render', { type: 'box', material: mat });
+      this.helperEntity.addChild(psEntity);
+    }
   }
 }

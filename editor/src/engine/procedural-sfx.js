@@ -169,6 +169,122 @@ export function playProceduralSFX(type, volume = 0.5) {
 }
 
 /**
+ * Renders a procedural audio sound effect directly into a standard 16-bit PCM WAV Base64 Data URL.
+ * Enables zero-dependency offline audio asset creation and inline standalone bundling.
+ */
+export function generateWAVDataURL(type, sampleRate = 22050) {
+  const durationMap = {
+    laser: 0.15,
+    shoot: 0.15,
+    explosion: 0.35,
+    impact: 0.35,
+    coin: 0.25,
+    collect: 0.25,
+    pickup: 0.25,
+    jump: 0.18,
+    boost: 0.18,
+    door: 0.35,
+    unlock: 0.35,
+    hurt: 0.2,
+    damage: 0.2,
+    victory: 0.6,
+    win: 0.6
+  };
+  const duration = durationMap[type] || 0.3;
+  const numSamples = Math.floor(sampleRate * duration);
+  const samples = new Float32Array(numSamples);
+
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    let sample = 0;
+
+    if (type === 'laser' || type === 'shoot') {
+      const freq = 880 * Math.exp(-t * 13.8);
+      const phase = (2 * Math.PI * freq * t) % (2 * Math.PI);
+      const saw = (phase / Math.PI) - 1;
+      const gain = Math.max(0, 1 - t / 0.15);
+      sample = saw * gain * 0.6;
+    } else if (type === 'explosion' || type === 'impact') {
+      const noise = Math.random() * 2 - 1;
+      const gain = Math.max(0, 1 - t / 0.35);
+      const alpha = Math.exp(-t * 10);
+      sample = noise * gain * alpha;
+    } else if (type === 'coin' || type === 'collect' || type === 'pickup') {
+      let freq = 987.77;
+      let gain = Math.max(0, 1 - t / 0.25) * 0.5;
+      if (t >= 0.08) freq = 1318.51;
+      sample = Math.sin(2 * Math.PI * freq * t) * gain;
+    } else if (type === 'jump' || type === 'boost') {
+      const freq = 150 * Math.exp(t * 7.7);
+      const sq = Math.sin(2 * Math.PI * freq * t) >= 0 ? 0.4 : -0.4;
+      const gain = Math.max(0, 1 - t / 0.18);
+      sample = sq * gain;
+    } else if (type === 'door' || type === 'unlock') {
+      const freq = 220 + t * 733;
+      const tri = Math.abs((((freq * t) % 1) - 0.5) * 4) - 1;
+      const gain = Math.max(0, 1 - t / 0.35) * 0.5;
+      sample = tri * gain;
+    } else if (type === 'hurt' || type === 'damage') {
+      const freq = 180 - t * 600;
+      const saw = ((((freq * t) % 1) + 1) % 1) * 2 - 1;
+      const gain = Math.max(0, 1 - t / 0.2) * 0.8;
+      sample = saw * gain;
+    } else if (type === 'victory' || type === 'win') {
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      const stepIdx = Math.min(3, Math.floor(t / 0.1));
+      const freq = notes[stepIdx];
+      const noteT = t - stepIdx * 0.1;
+      const gain = Math.max(0, 1 - noteT / 0.3) * 0.5;
+      const tri = Math.abs((((freq * t) % 1) - 0.5) * 4) - 1;
+      sample = tri * gain;
+    } else {
+      sample = Math.sin(2 * Math.PI * 440 * t) * Math.max(0, 1 - t / duration) * 0.5;
+    }
+
+    samples[i] = Math.max(-1, Math.min(1, sample));
+  }
+
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+
+  function writeString(v, offset, str) {
+    for (let i = 0; i < str.length; i++) {
+      v.setUint8(offset + i, str.charCodeAt(i));
+    }
+  }
+
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < numSamples; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    offset += 2;
+  }
+
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = typeof btoa === 'function' ? btoa(binary) : Buffer.from(binary, 'binary').toString('base64');
+  return `data:audio/wav;base64,${base64}`;
+}
+
+/**
  * Stringified runtime for standalone HTML game compilation
  */
 export const PROCEDURAL_SFX_RUNTIME_CODE = `

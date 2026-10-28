@@ -723,6 +723,71 @@ export const SKILLS_CATALOG = [
     "description": "Turn any entity into a playable character with planar WASD and arrow-key movement."
   },
   {
+    "slug": "third-person-controller",
+    "name": "third-person-controller",
+    "category": "player-controllers",
+    "tags": [
+      "third-person",
+      "camera",
+      "action",
+      "wasd",
+      "locomotion"
+    ],
+    "description": "Over-the-shoulder chase camera & WASD steering with rotational alignment for third-person action games."
+  },
+  {
+    "slug": "stamina-system",
+    "name": "stamina-system",
+    "category": "player-controllers",
+    "tags": [
+      "stamina",
+      "sprint",
+      "hud",
+      "drain",
+      "recharge"
+    ],
+    "description": "Shift-sprint mobility system with stamina depletion, fatigue slowdown, and HUD integration."
+  },
+  {
+    "slug": "damage-flash",
+    "name": "damage-flash",
+    "category": "ai-and-combat",
+    "tags": [
+      "damage",
+      "flash",
+      "hit",
+      "feedback",
+      "emissive"
+    ],
+    "description": "Visual hit feedback flashing entity material emissive red upon combat/hazard damage."
+  },
+  {
+    "slug": "climbable-ladder",
+    "name": "climbable-ladder",
+    "category": "interactive-world",
+    "tags": [
+      "ladder",
+      "climb",
+      "rope",
+      "vertical",
+      "traversal"
+    ],
+    "description": "Proximity vertical ladder and rope climbing using W/S keys."
+  },
+  {
+    "slug": "slow-motion-zone",
+    "name": "slow-motion-zone",
+    "category": "interactive-world",
+    "tags": [
+      "bullet-time",
+      "slow-mo",
+      "time-dilation",
+      "matrix",
+      "zone"
+    ],
+    "description": "Time dilation / Bullet-Time zone that slows simulation time when players enter."
+  },
+  {
     "slug": "checkpoints-and-respawn",
     "name": "checkpoints-and-respawn",
     "category": "progression-and-flow",

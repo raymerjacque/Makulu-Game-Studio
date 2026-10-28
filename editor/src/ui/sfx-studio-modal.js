@@ -1,5 +1,5 @@
 import { showToast } from './toast.js';
-import { playProceduralSFX } from '../engine/procedural-sfx.js';
+import { playProceduralSFX, generateWAVDataURL } from '../engine/procedural-sfx.js';
 
 /**
  * Procedural Audio Synth Studio Modal
@@ -129,15 +129,17 @@ export class SFXStudioModal {
     this.modal.querySelector('#sfx-btn-export-asset').addEventListener('click', () => {
       if (this.editor.assetsPanel) {
         const assetName = `SFX_${this.sfxType.toUpperCase()}_${Date.now().toString().slice(-4)}.wav`;
+        const dataUrl = generateWAVDataURL(this.sfxType);
         this.editor.assetsPanel.addAsset({
           id: Date.now().toString(),
           name: assetName,
           type: 'audio',
           icon: '🔊',
           size: '12 KB',
-          url: `./models/${this.sfxType}.wav`
+          url: dataUrl,
+          base64Data: dataUrl
         });
-        showToast(`🔊 Added "${assetName}" to Assets Panel!`, 'success');
+        showToast(`🔊 Added "${assetName}" to Assets Panel with live WAV Data URL!`, 'success');
         this.close();
       }
     });
