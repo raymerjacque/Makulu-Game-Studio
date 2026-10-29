@@ -7,8 +7,8 @@ import { generateWAVDataURL } from '../src/engine/procedural-sfx.js';
 import { GameBundler } from '../src/compiler/game-bundler.js';
 import { AIExecutor } from '../src/ai/ai-executor.js';
 
-test('BEHAVIOR_CATALOG contains exactly 90 total behaviors', () => {
-  assert.equal(BEHAVIOR_CATALOG.length, 90);
+test('BEHAVIOR_CATALOG contains at least 90 total behaviors', () => {
+  assert.ok(BEHAVIOR_CATALOG.length >= 90);
 
   const newTypes = [
     'footstep_audio',

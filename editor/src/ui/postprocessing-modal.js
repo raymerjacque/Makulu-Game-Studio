@@ -11,6 +11,9 @@ export class PostProcessingModal {
     this.config = {
       bloom: { enabled: false, intensity: 1.0, threshold: 0.8 },
       vignette: { enabled: false, intensity: 0.5, curvature: 0.8 },
+      dof: { enabled: false, focusDistance: 10, blurAmount: 0.5 },
+      chromaticAberration: { enabled: false, offset: 0.005 },
+      colorGrading: { brightness: 1.0, contrast: 1.0, saturation: 1.0 },
       fog: { enabled: false, color: '#687888', density: 0.02 },
       toneMapping: pc.TONEMAP_ACES,
       exposure: 1.0
@@ -37,7 +40,7 @@ export class PostProcessingModal {
     `;
 
     this.modal.innerHTML = `
-      <div style="width: 580px; background: var(--bg-darkest); border: 1px solid var(--accent-cyan); border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(0,229,255,0.2); display: flex; flex-direction: column; overflow: hidden;">
+      <div style="width: 620px; background: var(--bg-darkest); border: 1px solid var(--accent-cyan); border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(0,229,255,0.2); display: flex; flex-direction: column; overflow: hidden;">
 
         <!-- Header -->
         <div style="height: 48px; background: var(--bg-darker); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
@@ -45,14 +48,14 @@ export class PostProcessingModal {
             <div style="font-size: 20px;">✨</div>
             <div>
               <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Post-Processing & Render Pipeline FX</div>
-              <div style="font-size: 11px; color: var(--accent-cyan); font-weight: 600;">Bloom, Vignette, Fog & HDR Exposure</div>
+              <div style="font-size: 11px; color: var(--accent-cyan); font-weight: 600;">Bloom, Vignette, DoF, Chromatic Aberration & Color Grading</div>
             </div>
           </div>
           <button id="fx-btn-close" class="btn" style="padding: 4px 10px; font-size: 13px; border-radius: 6px;">✕</button>
         </div>
 
         <!-- Body -->
-        <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 520px;">
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 540px;">
 
           <!-- Tone Mapping & Exposure -->
           <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
@@ -61,7 +64,7 @@ export class PostProcessingModal {
             </div>
 
             <div class="prop-row" style="margin-bottom: 8px;">
-              <span class="prop-label" style="width: 140px;">Tone Mapper</span>
+              <span class="prop-label" style="width: 150px;">Tone Mapper</span>
               <select id="fx-tonemap-select" class="text-input" style="flex: 1;">
                 <option value="aces" selected>ACES (Film Standard)</option>
                 <option value="filmic">Filmic</option>
@@ -71,9 +74,34 @@ export class PostProcessingModal {
             </div>
 
             <div class="prop-row">
-              <span class="prop-label" style="width: 140px;">Exposure Multiplier</span>
+              <span class="prop-label" style="width: 150px;">Exposure Multiplier</span>
               <input type="range" min="0.1" max="4.0" step="0.1" id="fx-exposure-slider" value="1.0" class="text-input" style="flex: 1;">
               <span id="fx-exposure-val" style="font-size: 11px; width: 32px;">1.0</span>
+            </div>
+          </div>
+
+          <!-- Color Grading (Brightness, Contrast, Saturation) -->
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px;">
+              🎨 Color Grading & Look Adjustment
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 150px;">Brightness</span>
+              <input type="range" min="0.5" max="1.8" step="0.05" id="fx-brightness-slider" value="1.0" class="text-input" style="flex: 1;">
+              <span id="fx-brightness-val" style="font-size: 11px; width: 32px;">1.00</span>
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 150px;">Contrast</span>
+              <input type="range" min="0.5" max="2.0" step="0.05" id="fx-contrast-slider" value="1.0" class="text-input" style="flex: 1;">
+              <span id="fx-contrast-val" style="font-size: 11px; width: 32px;">1.00</span>
+            </div>
+
+            <div class="prop-row">
+              <span class="prop-label" style="width: 150px;">Saturation</span>
+              <input type="range" min="0.0" max="2.5" step="0.05" id="fx-saturation-slider" value="1.0" class="text-input" style="flex: 1;">
+              <span id="fx-saturation-val" style="font-size: 11px; width: 32px;">1.00</span>
             </div>
           </div>
 
@@ -85,12 +113,12 @@ export class PostProcessingModal {
             </div>
 
             <div class="prop-row" style="margin-bottom: 8px;">
-              <span class="prop-label" style="width: 140px;">Fog Color</span>
+              <span class="prop-label" style="width: 150px;">Fog Color</span>
               <input type="color" id="fx-fog-color" value="#687888" style="background: none; border: none; width: 48px; height: 28px; cursor: pointer;">
             </div>
 
             <div class="prop-row">
-              <span class="prop-label" style="width: 140px;">Fog Density</span>
+              <span class="prop-label" style="width: 150px;">Fog Density</span>
               <input type="range" min="0.005" max="0.1" step="0.005" id="fx-fog-density" value="0.02" class="text-input" style="flex: 1;">
               <span id="fx-fog-density-val" style="font-size: 11px; width: 40px;">0.020</span>
             </div>
@@ -104,15 +132,69 @@ export class PostProcessingModal {
             </div>
 
             <div class="prop-row" style="margin-bottom: 8px;">
-              <span class="prop-label" style="width: 140px;">Bloom Intensity</span>
+              <span class="prop-label" style="width: 150px;">Bloom Intensity</span>
               <input type="range" min="0.1" max="3.0" step="0.1" id="fx-bloom-intensity" value="1.0" class="text-input" style="flex: 1;">
               <span id="fx-bloom-intensity-val" style="font-size: 11px; width: 32px;">1.0</span>
             </div>
 
             <div class="prop-row">
-              <span class="prop-label" style="width: 140px;">Luminance Threshold</span>
+              <span class="prop-label" style="width: 150px;">Luminance Threshold</span>
               <input type="range" min="0.1" max="1.0" step="0.05" id="fx-bloom-threshold" value="0.8" class="text-input" style="flex: 1;">
               <span id="fx-bloom-threshold-val" style="font-size: 11px; width: 32px;">0.80</span>
+            </div>
+          </div>
+
+          <!-- Vignette Effect -->
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+              <span>🖼️ Lens Vignette</span>
+              <input type="checkbox" id="fx-vignette-toggle" style="cursor: pointer;">
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 150px;">Vignette Intensity</span>
+              <input type="range" min="0.1" max="1.0" step="0.05" id="fx-vignette-intensity" value="0.5" class="text-input" style="flex: 1;">
+              <span id="fx-vignette-intensity-val" style="font-size: 11px; width: 32px;">0.50</span>
+            </div>
+
+            <div class="prop-row">
+              <span class="prop-label" style="width: 150px;">Curvature</span>
+              <input type="range" min="0.1" max="1.5" step="0.1" id="fx-vignette-curvature" value="0.8" class="text-input" style="flex: 1;">
+              <span id="fx-vignette-curvature-val" style="font-size: 11px; width: 32px;">0.80</span>
+            </div>
+          </div>
+
+          <!-- Depth of Field (DoF) -->
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+              <span>📷 Depth of Field (DoF)</span>
+              <input type="checkbox" id="fx-dof-toggle" style="cursor: pointer;">
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 150px;">Focus Distance (m)</span>
+              <input type="range" min="1" max="50" step="1" id="fx-dof-focus" value="10" class="text-input" style="flex: 1;">
+              <span id="fx-dof-focus-val" style="font-size: 11px; width: 32px;">10m</span>
+            </div>
+
+            <div class="prop-row">
+              <span class="prop-label" style="width: 150px;">Blur Amount</span>
+              <input type="range" min="0.1" max="2.0" step="0.1" id="fx-dof-blur" value="0.5" class="text-input" style="flex: 1;">
+              <span id="fx-dof-blur-val" style="font-size: 11px; width: 32px;">0.50</span>
+            </div>
+          </div>
+
+          <!-- Chromatic Aberration -->
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+              <span>🌈 Chromatic Aberration</span>
+              <input type="checkbox" id="fx-chromatic-toggle" style="cursor: pointer;">
+            </div>
+
+            <div class="prop-row">
+              <span class="prop-label" style="width: 150px;">Color Offset</span>
+              <input type="range" min="0.001" max="0.02" step="0.001" id="fx-chromatic-offset" value="0.005" class="text-input" style="flex: 1;">
+              <span id="fx-chromatic-offset-val" style="font-size: 11px; width: 40px;">0.005</span>
             </div>
           </div>
 
@@ -142,6 +224,13 @@ export class PostProcessingModal {
     const exposureSlider = this.modal.querySelector('#fx-exposure-slider');
     const exposureVal = this.modal.querySelector('#fx-exposure-val');
 
+    const brightnessSlider = this.modal.querySelector('#fx-brightness-slider');
+    const brightnessVal = this.modal.querySelector('#fx-brightness-val');
+    const contrastSlider = this.modal.querySelector('#fx-contrast-slider');
+    const contrastVal = this.modal.querySelector('#fx-contrast-val');
+    const saturationSlider = this.modal.querySelector('#fx-saturation-slider');
+    const saturationVal = this.modal.querySelector('#fx-saturation-val');
+
     const fogToggle = this.modal.querySelector('#fx-fog-toggle');
     const fogColor = this.modal.querySelector('#fx-fog-color');
     const fogDensity = this.modal.querySelector('#fx-fog-density');
@@ -153,8 +242,36 @@ export class PostProcessingModal {
     const bloomThreshold = this.modal.querySelector('#fx-bloom-threshold');
     const bloomThresholdVal = this.modal.querySelector('#fx-bloom-threshold-val');
 
+    const vignetteToggle = this.modal.querySelector('#fx-vignette-toggle');
+    const vignetteIntensity = this.modal.querySelector('#fx-vignette-intensity');
+    const vignetteIntensityVal = this.modal.querySelector('#fx-vignette-intensity-val');
+    const vignetteCurvature = this.modal.querySelector('#fx-vignette-curvature');
+    const vignetteCurvatureVal = this.modal.querySelector('#fx-vignette-curvature-val');
+
+    const dofToggle = this.modal.querySelector('#fx-dof-toggle');
+    const dofFocus = this.modal.querySelector('#fx-dof-focus');
+    const dofFocusVal = this.modal.querySelector('#fx-dof-focus-val');
+    const dofBlur = this.modal.querySelector('#fx-dof-blur');
+    const dofBlurVal = this.modal.querySelector('#fx-dof-blur-val');
+
+    const chromaticToggle = this.modal.querySelector('#fx-chromatic-toggle');
+    const chromaticOffset = this.modal.querySelector('#fx-chromatic-offset');
+    const chromaticOffsetVal = this.modal.querySelector('#fx-chromatic-offset-val');
+
     exposureSlider.addEventListener('input', () => {
       exposureVal.textContent = parseFloat(exposureSlider.value).toFixed(1);
+    });
+
+    brightnessSlider.addEventListener('input', () => {
+      brightnessVal.textContent = parseFloat(brightnessSlider.value).toFixed(2);
+    });
+
+    contrastSlider.addEventListener('input', () => {
+      contrastVal.textContent = parseFloat(contrastSlider.value).toFixed(2);
+    });
+
+    saturationSlider.addEventListener('input', () => {
+      saturationVal.textContent = parseFloat(saturationSlider.value).toFixed(2);
     });
 
     fogDensity.addEventListener('input', () => {
@@ -169,10 +286,35 @@ export class PostProcessingModal {
       bloomThresholdVal.textContent = parseFloat(bloomThreshold.value).toFixed(2);
     });
 
+    vignetteIntensity.addEventListener('input', () => {
+      vignetteIntensityVal.textContent = parseFloat(vignetteIntensity.value).toFixed(2);
+    });
+
+    vignetteCurvature.addEventListener('input', () => {
+      vignetteCurvatureVal.textContent = parseFloat(vignetteCurvature.value).toFixed(2);
+    });
+
+    dofFocus.addEventListener('input', () => {
+      dofFocusVal.textContent = `${dofFocus.value}m`;
+    });
+
+    dofBlur.addEventListener('input', () => {
+      dofBlurVal.textContent = parseFloat(dofBlur.value).toFixed(2);
+    });
+
+    chromaticOffset.addEventListener('input', () => {
+      chromaticOffsetVal.textContent = parseFloat(chromaticOffset.value).toFixed(3);
+    });
+
     this.modal.querySelector('#fx-btn-apply').addEventListener('click', () => {
       this.config = {
         toneMapping: tonemapSelect.value,
         exposure: parseFloat(exposureSlider.value),
+        colorGrading: {
+          brightness: parseFloat(brightnessSlider.value),
+          contrast: parseFloat(contrastSlider.value),
+          saturation: parseFloat(saturationSlider.value)
+        },
         fog: {
           enabled: fogToggle.checked,
           color: fogColor.value,
@@ -182,6 +324,20 @@ export class PostProcessingModal {
           enabled: bloomToggle.checked,
           intensity: parseFloat(bloomIntensity.value),
           threshold: parseFloat(bloomThreshold.value)
+        },
+        vignette: {
+          enabled: vignetteToggle.checked,
+          intensity: parseFloat(vignetteIntensity.value),
+          curvature: parseFloat(vignetteCurvature.value)
+        },
+        dof: {
+          enabled: dofToggle.checked,
+          focusDistance: parseFloat(dofFocus.value),
+          blurAmount: parseFloat(dofBlur.value)
+        },
+        chromaticAberration: {
+          enabled: chromaticToggle.checked,
+          offset: parseFloat(chromaticOffset.value)
         }
       };
 
@@ -212,9 +368,8 @@ export class PostProcessingModal {
           app.scene.fog = pc.FOG_NONE;
         }
 
-        // Apply bloom configuration to runtime if method exists
-        if (typeof this.editor.runtime.setBloomFX === 'function') {
-          this.editor.runtime.setBloomFX(this.config.bloom);
+        if (typeof this.editor.runtime.setPostProcessingFX === 'function') {
+          this.editor.runtime.setPostProcessingFX(this.config);
         }
       }
 

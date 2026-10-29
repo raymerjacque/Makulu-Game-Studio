@@ -1,5 +1,5 @@
 import { showToast } from './toast.js';
-import { playProceduralSFX, generateWAVDataURL } from '../engine/procedural-sfx.js';
+import { playProceduralSFX, generateWAVDataURL, proceduralSFX } from '../engine/procedural-sfx.js';
 
 /**
  * Procedural Audio Synth Studio Modal
@@ -12,6 +12,17 @@ export class SFXStudioModal {
     this.isOpen = false;
     this.sfxType = 'laser';
     this.volume = 0.5;
+
+    // Custom Synthesizer Parameters
+    this.customParams = {
+      waveType: 'sine',
+      startFreq: 440,
+      endFreq: 220,
+      attack: 0.02,
+      decay: 0.1,
+      sustain: 0.3,
+      release: 0.2
+    };
 
     this.render();
     this.bindEvents();
@@ -35,7 +46,7 @@ export class SFXStudioModal {
     `;
 
     this.modal.innerHTML = `
-      <div style="width: 580px; background: var(--bg-darkest); border: 1px solid #a855f7; border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(168,85,247,0.25); display: flex; flex-direction: column; overflow: hidden;">
+      <div style="width: 600px; background: var(--bg-darkest); border: 1px solid #a855f7; border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(168,85,247,0.25); display: flex; flex-direction: column; overflow: hidden;">
 
         <!-- Header -->
         <div style="height: 48px; background: var(--bg-darker); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
@@ -50,11 +61,11 @@ export class SFXStudioModal {
         </div>
 
         <!-- Body -->
-        <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 520px;">
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 540px;">
 
           <!-- Preset Sound Type Selection -->
           <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
-            <div style="font-size: 12px; font-weight: 700; color: #c084fc; margin-bottom: 10px;">🎵 Sound Effect Preset Type</div>
+            <div style="font-size: 12px; font-weight: 700; color: #c084fc; margin-bottom: 10px;">🎵 Preset Sound Effect Categories</div>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="sfx-preset-grid">
               <button class="btn sfx-type-btn active" data-type="laser" style="justify-content: flex-start; gap: 6px; padding: 8px;">🔫 Laser / Shoot</button>
@@ -74,12 +85,52 @@ export class SFXStudioModal {
             </div>
           </div>
 
-          <!-- Volume Controls -->
+          <!-- Custom ADSR & Waveform Synthesizer -->
           <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
-            <div style="font-size: 12px; font-weight: 700; color: #c084fc; margin-bottom: 10px;">🎛️ Audio Controls</div>
+            <div style="font-size: 12px; font-weight: 700; color: #c084fc; margin-bottom: 10px;">🎹 Custom ADSR Envelope & Oscillator Synth</div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 140px;">Waveform Type</span>
+              <select id="sfx-wave-type" class="text-input" style="flex: 1;">
+                <option value="sine">Sine Wave</option>
+                <option value="square">Square Wave (8-Bit Retro)</option>
+                <option value="sawtooth">Sawtooth Wave</option>
+                <option value="triangle">Triangle Wave</option>
+                <option value="noise">Filtered Noise Burst</option>
+              </select>
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 140px;">Start / End Freq (Hz)</span>
+              <div style="display: flex; gap: 8px; flex: 1;">
+                <input type="number" id="sfx-start-freq" class="text-input" value="880" style="width: 50%;">
+                <input type="number" id="sfx-end-freq" class="text-input" value="110" style="width: 50%;">
+              </div>
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 140px;">Attack / Decay (s)</span>
+              <div style="display: flex; gap: 8px; flex: 1;">
+                <input type="number" step="0.01" id="sfx-attack" class="text-input" value="0.02" style="width: 50%;">
+                <input type="number" step="0.01" id="sfx-decay" class="text-input" value="0.10" style="width: 50%;">
+              </div>
+            </div>
 
             <div class="prop-row">
-              <span class="prop-label" style="width: 120px;">Master Volume</span>
+              <span class="prop-label" style="width: 140px;">Sustain / Release</span>
+              <div style="display: flex; gap: 8px; flex: 1;">
+                <input type="number" step="0.05" id="sfx-sustain" class="text-input" value="0.30" style="width: 50%;">
+                <input type="number" step="0.01" id="sfx-release" class="text-input" value="0.20" style="width: 50%;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Volume Controls -->
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: #c084fc; margin-bottom: 10px;">🎛️ Audio Master Output</div>
+
+            <div class="prop-row">
+              <span class="prop-label" style="width: 140px;">Master Volume</span>
               <input type="range" min="0.1" max="1.0" step="0.05" id="sfx-volume-slider" value="0.5" class="text-input" style="flex: 1;">
               <span id="sfx-volume-val" style="font-size: 11px; width: 32px;">0.50</span>
             </div>
@@ -89,9 +140,14 @@ export class SFXStudioModal {
 
         <!-- Footer -->
         <div style="height: 52px; background: var(--bg-darker); border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
-          <button id="sfx-btn-preview" class="btn" style="padding: 8px 16px; font-weight: 700; border-color: #a855f7; color: #c084fc;">
-            ▶ Test / Play Sound
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button id="sfx-btn-preview" class="btn" style="padding: 8px 14px; font-weight: 700; border-color: #a855f7; color: #c084fc;">
+              ▶ Test Preset
+            </button>
+            <button id="sfx-btn-preview-custom" class="btn" style="padding: 8px 14px; font-weight: 700; border-color: #38bdf8; color: #38bdf8;">
+              🎹 Test Custom Synth
+            </button>
+          </div>
           <button id="sfx-btn-export-asset" class="btn btn-primary" style="padding: 8px 18px; font-weight: 700; background: #a855f7; border: none;">
             📦 Add to Assets Panel
           </button>
@@ -128,24 +184,42 @@ export class SFXStudioModal {
       });
     });
 
+    const readCustomInputs = () => {
+      this.customParams = {
+        waveType: this.modal.querySelector('#sfx-wave-type').value,
+        startFreq: parseFloat(this.modal.querySelector('#sfx-start-freq').value) || 440,
+        endFreq: parseFloat(this.modal.querySelector('#sfx-end-freq').value) || 220,
+        attack: parseFloat(this.modal.querySelector('#sfx-attack').value) || 0.02,
+        decay: parseFloat(this.modal.querySelector('#sfx-decay').value) || 0.1,
+        sustain: parseFloat(this.modal.querySelector('#sfx-sustain').value) || 0.3,
+        release: parseFloat(this.modal.querySelector('#sfx-release').value) || 0.2
+      };
+    };
+
     this.modal.querySelector('#sfx-btn-preview').addEventListener('click', () => {
       playProceduralSFX(this.sfxType, this.volume);
     });
 
+    this.modal.querySelector('#sfx-btn-preview-custom').addEventListener('click', () => {
+      readCustomInputs();
+      proceduralSFX.playCustom(this.customParams, this.volume);
+    });
+
     this.modal.querySelector('#sfx-btn-export-asset').addEventListener('click', () => {
       if (this.editor.assetsPanel) {
-        const assetName = `SFX_${this.sfxType.toUpperCase()}_${Date.now().toString().slice(-4)}.wav`;
-        const dataUrl = generateWAVDataURL(this.sfxType);
+        readCustomInputs();
+        const assetName = `SFX_CUSTOM_${Date.now().toString().slice(-4)}.wav`;
+        const dataUrl = generateWAVDataURL(this.customParams);
         this.editor.assetsPanel.addAsset({
           id: Date.now().toString(),
           name: assetName,
           type: 'audio',
           icon: '🔊',
-          size: '12 KB',
+          size: '14 KB',
           url: dataUrl,
           base64Data: dataUrl
         });
-        showToast(`🔊 Added "${assetName}" to Assets Panel with live WAV Data URL!`, 'success');
+        showToast(`🔊 Added "${assetName}" to Assets Panel!`, 'success');
         this.close();
       }
     });

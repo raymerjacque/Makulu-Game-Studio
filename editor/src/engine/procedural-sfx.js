@@ -22,6 +22,66 @@ class ProceduralSFXManager {
     return this.ctx;
   }
 
+  playCustom(params = {}, volume = 0.5) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const waveType = params.waveType || 'sine';
+      const startFreq = params.startFreq !== undefined ? params.startFreq : 440;
+      const endFreq = params.endFreq !== undefined ? params.endFreq : 220;
+      const attack = params.attack !== undefined ? params.attack : 0.02;
+      const decay = params.decay !== undefined ? params.decay : 0.1;
+      const sustain = params.sustain !== undefined ? params.sustain : 0.3;
+      const release = params.release !== undefined ? params.release : 0.2;
+
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(volume, now);
+      master.connect(ctx.destination);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(1.0, now + attack);
+      gain.gain.linearRampToValueAtTime(sustain, now + attack + decay);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay + release);
+
+      if (waveType === 'noise') {
+        const dur = attack + decay + release;
+        const bufferSize = Math.floor(ctx.sampleRate * Math.max(0.05, dur));
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(startFreq, now);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), now + dur);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(master);
+        noise.start(now);
+      } else {
+        const osc = ctx.createOscillator();
+        osc.type = waveType;
+        osc.frequency.setValueAtTime(Math.max(20, startFreq), now);
+        osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), now + attack + decay + release);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + attack + decay + release + 0.05);
+      }
+    } catch (e) {
+      console.warn('ProceduralSFXManager playCustom error:', e);
+    }
+  }
+
   play(type, volume = 0.5) {
     const ctx = this.getContext();
     if (!ctx) return;
@@ -263,31 +323,24 @@ export function playProceduralSFX(type, volume = 0.5) {
  * Renders a procedural audio sound effect directly into a standard 16-bit PCM WAV Base64 Data URL.
  * Enables zero-dependency offline audio asset creation and inline standalone bundling.
  */
-export function generateWAVDataURL(type, sampleRate = 22050) {
+export function generateWAVDataURL(typeOrParams, sampleRate = 22050) {
+  let params = {};
+  if (typeof typeOrParams === 'object') {
+    params = typeOrParams;
+  } else {
+    params = { preset: typeOrParams };
+  }
+
+  const type = params.preset || 'laser';
   const durationMap = {
-    laser: 0.15,
-    shoot: 0.15,
-    explosion: 0.35,
-    impact: 0.35,
-    coin: 0.25,
-    collect: 0.25,
-    pickup: 0.25,
-    jump: 0.18,
-    boost: 0.18,
-    door: 0.35,
-    unlock: 0.35,
-    hurt: 0.2,
-    damage: 0.2,
-    victory: 0.6,
-    win: 0.6,
-    footstep: 0.08,
-    teleport: 0.28,
-    powerup: 0.3,
-    shield_hit: 0.15,
-    reload: 0.2,
-    magic_spell: 0.3
+    laser: 0.15, shoot: 0.15, explosion: 0.35, impact: 0.35, coin: 0.25,
+    collect: 0.25, pickup: 0.25, jump: 0.18, boost: 0.18, door: 0.35,
+    unlock: 0.35, hurt: 0.2, damage: 0.2, victory: 0.6, win: 0.6,
+    footstep: 0.08, teleport: 0.28, powerup: 0.3, shield_hit: 0.15,
+    reload: 0.2, magic_spell: 0.3
   };
-  const duration = durationMap[type] || 0.3;
+
+  const duration = params.duration || (params.attack || 0.02) + (params.decay || 0.1) + (params.release || 0.2) || durationMap[type] || 0.3;
   const numSamples = Math.floor(sampleRate * duration);
   const samples = new Float32Array(numSamples);
 
@@ -295,7 +348,29 @@ export function generateWAVDataURL(type, sampleRate = 22050) {
     const t = i / sampleRate;
     let sample = 0;
 
-    if (type === 'laser' || type === 'shoot') {
+    if (params.waveType) {
+      const startFreq = params.startFreq !== undefined ? params.startFreq : 440;
+      const endFreq = params.endFreq !== undefined ? params.endFreq : 220;
+      const curFreq = startFreq * Math.exp(t * Math.log(Math.max(1, endFreq) / Math.max(1, startFreq)) / Math.max(0.01, duration));
+      const phase = (2 * Math.PI * curFreq * t) % (2 * Math.PI);
+
+      let rawWave = 0;
+      if (params.waveType === 'sine') rawWave = Math.sin(phase);
+      else if (params.waveType === 'square') rawWave = Math.sin(phase) >= 0 ? 0.5 : -0.5;
+      else if (params.waveType === 'sawtooth') rawWave = (phase / Math.PI) - 1;
+      else if (params.waveType === 'triangle') rawWave = Math.abs((((curFreq * t) % 1) - 0.5) * 4) - 1;
+      else if (params.waveType === 'noise') rawWave = Math.random() * 2 - 1;
+
+      let env = 1.0;
+      const attack = params.attack || 0.02;
+      const decay = params.decay || 0.1;
+      const sustain = params.sustain !== undefined ? params.sustain : 0.3;
+      if (t < attack) env = t / attack;
+      else if (t < attack + decay) env = 1.0 - (1.0 - sustain) * ((t - attack) / decay);
+      else env = sustain * Math.max(0, 1 - (t - attack - decay) / Math.max(0.01, duration - attack - decay));
+
+      sample = rawWave * env;
+    } else if (type === 'laser' || type === 'shoot') {
       const freq = 880 * Math.exp(-t * 13.8);
       const phase = (2 * Math.PI * freq * t) % (2 * Math.PI);
       const saw = (phase / Math.PI) - 1;

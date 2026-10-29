@@ -93,7 +93,17 @@ export const BEHAVIOR_CATALOG = [
   { type: 'rotating_skybox_sun', icon: '☀️', name: 'Dynamic Celestial Sun Orbital Rotation', defaultParams: { cycleSpeed: 0.05 } },
   { type: 'minimap_blip', icon: '📍', name: 'Radar Minimap Blip Indicator', defaultParams: { blipColor: '#34d399', shape: 'dot' } },
   { type: 'damage_number_popup', icon: '💥', name: 'Combat Floating Damage Numbers', defaultParams: { duration: 0.8, color: '#f87171' } },
-  { type: 'combo_kill_announcer', icon: '📣', name: 'Multi-Kill Streak Announcer Audio', defaultParams: { comboTimeout: 3.5 } }
+  { type: 'combo_kill_announcer', icon: '📣', name: 'Multi-Kill Streak Announcer Audio', defaultParams: { comboTimeout: 3.5 } },
+  { type: 'grappling_rope_physics', icon: '🪢', name: 'Physics Swinging Rope Tether', defaultParams: { maxDistance: 25, tension: 15.0 } },
+  { type: 'portal_teleport_pair', icon: '🌀', name: 'Bidirectional Spatial Portals', defaultParams: { pairedEntity: 'Portal_B', cooldown: 1.5 } },
+  { type: 'tactical_time_dilation', icon: '⌛', name: 'Tactical Bullet-Time Matrix Dilation', defaultParams: { timeScale: 0.2, duration: 3.0, triggerKey: 't' } },
+  { type: 'dynamic_weather_storm', icon: '⛈️', name: 'Dynamic Lightning & Wind Storm', defaultParams: { flashInterval: 8.0, windForce: 12.0 } },
+  { type: 'loot_box_gacha', icon: '🎁', name: 'Mystery Loot Box & Gacha Drop', defaultParams: { health: 20, dropTable: ['Health Potion', 'Gold Key', 'Ammo'] } },
+  { type: 'magnetic_shield', icon: '🛡️', name: 'Deflective Magnetic Energy Shield', defaultParams: { radius: 3.0, reflectForce: 20.0 } },
+  { type: 'combo_hit_counter_hud', icon: '💥', name: 'Combat Combo Multiplier HUD', defaultParams: { timeout: 2.5, multiplierStep: 0.5 } },
+  { type: 'climbable_ledge_parkour', icon: '🧗', name: 'Vertical Ledge Parkour Grab', defaultParams: { climbSpeed: 4.0, reachRadius: 1.5 } },
+  { type: 'orbiting_drone_companion', icon: '🛸', name: 'Orbiting Tactical Defense Drone', defaultParams: { orbitRadius: 3.0, fireRate: 2.0, damage: 20 } },
+  { type: 'directional_damage_indicator', icon: '🎯', name: 'HUD Directional Damage Markers', defaultParams: { fadeDuration: 1.0 } }
 ];
 
 /**
