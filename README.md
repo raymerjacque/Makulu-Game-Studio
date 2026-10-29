@@ -115,7 +115,7 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **90 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Behavior Injection:** Attach any of the **100 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
 * **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
@@ -394,6 +394,26 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Dynamic floating numerical combat damage indicators that ascend and fade out upon weapon or spell impact.
 90. **📣 Multi-Kill Streak Announcer Audio:**
     Rapid multi-kill streak tracker that rewards players with audio fanfares and visual fanfare during intense combat encounters.
+91. **🪢 Physics Swinging Rope Tether:**
+    Dynamic tension spring and rope tether physics that pulls swinging characters toward anchor points with configurable tension and maximum distance.
+92. **🌀 Bidirectional Spatial Portals:**
+    Seamless paired spatial warp gate with forward exit displacement, cooldown management, and teleportation audio.
+93. **⌛ Tactical Bullet-Time Matrix Dilation:**
+    Hot-key triggered (`T`) temporal dilation slowing gameplay simulation delta time for high-stakes dodging and tactical aiming.
+94. **⛈️ Dynamic Lightning & Wind Storm:**
+    Severe weather orchestrator driving randomized lightning flashes, rolling thunder audio bursts, screen rumble impulses, and gusting wind forces.
+95. **🎁 Mystery Loot Box & Gacha Drop:**
+    Interactive damageable loot crate that shatters upon impact and spawns randomized rewards (Health Potions, Gold Keys, Ammo) from a configurable drop table.
+96. **🛡️ Deflective Magnetic Energy Shield:**
+    Spherical energy forcefield that repels incoming hostile projectile entities and deflects them away from the defended player or vehicle.
+97. **💥 Combat Combo Multiplier HUD:**
+    Dynamic combat hit streak counter that tracks sequential strikes within a countdown window and multiplies player damage output.
+98. **🧗 Vertical Ledge Parkour Grab:**
+    High-mobility traversal mechanic enabling characters to grip onto structural edges and climb upward using W / Up Arrow.
+99. **🛸 Orbiting Tactical Defense Drone:**
+    Autonomous companion drone that maintains continuous rotational orbit around the player and auto-targets nearby hostiles.
+100. **🎯 HUD Directional Damage Markers:**
+    Screen-edge visual hit indicator showing the precise direction of incoming enemy fire or hazard damage with animated alpha decay.
 
 ---
 
@@ -415,6 +435,7 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
   * **🛡️ Shield Hit:** Resonant high-to-low ping for shield deflection and armor hits.
   * **🔫 Weapon Reload:** Dual-click mechanical reload latching effect.
   * **✨ Magic Spell:** Shimmering harmonic triple-oscillator chord for arcane spells.
+* **🎛️ Custom ADSR Envelope & Waveform Synthesizer:** Full sound design suite with selectable waveforms (**Sine**, **Square**, **Sawtooth**, **Triangle**, and **White Noise**), start/end frequency sweep sliders, and four-stage **ADSR Envelope** (Attack, Decay, Sustain, Release) shaping.
 * **1-Click 16-Bit PCM WAV Exporting:** Generates authentic 16-bit PCM WAV Base64 Data URLs and exports them directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
 * **Universal Compilation:** Inlined directly into compiled standalone `.html` games for instant zero-dependency audio on any device.
 
@@ -468,7 +489,11 @@ Create reactive game mechanics through modular trigger volumes:
   * **Shadow Map Resolution:** Toggle between Medium (1024×1024), High Crisp (2048×2048), and Low Mobile (512×512).
 * **✨ Post-Processing & Render Pipeline FX (`✨ FX`):**
   * **High-Dynamic Range Bloom:** Adjustable bloom intensity and luminance threshold.
-  * **Tone Mapping & Exposure:** Fine-tune exposure multiplier and HDR curve algorithms.
+  * **Tone Mapping & Exposure:** Fine-tune exposure multiplier and HDR curve algorithms (ACES, Filmic, Linear, None).
+  * **🎨 Color Grading & Look Adjustment:** Live Brightness, Contrast, and Saturation sliders with real-time exposure feedback.
+  * **🌑 Cinematic Vignette:** Radial lens border shading with intensity and curvature controls.
+  * **📷 Depth of Field (DoF):** Camera focal plane distance and background blur amount sliders.
+  * **🌈 Chromatic Aberration:** Optical lens fringe dispersion and RGB offset.
   * **Exponential Atmospheric Fog:** Custom fog color picker, fog density slider, and distance falloff.
 * **🖼️ Basis Universal & KTX2 Texture Compression Pipeline (`Settings ▾ -> ⚙️ Project Settings`):**
   * **GPU Transcode Targets:** Auto (Hardware Best Fit), ASTC (Mobile / High Fidelity), DXT / BC1 / BC3 (Desktop PCs), ETC2 (Android Standard), BC7 (AAA High Detail), and RGBA Uncompressed.
