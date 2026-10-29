@@ -571,9 +571,17 @@ export class GameBundler {
           const m = data.components.render.material;
           const mat = new pc.StandardMaterial();
           if (m.diffuse) mat.diffuse = new pc.Color(...m.diffuse);
+          if (m.emissive) mat.emissive = new pc.Color(...m.emissive);
           if (m.metalness !== undefined) { mat.metalness = m.metalness; mat.useMetalness = true; }
           if (m.roughness !== undefined) mat.roughness = m.roughness;
           if (m.opacity !== undefined) { mat.opacity = m.opacity; if (m.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL; }
+          if (m.normalMapUrl) {
+            const embedded = EMBEDDED_ASSETS.find(a => a.name === m.normalMapUrl || a.dataUrl === m.normalMapUrl);
+            const urlToLoad = embedded ? embedded.dataUrl : m.normalMapUrl;
+            app.assets.loadFromUrl(urlToLoad, 'texture', (err, texAsset) => {
+              if (!err && texAsset) { mat.normalMap = texAsset.resource; mat.update(); }
+            });
+          }
           mat.update();
           ent.render.material = mat;
         }
@@ -1878,6 +1886,47 @@ export class GameBundler {
           } else if (b.type === 'day_night_weather_cycle') {
             const speed = b.properties?.cycleSpeed || 0.05;
             node.rotate(speed * dt * 20, 0, 0);
+          } else if (b.type === 'gravity_well_attractor') {
+            const radius = b.properties?.radius || 10.0;
+            const force = b.properties?.force || 15.0;
+            const isAttract = (b.properties?.mode || 'attract') === 'attract';
+            const pos = node.getPosition();
+
+            app.root.forEach(other => {
+              if (other !== node && other.enabled && other.parent) {
+                const dist = pos.distance(other.getPosition());
+                if (dist <= radius && dist > 0.1) {
+                  const dir = isAttract ? pos.clone().sub(other.getPosition()).normalize() : other.getPosition().clone().sub(pos).normalize();
+                  if (other.rigidbody) {
+                    other.rigidbody.applyForce(dir.x * force * dt * 60, dir.y * force * dt * 60, dir.z * force * dt * 60);
+                  } else if (other.translate) {
+                    other.translate(dir.x * force * dt * 0.1, dir.y * force * dt * 0.1, dir.z * force * dt * 0.1);
+                  }
+                }
+              }
+            });
+          } else if (b.type === 'flashlight_battery') {
+            if (b.properties.battery === undefined) b.properties.battery = b.properties.maxBattery || 100;
+            if (node.light && node.light.enabled) {
+              b.properties.battery = Math.max(0, b.properties.battery - (b.properties.drainRate || 5.0) * dt);
+              if (b.properties.battery <= 0) {
+                node.light.enabled = false;
+              }
+            }
+          } else if (b.type === 'waypoint_flight_path') {
+            const speed = b.properties?.speed || 8.0;
+            const bank = b.properties?.bankAngle || 25;
+            if (!b._state) b._state = { angle: 0 };
+            b._state.angle += dt * (speed * 0.1);
+            const bankRot = Math.sin(b._state.angle) * bank;
+            node.rotate(0, speed * dt * 10, bankRot * dt);
+            node.translateLocal(0, Math.sin(b._state.angle * 2) * 0.5 * dt, -speed * dt);
+          } else if (b.type === 'weather_rain_snow_toggle') {
+            if (!b._state) b._state = { active: true };
+          } else if (b.type === 'destructible_wall_cluster') {
+            if (!b._state) b._state = { initialized: true };
+          } else if (b.type === 'inventory_drop_spawner') {
+            if (!b._state) b._state = { dropped: false };
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;
             if (b._cooldown > 0) b._cooldown -= dt;
