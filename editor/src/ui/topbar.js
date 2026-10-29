@@ -92,6 +92,9 @@ export class TopBar {
               <div class="topbar-dropdown-item" id="menu-action-del-scene" style="color: #ef4444;">
                 <span class="item-label">🗑️ Delete Active Scene</span>
               </div>
+              <div class="topbar-dropdown-item" id="menu-action-drop-ground">
+                <span class="item-label">⬇️ Drop Selected to Floor Ground</span>
+              </div>
               <div class="topbar-dropdown-separator"></div>
               <div style="padding: 4px 12px; font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Atmosphere & Lighting</div>
               <div class="topbar-dropdown-item" data-sky="day">
@@ -232,6 +235,9 @@ export class TopBar {
 
         <!-- Quick Post-FX Pipeline Button -->
         <button id="btn-quick-postfx" class="btn" style="background: rgba(0, 229, 255, 0.12); border-color: #00e5ff; color: #00e5ff; font-weight: 600; padding: 2px 8px; height: 26px; font-size: 11px;" title="Post-Processing FX (Bloom, Fog, Exposure)">✨ FX</button>
+
+        <!-- Quick 3D Viewport Snapshot / Screenshot Button -->
+        <button id="btn-viewport-snapshot" class="btn" style="background: rgba(168, 85, 247, 0.15); border-color: #a855f7; color: #c084fc; font-weight: 600; padding: 2px 8px; height: 26px; font-size: 11px;" title="Capture High-Res Viewport Screenshot & Save to Assets">📸 Snapshot</button>
 
         <!-- Undo / Redo -->
         <div style="display: flex; gap: 2px;">
@@ -484,6 +490,55 @@ export class TopBar {
           const toDel = this.editor.activeSceneName;
           this.editor.deleteScene(toDel);
           showToast(`Deleted scene "${toDel}"`, 'info');
+        }
+      });
+    }
+
+    // Drop to Ground Action
+    const dropGroundItem = this.container.querySelector('#menu-action-drop-ground');
+    if (dropGroundItem) {
+      dropGroundItem.addEventListener('click', () => {
+        const active = this.editor.selection.getActive();
+        if (active) {
+          const pos = active.getPosition();
+          const scaleY = active.getLocalScale().y;
+          active.setPosition(pos.x, scaleY / 2, pos.z);
+          this.editor.events.emit('entity:transformed', active);
+          showToast(`⬇️ Dropped "${active.name}" to ground floor!`, 'success');
+        } else {
+          showToast('Select an entity in Hierarchy or 3D scene first', 'warn');
+        }
+      });
+    }
+
+    // Viewport Snapshot Button
+    const snapshotBtn = this.container.querySelector('#btn-viewport-snapshot');
+    if (snapshotBtn) {
+      snapshotBtn.addEventListener('click', () => {
+        const canvas = document.getElementById('viewport-canvas');
+        if (canvas) {
+          try {
+            const dataUrl = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `${(this.editor.projectName || 'Scene').replace(/\s+/g, '_')}_Snapshot_${Date.now().toString().slice(-4)}.png`;
+            a.click();
+
+            if (this.editor.assetsPanel) {
+              this.editor.assetsPanel.addAsset({
+                id: Date.now().toString(),
+                name: `Snapshot_${Date.now().toString().slice(-4)}.png`,
+                type: 'textures',
+                icon: '🖼️',
+                size: '180 KB',
+                url: dataUrl,
+                base64Data: dataUrl
+              });
+            }
+            showToast('📸 High-Res 3D Viewport Snapshot Captured & Added to Assets!', 'success');
+          } catch (err) {
+            showToast('Could not capture viewport screenshot', 'error');
+          }
         }
       });
     }

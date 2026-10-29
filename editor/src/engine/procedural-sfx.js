@@ -155,6 +155,97 @@ class ProceduralSFXManager {
           osc.start(now + idx * 0.1);
           osc.stop(now + idx * 0.1 + 0.3);
         });
+      } else if (type === 'footstep') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(80, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === 'teleport') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(1600, now + 0.28);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.28);
+      } else if (type === 'powerup') {
+        const notes = [440, 554.37, 659.25, 880];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.3, now + idx * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.06 + 0.15);
+
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(now + idx * 0.06);
+          osc.stop(now + idx * 0.06 + 0.15);
+        });
+      } else if (type === 'shield_hit') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.15);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'reload') {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        osc1.type = 'square';
+        osc2.type = 'square';
+        osc1.frequency.setValueAtTime(400, now);
+        osc2.frequency.setValueAtTime(700, now + 0.09);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(master);
+        osc1.start(now); osc1.stop(now + 0.08);
+        osc2.start(now + 0.09); osc2.stop(now + 0.2);
+      } else if (type === 'magic_spell') {
+        [600, 900, 1200].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.3);
+
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        });
       }
     } catch (e) {
       console.warn('ProceduralSFXManager playback error:', e);
@@ -188,7 +279,13 @@ export function generateWAVDataURL(type, sampleRate = 22050) {
     hurt: 0.2,
     damage: 0.2,
     victory: 0.6,
-    win: 0.6
+    win: 0.6,
+    footstep: 0.08,
+    teleport: 0.28,
+    powerup: 0.3,
+    shield_hit: 0.15,
+    reload: 0.2,
+    magic_spell: 0.3
   };
   const duration = durationMap[type] || 0.3;
   const numSamples = Math.floor(sampleRate * duration);
@@ -343,6 +440,39 @@ window.playProceduralSFX = function(type, volume) {
         const osc = ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, now + idx * 0.1);
         const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, now + idx * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
         osc.connect(gain); gain.connect(master); osc.start(now + idx * 0.1); osc.stop(now + idx * 0.1 + 0.3);
+      });
+    } else if (type === 'footstep') {
+      const osc = ctx.createOscillator(); osc.type = 'sine';
+      osc.frequency.setValueAtTime(80, now); osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+      osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.08);
+    } else if (type === 'teleport') {
+      const osc = ctx.createOscillator(); osc.type = 'sine';
+      osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(1600, now + 0.28);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+      osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.28);
+    } else if (type === 'powerup') {
+      [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+        const osc = ctx.createOscillator(); osc.type = 'square'; osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.3, now + idx * 0.06); gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.06 + 0.15);
+        osc.connect(gain); gain.connect(master); osc.start(now + idx * 0.06); osc.stop(now + idx * 0.06 + 0.15);
+      });
+    } else if (type === 'shield_hit') {
+      const osc = ctx.createOscillator(); osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.15);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.15);
+    } else if (type === 'reload') {
+      const osc1 = ctx.createOscillator(); const osc2 = ctx.createOscillator(); osc1.type = 'square'; osc2.type = 'square';
+      osc1.frequency.setValueAtTime(400, now); osc2.frequency.setValueAtTime(700, now + 0.09);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc1.connect(gain); osc2.connect(gain); gain.connect(master);
+      osc1.start(now); osc1.stop(now + 0.08); osc2.start(now + 0.09); osc2.stop(now + 0.2);
+    } else if (type === 'magic_spell') {
+      [600, 900, 1200].forEach((freq, idx) => {
+        const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now); osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.3);
+        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.3);
       });
     }
   } catch(e) {}

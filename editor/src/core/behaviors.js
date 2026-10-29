@@ -1298,12 +1298,112 @@ export class BehaviorManager {
           } else if (b.type === 'inventory_drop_spawner') {
             if (!b.state) b.state = { dropped: false };
           } else if (b.type === 'audio_occlusion_zone') {
-            const player = this.findPlayerEntity();
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
             if (player) {
               const dist = entity.getPosition().distance(player.getPosition());
               const radius = b.params.radius || 6.0;
               b._playerInZone = dist <= radius;
               b._occlusionFactor = b._playerInZone ? (b.params.muffling || 0.8) : 0.0;
+            }
+          } else if (b.type === 'footstep_audio') {
+            if (!b._stepTimer) b._stepTimer = 0;
+            const isMoving = Boolean(this.isKeyDown('w') || this.isKeyDown('s') || this.isKeyDown('a') || this.isKeyDown('d') || this.isKeyDown('arrowup') || this.isKeyDown('arrowdown'));
+            if (isMoving) {
+              b._stepTimer -= dt;
+              if (b._stepTimer <= 0) {
+                b._stepTimer = b.params.interval || 0.35;
+                proceduralSFX.play(b.params.sfxType || 'footstep', 0.25);
+              }
+            }
+          } else if (b.type === 'floating_nametag') {
+            const camera = app.root.find(node => node.camera);
+            if (camera) {
+              const offset = b.params.heightOffset !== undefined ? b.params.heightOffset : 2.2;
+              const pos = entity.getPosition().clone().add(new pc.Vec3(0, offset, 0));
+              b._nametagPos = pos;
+            }
+          } else if (b.type === 'respawn_kill_plane') {
+            const minY = b.params.minY !== undefined ? b.params.minY : -20;
+            if (entity.getPosition().y < minY) {
+              proceduralSFX.play('explosion');
+              this.triggerScreenShake(0.6, 0.3);
+              const respawnPos = entity._respawnCheckpoint || new pc.Vec3(0, 2, 0);
+              if (entity.rigidbody) {
+                entity.rigidbody.teleport(respawnPos);
+                entity.rigidbody.linearVelocity = pc.Vec3.ZERO;
+              } else {
+                entity.setPosition(respawnPos);
+              }
+              const healthB = this.getBehaviors(entity).find(hb => hb.type === 'health');
+              if (healthB) {
+                healthB.params.currentHp = healthB.params.maxHp || 100;
+              }
+              if (typeof showToast === 'function') showToast(`⚠️ Fell Out of Bounds! Respawned at origin.`, 'warn');
+            }
+          } else if (b.type === 'item_magnet') {
+            const magnetPos = entity.getPosition();
+            const radius = b.params.pullRadius || 8.0;
+            const speed = b.params.pullSpeed || 12.0;
+
+            app.root.forEach(other => {
+              if (other !== entity && other.enabled && other.parent) {
+                const otherB = this.getBehaviors(other);
+                if (otherB.some(ob => ob.type === 'collectible' || ob.type === 'key_pickup' || ob.type === 'health_pickup')) {
+                  const dist = magnetPos.distance(other.getPosition());
+                  if (dist <= radius && dist > 0.1) {
+                    const dir = magnetPos.clone().sub(other.getPosition()).normalize().mulScalar(speed * dt);
+                    other.translate(dir);
+                  }
+                }
+              }
+            });
+          } else if (b.type === 'turret_laser_sight') {
+            const player = app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist < (b.params.beamLength || 25.0)) {
+                entity.lookAt(player.getPosition());
+              }
+            }
+          } else if (b.type === 'breakable_crate_loot') {
+            if (b.params.health === undefined) b.params.health = b.params.maxHealth || 30;
+            if (b.params.health <= 0 && entity.enabled) {
+              entity.enabled = false;
+              proceduralSFX.play('explosion');
+              this.triggerScreenShake(0.4, 0.2);
+
+              const loot = new pc.Entity(`Loot_${Date.now()}`);
+              loot.setPosition(entity.getPosition().clone().add(new pc.Vec3(0, 0.5, 0)));
+              loot.setLocalScale(0.4, 0.4, 0.4);
+
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = new pc.Color(0.1, 0.9, 0.2);
+              mat.emissive = new pc.Color(0.1, 0.8, 0.2);
+              mat.update();
+
+              loot.addComponent('render', { type: 'sphere', material: mat });
+              this.attachBehavior(loot, 'health_pickup', { healAmount: 30 });
+              app.root.addChild(loot);
+
+              if (typeof showToast === 'function') showToast(`📦 Shattered ${entity.name}! Dropped ${b.params.lootItem || 'Health Potion'}!`, 'success');
+            }
+          } else if (b.type === 'rotating_skybox_sun') {
+            const speed = b.params.cycleSpeed || 0.05;
+            entity.rotate(speed * dt * 20, 0, 0);
+          } else if (b.type === 'minimap_blip') {
+            b._blipColor = b.params.blipColor || '#34d399';
+            b._worldPos = entity.getPosition();
+          } else if (b.type === 'damage_number_popup') {
+            if (b._popupTimer && b._popupTimer > 0) {
+              b._popupTimer -= dt;
+            }
+          } else if (b.type === 'combo_kill_announcer') {
+            if (!b._state) b._state = { killStreak: 0, comboTimer: 0 };
+            if (b._state.comboTimer > 0) {
+              b._state.comboTimer -= dt;
+              if (b._state.comboTimer <= 0) {
+                b._state.killStreak = 0;
+              }
             }
           }
         }
