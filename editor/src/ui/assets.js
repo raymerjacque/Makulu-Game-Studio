@@ -100,6 +100,9 @@ export class AssetsPanel {
         <div class="context-menu-item" data-asset-action="rename">✏️ Rename Asset</div>
         <div class="context-menu-item" data-asset-action="duplicate">📋 Duplicate Asset</div>
         <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-asset-action="new-mat">🎨 Create New Material Asset</div>
+        <div class="context-menu-item" data-asset-action="new-prefab">📦 Create Prefab From Selected</div>
+        <div class="context-menu-separator"></div>
         <div class="context-menu-item" data-asset-action="delete" style="color: #ef4444;">🗑️ Delete Asset</div>
       `;
       document.body.appendChild(assetMenu);
@@ -163,6 +166,15 @@ export class AssetsPanel {
             this.assets.push(dup);
             this.renderAssetCards();
             showToast(`Duplicated asset "${asset.name}"`, 'success');
+          } else if (act === 'new-mat') {
+            if (this.materialModal) this.materialModal.open();
+          } else if (act === 'new-prefab') {
+            const active = this.editor.selection.getActive();
+            if (active && this.editor.prefabs) {
+              this.editor.prefabs.createPrefabFromEntity(active);
+            } else {
+              showToast('Select a 3D scene entity first to create a prefab', 'warn');
+            }
           } else if (act === 'delete') {
             this.assets = this.assets.filter(a => a.id !== asset.id);
             this.renderAssetCards();

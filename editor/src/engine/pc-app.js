@@ -293,6 +293,59 @@ export class EditorCameraController {
     this.app.root.addChild(this.entity);
     this.updatePosition();
     this.bindMouseControls();
+    this.createViewportTripodOverlay();
+  }
+
+  snapView(viewType) {
+    if (viewType === 'top') {
+      this.pitch = -89.5;
+      this.yaw = 0;
+    } else if (viewType === 'front') {
+      this.pitch = -0.5;
+      this.yaw = 0;
+    } else if (viewType === 'side') {
+      this.pitch = -0.5;
+      this.yaw = -90;
+    } else if (viewType === 'iso') {
+      this.pitch = -35;
+      this.yaw = -45;
+    }
+    this.updatePosition();
+  }
+
+  createViewportTripodOverlay() {
+    if (typeof document === 'undefined') return;
+    const container = this.canvas.parentElement;
+    if (!container || container.querySelector('.viewport-tripod-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'viewport-tripod-overlay';
+    overlay.style.cssText = `
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 4px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 3px;
+      backdrop-filter: blur(8px);
+      z-index: 25;
+    `;
+    overlay.innerHTML = `
+      <button class="btn btn-sm btn-icon" id="btn-view-top" title="Top View (Y)" style="font-size: 10px; font-weight: 700; width: 24px; height: 22px;">Y</button>
+      <button class="btn btn-sm btn-icon" id="btn-view-front" title="Front View (Z)" style="font-size: 10px; font-weight: 700; width: 24px; height: 22px; color: #38bdf8;">Z</button>
+      <button class="btn btn-sm btn-icon" id="btn-view-side" title="Side View (X)" style="font-size: 10px; font-weight: 700; width: 24px; height: 22px; color: #ef4444;">X</button>
+      <button class="btn btn-sm btn-icon" id="btn-view-iso" title="Isometric View" style="font-size: 10px; font-weight: 700; width: 24px; height: 22px; color: #facc15;">3D</button>
+    `;
+
+    overlay.querySelector('#btn-view-top').addEventListener('click', () => this.snapView('top'));
+    overlay.querySelector('#btn-view-front').addEventListener('click', () => this.snapView('front'));
+    overlay.querySelector('#btn-view-side').addEventListener('click', () => this.snapView('side'));
+    overlay.querySelector('#btn-view-iso').addEventListener('click', () => this.snapView('iso'));
+
+    container.appendChild(overlay);
   }
 
   setProjection(type) {
@@ -686,6 +739,7 @@ export class ComponentVisualHelpers {
   constructor(app, editor) {
     this.app = app;
     this.editor = editor;
+    this.physicsDebugAll = false;
 
     this.helperEntity = new pc.Entity('ComponentVisualHelpers');
     this.helperEntity.enabled = false;
@@ -696,10 +750,21 @@ export class ComponentVisualHelpers {
     });
 
     this.editor.events.on('entity:transformed', (active) => {
-      if (this.editor.selection.getActive() === active) {
-        this.updateHelpers(active);
+      if (this.editor.selection.getActive() === active || this.physicsDebugAll) {
+        this.updateHelpers(this.editor.selection.getActive());
       }
     });
+
+    this.editor.events.on('scene:changed', () => {
+      if (this.physicsDebugAll) {
+        this.updateHelpers(this.editor.selection.getActive());
+      }
+    });
+  }
+
+  setPhysicsDebugAll(enabled) {
+    this.physicsDebugAll = enabled;
+    this.updateHelpers(this.editor.selection.getActive());
   }
 
   updateHelpers(active) {
@@ -710,8 +775,48 @@ export class ComponentVisualHelpers {
       child.destroy();
     }
 
+    if (this.physicsDebugAll) {
+      this.helperEntity.enabled = true;
+      const renderAllColliders = (node) => {
+        if (node.collision && node !== this.helperEntity && node.enabled && node.parent) {
+          const col = node.collision;
+          const colEntity = new pc.Entity(`AllPhysicsDebug_${node.name}`);
+          colEntity.setPosition(node.getPosition());
+          colEntity.setRotation(node.getRotation());
+
+          const mat = new pc.StandardMaterial();
+          mat.diffuse = new pc.Color(0.2, 1.0, 0.4); // Bright green wireframe
+          mat.wireframe = true;
+          mat.update();
+
+          let meshType = 'box';
+          if (col.type === 'sphere') {
+            meshType = 'sphere';
+            const r = col.radius || 0.5;
+            colEntity.setLocalScale(r * 2, r * 2, r * 2);
+          } else if (col.type === 'capsule' || col.type === 'cylinder') {
+            meshType = 'cylinder';
+            const r = col.radius || 0.5;
+            const h = col.height || 2;
+            colEntity.setLocalScale(r * 2, h, r * 2);
+          } else {
+            const half = col.halfExtents || new pc.Vec3(0.5, 0.5, 0.5);
+            colEntity.setLocalScale(half.x * 2, half.y * 2, half.z * 2);
+          }
+
+          colEntity.addComponent('render', { type: meshType, material: mat });
+          this.helperEntity.addChild(colEntity);
+        }
+        if (node.children) node.children.forEach(renderAllColliders);
+      };
+
+      if (this.app && this.app.root) {
+        this.app.root.children.forEach(renderAllColliders);
+      }
+    }
+
     if (!active || active === this.app.root) {
-      this.helperEntity.enabled = false;
+      if (!this.physicsDebugAll) this.helperEntity.enabled = false;
       return;
     }
 

@@ -45,6 +45,9 @@ export class CodeEditorModal {
               <option value="wasd">WASD Movement</option>
               <option value="flicker">Flicker Light</option>
               <option value="follow">Follow Camera</option>
+              <option value="health">Health & Damage</option>
+              <option value="interactor">Proximity Trigger</option>
+              <option value="enemy">Enemy Chase AI</option>
             </select>
 
             <button id="code-btn-ask-ai" class="btn" style="background: rgba(255,102,0,0.2); border-color: var(--accent-orange); color: var(--accent-orange); font-size: 11px; padding: 4px 8px;">✨ Ask AI to Code</button>
@@ -251,6 +254,53 @@ FollowCamera.prototype.postUpdate = function(dt) {
     camPos.y += this.height;
     this.entity.setPosition(camPos);
     this.entity.lookAt(targetPos);
+};`,
+
+    health: `// PlayCanvas Character Health Component
+var HealthSystem = pc.createScript('healthSystem');
+
+HealthSystem.attributes.add('maxHp', { type: 'number', default: 100, title: 'Max HP' });
+HealthSystem.attributes.add('currentHp', { type: 'number', default: 100, title: 'Current HP' });
+
+HealthSystem.prototype.takeDamage = function(amount) {
+    this.currentHp = Math.max(0, this.currentHp - amount);
+    if (this.currentHp <= 0) {
+        this.entity.enabled = false;
+    }
+};`,
+
+    interactor: `// PlayCanvas Proximity Trigger Interactor
+var ProximityTrigger = pc.createScript('proximityTrigger');
+
+ProximityTrigger.attributes.add('radius', { type: 'number', default: 2.5, title: 'Radius' });
+
+ProximityTrigger.prototype.update = function(dt) {
+    var player = this.app.root.findByName('Player');
+    if (player) {
+        var dist = this.entity.getPosition().distance(player.getPosition());
+        if (dist <= this.radius) {
+            // Trigger interactive action
+        }
+    }
+};`,
+
+    enemy: `// PlayCanvas Hostile Enemy Chase AI
+var EnemyAI = pc.createScript('enemyAI');
+
+EnemyAI.attributes.add('speed', { type: 'number', default: 3.5, title: 'Chase Speed' });
+EnemyAI.attributes.add('detectRadius', { type: 'number', default: 12.0, title: 'Detection Radius' });
+
+EnemyAI.prototype.update = function(dt) {
+    var player = this.app.root.findByName('Player');
+    if (player) {
+        var pos = this.entity.getPosition();
+        var targetPos = player.getPosition();
+        var dist = pos.distance(targetPos);
+        if (dist <= this.detectRadius && dist > 1.2) {
+            this.entity.lookAt(new pc.Vec3(targetPos.x, pos.y, targetPos.z));
+            this.entity.translateLocal(0, 0, -this.speed * dt);
+        }
+    }
 };`
   };
 }

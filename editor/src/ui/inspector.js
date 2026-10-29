@@ -76,7 +76,14 @@ export const BEHAVIOR_CATALOG = [
   { type: 'spline_follower', icon: '🛤️', name: 'Waypointed Path Spline Motion', defaultParams: { speed: 3.0, loop: true } },
   { type: 'screen_shake_zone', icon: '📳', name: 'Earthquake Hazard Screen Shake Zone', defaultParams: { radius: 5.0, intensity: 0.6 } },
   { type: 'exploding_barrel', icon: '💥', name: 'Exploding Red Barrel Hazard', defaultParams: { blastRadius: 6.0, blastDamage: 80 } },
-  { type: 'audio_reverb_zone', icon: '🔊', name: 'Acoustic Spatial Audio Zone', defaultParams: { radius: 8.0, echoFactor: 0.5 } }
+  { type: 'audio_reverb_zone', icon: '🔊', name: 'Acoustic Spatial Audio Zone', defaultParams: { radius: 8.0, echoFactor: 0.5 } },
+  { type: 'gravity_well_attractor', icon: '🌌', name: 'Gravity Well Attractor / Repulser', defaultParams: { radius: 10.0, force: 15.0, mode: 'attract' } },
+  { type: 'flashlight_battery', icon: '🔋', name: 'Flashlight Battery & Refill Pickups', defaultParams: { maxBattery: 100, drainRate: 5.0 } },
+  { type: 'waypoint_flight_path', icon: '✈️', name: '3D Bezier Flight Path with Banking', defaultParams: { speed: 8.0, bankAngle: 25 } },
+  { type: 'weather_rain_snow_toggle', icon: '🌧️', name: 'Dynamic Weather & Surface Wetness', defaultParams: { weatherType: 'rain', intensity: 1.0 } },
+  { type: 'destructible_wall_cluster', icon: '🧱', name: 'Destructible Brick Wall Cluster', defaultParams: { rows: 3, cols: 4, brickHealth: 20 } },
+  { type: 'inventory_drop_spawner', icon: '🎁', name: 'Defeat Loot Drop Table Spawner', defaultParams: { dropItem: 'Health Potion', dropChance: 1.0 } },
+  { type: 'audio_occlusion_zone', icon: '🔇', name: 'Acoustic Sound Occlusion & Muffling', defaultParams: { radius: 6.0, muffling: 0.8 } }
 ];
 
 /**
@@ -1011,8 +1018,13 @@ export class InspectorPanel {
       <!-- Components Container -->
       <div id="components-stack" style="display: flex; flex-direction: column; gap: 8px;"></div>
 
-      <!-- Add Component Dropdown -->
-      <div style="margin-top: 8px;">
+      <!-- Add & Paste Component Buttons -->
+      <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+        ${this.editor._copiedComponent ? `
+          <button id="btn-paste-component" class="btn" style="background: rgba(34, 197, 94, 0.15); border-color: #22c55e; color: #22c55e; font-weight: 700; font-size: 11px; padding: 6px;">
+            📋 Paste Component (${this.editor._copiedComponent.type})
+          </button>
+        ` : ''}
         <select id="add-component-select" class="select-input" style="padding: 6px; font-weight: 600; text-align: center; border-color: var(--accent-orange); color: var(--accent-orange);">
           <option value="">+ Add Component / Behavior</option>
           <optgroup label="Engine Components">
@@ -1127,6 +1139,26 @@ export class InspectorPanel {
     rotInputs.forEach(inp => inp.addEventListener('input', updateRot));
     scaleInputs.forEach(inp => inp.addEventListener('input', (e) => updateScale(e)));
 
+    // Paste Component Button
+    const pasteBtn = this.container.querySelector('#btn-paste-component');
+    if (pasteBtn && this.editor._copiedComponent) {
+      pasteBtn.addEventListener('click', () => {
+        const copied = this.editor._copiedComponent;
+        if (copied && ent) {
+          if (copied.type.startsWith('b_')) {
+            const bType = copied.type.replace('b_', '');
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(ent, bType, { ...(copied.props || {}) });
+            }
+          } else {
+            this.editor.addComponent(ent, copied.type, { ...(copied.props || {}) });
+          }
+          showToast(`📋 Pasted ${copied.type} component onto ${ent.name}!`, 'success');
+          this.updateView();
+        }
+      });
+    }
+
     // Add Component Select
     const compSelect = this.container.querySelector('#add-component-select');
     if (compSelect) {
@@ -1203,7 +1235,10 @@ export class InspectorPanel {
       card.innerHTML = `
         <div class="inspector-section-header">
           <span>📦 Render (Mesh)</span>
-          <button class="btn btn-remove-comp" data-comp="render" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <button class="btn btn-copy-comp" data-comp="render" style="padding: 1px 6px; font-size: 10px;" title="Copy Component Settings">📋</button>
+            <button class="btn btn-remove-comp" data-comp="render" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+          </div>
         </div>
         <div class="inspector-section-content">
           <div class="prop-row">
@@ -1251,6 +1286,14 @@ export class InspectorPanel {
       card.querySelector('#render-cast-shadows').addEventListener('change', (e) => {
         ent.render.castShadows = e.target.checked;
       });
+      const copyBtn = card.querySelector('.btn-copy-comp');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          this.editor._copiedComponent = { type: 'render', props: { type: ent.render.type, castShadows: ent.render.castShadows } };
+          showToast('📋 Copied Render component!', 'info');
+          this.updateView();
+        });
+      }
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'render');
       });
@@ -1311,7 +1354,10 @@ export class InspectorPanel {
       card.innerHTML = `
         <div class="inspector-section-header">
           <span>💡 Light</span>
-          <button class="btn btn-remove-comp" data-comp="light" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <button class="btn btn-copy-comp" data-comp="light" style="padding: 1px 6px; font-size: 10px;" title="Copy Component Settings">📋</button>
+            <button class="btn btn-remove-comp" data-comp="light" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+          </div>
         </div>
         <div class="inspector-section-content">
           <div class="prop-row">
@@ -1352,6 +1398,14 @@ export class InspectorPanel {
       card.querySelector('#light-range').addEventListener('input', (e) => {
         ent.light.range = parseFloat(e.target.value);
       });
+      const copyBtn = card.querySelector('.btn-copy-comp');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          this.editor._copiedComponent = { type: 'light', props: { type: ent.light.type, intensity: ent.light.intensity, range: ent.light.range } };
+          showToast('📋 Copied Light component!', 'info');
+          this.updateView();
+        });
+      }
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'light');
       });
@@ -1505,7 +1559,10 @@ export class InspectorPanel {
       card.innerHTML = `
         <div class="inspector-section-header">
           <span>⚙️ Rigidbody Physics</span>
-          <button class="btn btn-remove-comp" data-comp="rigidbody" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <button class="btn btn-copy-comp" data-comp="rigidbody" style="padding: 1px 6px; font-size: 10px;" title="Copy Component Settings">📋</button>
+            <button class="btn btn-remove-comp" data-comp="rigidbody" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
+          </div>
         </div>
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
           <div class="prop-row">
@@ -1579,6 +1636,14 @@ export class InspectorPanel {
         card.querySelector(`#${id}`).addEventListener('change', updateFactors);
       });
 
+      const copyBtn = card.querySelector('.btn-copy-comp');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          this.editor._copiedComponent = { type: 'rigidbody', props: { type: ent.rigidbody.type, mass: ent.rigidbody.mass, restitution: ent.rigidbody.restitution, friction: ent.rigidbody.friction } };
+          showToast('📋 Copied Rigidbody component!', 'info');
+          this.updateView();
+        });
+      }
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'rigidbody');
       });

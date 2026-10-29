@@ -1255,6 +1255,48 @@ export class BehaviorManager {
           } else if (b.type === 'day_night_weather_cycle') {
             const speed = b.params.cycleSpeed || 0.05;
             entity.rotate(speed * dt * 20, 0, 0);
+          } else if (b.type === 'gravity_well_attractor') {
+            const radius = b.params.radius || 10.0;
+            const force = b.params.force || 15.0;
+            const isAttract = (b.params.mode || 'attract') === 'attract';
+            const pos = entity.getPosition();
+
+            app.root.forEach(other => {
+              if (other !== entity && other.enabled && other.parent) {
+                const dist = pos.distance(other.getPosition());
+                if (dist <= radius && dist > 0.1) {
+                  const dir = isAttract ? pos.clone().sub(other.getPosition()).normalize() : other.getPosition().clone().sub(pos).normalize();
+                  if (other.rigidbody) {
+                    other.rigidbody.applyForce(dir.x * force * dt * 60, dir.y * force * dt * 60, dir.z * force * dt * 60);
+                  } else if (other.translate) {
+                    other.translate(dir.x * force * dt * 0.1, dir.y * force * dt * 0.1, dir.z * force * dt * 0.1);
+                  }
+                }
+              }
+            });
+          } else if (b.type === 'flashlight_battery') {
+            if (b.params.battery === undefined) b.params.battery = b.params.maxBattery || 100;
+            if (entity.light && entity.light.enabled) {
+              b.params.battery = Math.max(0, b.params.battery - (b.params.drainRate || 5.0) * dt);
+              if (b.params.battery <= 0) {
+                entity.light.enabled = false;
+                if (typeof showToast === 'function') showToast(`🔋 Flashlight battery depleted! Find a battery refill pickup.`, 'warn');
+              }
+            }
+          } else if (b.type === 'waypoint_flight_path') {
+            const speed = b.params.speed || 8.0;
+            const bank = b.params.bankAngle || 25;
+            if (!b.state) b.state = { angle: 0 };
+            b.state.angle += dt * (speed * 0.1);
+            const bankRot = Math.sin(b.state.angle) * bank;
+            entity.rotate(0, speed * dt * 10, bankRot * dt);
+            entity.translateLocal(0, Math.sin(b.state.angle * 2) * 0.5 * dt, -speed * dt);
+          } else if (b.type === 'weather_rain_snow_toggle') {
+            if (!b.state) b.state = { active: true };
+          } else if (b.type === 'destructible_wall_cluster') {
+            if (!b.state) b.state = { initialized: true };
+          } else if (b.type === 'inventory_drop_spawner') {
+            if (!b.state) b.state = { dropped: false };
           }
         }
       }

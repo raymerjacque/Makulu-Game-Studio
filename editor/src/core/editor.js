@@ -516,9 +516,13 @@ export class Editor {
           const mat = node.render.material;
           data.components.render.material = {
             diffuse: mat.diffuse ? [mat.diffuse.r, mat.diffuse.g, mat.diffuse.b] : [1, 1, 1],
+            emissive: mat.emissive ? [mat.emissive.r, mat.emissive.g, mat.emissive.b] : [0, 0, 0],
             metalness: mat.metalness !== undefined ? mat.metalness : 0.5,
             roughness: mat.roughness !== undefined ? mat.roughness : 0.3,
-            opacity: mat.opacity !== undefined ? mat.opacity : 1.0
+            opacity: mat.opacity !== undefined ? mat.opacity : 1.0,
+            normalMapUrl: mat._normalMapUrl || null,
+            roughnessMapUrl: mat._roughnessMapUrl || null,
+            emissiveMapUrl: mat._emissiveMapUrl || null
           };
         }
       }
@@ -706,6 +710,7 @@ export class Editor {
               const matData = nodeData.components.render.material;
               const mat = new pc.StandardMaterial();
               if (matData.diffuse) mat.diffuse = new pc.Color(...matData.diffuse);
+              if (matData.emissive) mat.emissive = new pc.Color(...matData.emissive);
               if (matData.metalness !== undefined) {
                 mat.metalness = matData.metalness;
                 mat.useMetalness = true;
@@ -714,6 +719,15 @@ export class Editor {
               if (matData.opacity !== undefined) {
                 mat.opacity = matData.opacity;
                 if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
+              }
+              if (matData.normalMapUrl) mat._normalMapUrl = matData.normalMapUrl;
+              if (matData.roughnessMapUrl) mat._roughnessMapUrl = matData.roughnessMapUrl;
+              if (matData.emissiveMapUrl) mat._emissiveMapUrl = matData.emissiveMapUrl;
+
+              if (app.assets && matData.normalMapUrl) {
+                app.assets.loadFromUrl(matData.normalMapUrl, 'texture', (err, texAsset) => {
+                  if (!err && texAsset) { mat.normalMap = texAsset.resource; mat.update(); }
+                });
               }
               mat.update();
               ent.render.material = mat;

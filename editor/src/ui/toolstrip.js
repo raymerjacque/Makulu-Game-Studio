@@ -12,6 +12,9 @@ export class ToolStrip {
     this.currentMode = 'translate';
     this.coordSpace = 'world';
     this.snapEnabled = false;
+    this.posSnapIncrement = 1.0;
+    this.rotSnapIncrement = 15.0;
+    this.physicsDebugEnabled = false;
 
     this.render();
     this.bindEvents();
@@ -27,9 +30,12 @@ export class ToolStrip {
       <div style="width: 24px; height: 1px; background: var(--border-subtle); margin: 6px 0;"></div>
 
       <button class="btn btn-icon" id="tool-space" title="Toggle Coordinate Space (World / Local)" style="font-size: 10px; font-weight: 700;">WLD</button>
-      <button class="btn btn-icon" id="tool-snap" title="Toggle Grid Snapping" style="font-size: 11px;">🧲</button>
+      <div style="position: relative;">
+        <button class="btn btn-icon" id="tool-snap" title="Toggle Grid Snapping (Right-click or hold for step settings)" style="font-size: 11px;">🧲</button>
+      </div>
       <button class="btn btn-icon" id="tool-frame" title="Frame Selection (F)" style="font-size: 11px;">🎯</button>
       <button class="btn btn-icon" id="tool-grid" title="Toggle 3D Floor Grid" style="font-size: 11px;">#</button>
+      <button class="btn btn-icon" id="tool-physics-debug" title="Toggle Real-Time Physics Collider Wireframe Debugger" style="font-size: 11px; color: #22c55e;">🟢</button>
 
       <div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px; align-items: center;">
         <button class="btn btn-icon" id="tool-console" title="Toggle Console & Logs" style="font-size: 11px;">📋</button>
@@ -83,15 +89,40 @@ export class ToolStrip {
       showToast(`Coordinate Space: ${this.coordSpace === 'world' ? '🌐 World' : '📦 Local'}`, 'info');
     });
 
-    // Snapping toggle
+    // Snapping toggle & context step picker
     const snapBtn = this.container.querySelector('#tool-snap');
     snapBtn.addEventListener('click', () => {
       this.snapEnabled = !this.snapEnabled;
       snapBtn.classList.toggle('active', this.snapEnabled);
       if (this.editor.runtime && this.editor.runtime.gizmoManager) {
-        this.editor.runtime.gizmoManager.setSnap(this.snapEnabled, 1.0);
+        this.editor.runtime.gizmoManager.setSnap(this.snapEnabled, this.posSnapIncrement);
       }
-      showToast(`Grid Snapping: ${this.snapEnabled ? '🧲 ON (1.0m)' : 'OFF'}`, this.snapEnabled ? 'success' : 'info');
+      showToast(`Grid Snapping: ${this.snapEnabled ? `🧲 ON (${this.posSnapIncrement}m / ${this.rotSnapIncrement}°)` : 'OFF'}`, this.snapEnabled ? 'success' : 'info');
+    });
+
+    snapBtn.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const val = prompt('Enter grid position snap increment (e.g. 0.1, 0.25, 0.5, 1.0, 2.0):', this.posSnapIncrement);
+      if (val && !isNaN(parseFloat(val))) {
+        this.posSnapIncrement = parseFloat(val);
+        this.snapEnabled = true;
+        snapBtn.classList.add('active');
+        if (this.editor.runtime && this.editor.runtime.gizmoManager) {
+          this.editor.runtime.gizmoManager.setSnap(true, this.posSnapIncrement);
+        }
+        showToast(`🧲 Snapping step set to ${this.posSnapIncrement}m!`, 'success');
+      }
+    });
+
+    // Physics Wireframe Debugger Toggle
+    const physDebugBtn = this.container.querySelector('#tool-physics-debug');
+    physDebugBtn.addEventListener('click', () => {
+      this.physicsDebugEnabled = !this.physicsDebugEnabled;
+      physDebugBtn.classList.toggle('active', this.physicsDebugEnabled);
+      if (this.editor.runtime && this.editor.runtime.visualHelpers) {
+        this.editor.runtime.visualHelpers.setPhysicsDebugAll(this.physicsDebugEnabled);
+      }
+      showToast(`🟢 Physics Collider Debug Wireframes: ${this.physicsDebugEnabled ? 'ACTIVE (All Colliders Visible)' : 'OFF'}`, this.physicsDebugEnabled ? 'success' : 'info');
     });
 
     // Frame button
