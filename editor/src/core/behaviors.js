@@ -1297,6 +1297,14 @@ export class BehaviorManager {
             if (!b.state) b.state = { initialized: true };
           } else if (b.type === 'inventory_drop_spawner') {
             if (!b.state) b.state = { dropped: false };
+          } else if (b.type === 'audio_occlusion_zone') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 6.0;
+              b._playerInZone = dist <= radius;
+              b._occlusionFactor = b._playerInZone ? (b.params.muffling || 0.8) : 0.0;
+            }
           }
         }
       }

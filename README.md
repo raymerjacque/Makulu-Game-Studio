@@ -115,7 +115,7 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **73 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `grappling_hook`, `grav_gun_physicshandler`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Behavior Injection:** Attach any of the **80 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
 * **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
@@ -360,6 +360,20 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Proximity vertical ladder and rope climbing using W/S keys with automatic velocity and gravity cancellation.
 73. **⏱️ Slow Motion Bullet-Time Zone:**
     Time dilation and Matrix-style bullet-time environmental zone that slows simulation delta time for intense action sequences.
+74. **🌌 Gravity Well Attractor / Repulser:**
+    Singularity force field volume that dynamically pulls or repels rigidbodies and physics props with configurable radius and strength.
+75. **🔋 Flashlight Battery & Refill Pickups:**
+    Survival horror flashlight power system with continuous drain, auto-extinguish on empty, and collectible battery replenishment.
+76. **✈️ 3D Flight Path with Banking:**
+    Aerodynamic 3D flight trajectory system featuring smooth sinusoidal elevation undulation and realistic rotational banking along curves.
+77. **🌧️ Dynamic Weather & Surface Wetness:**
+    Atmospheric precipitation controller supporting Rain and Snow particle weather presets with dynamic ground wetness reflection modulation.
+78. **🧱 Destructible Brick Wall Cluster:**
+    Multi-element breakable wall array enabling dynamic environmental destruction in combat and breach scenarios.
+79. **🎁 Defeat Loot Drop Table Spawner:**
+    Configurable item and loot drop system that spawns pickups (health potions, ammunition, keys) upon enemy defeat.
+80. **🔇 Acoustic Sound Occlusion & Muffling:**
+    Environmental low-pass audio dampening and acoustic occlusion volume that realistically muffles sounds when obstacles or walls intervene.
 
 ---
 
@@ -460,12 +474,17 @@ Create reactive game mechanics through modular trigger volumes:
   * **Interactive Clip Selector & Inspector Player:** Preview and trigger any skeletal animation clip directly from the Inspector dropdown, adjust playback speed (0.1x - 2.5x), and configure transitions in the Visual Animation Blend Graph modal.
 * **📦 Prefab & Entity Template System:** Save any configured entity hierarchy as a reusable Prefab with 1-click **"Save Prefab"** in the Inspector. Re-instantiate prefabs into the scene with a single click or double-click from `/assets/prefabs`.
 * **🏔️ Procedural Terrain Sculptor:** Multi-octave Perlin noise heightmap mesh generator with customizable resolution (16×16 to 128×128 vertices), max altitude, roughness, seamless edge falloff, and elevation-based vertex coloring (beach sand, lush grass, mountain rock, and snow peak). Includes physics mesh collision.
-* **👁️ 3D Viewport Component Visual Wireframe Helpers:**
+* **👁️ 3D Viewport Component Visual Wireframe Helpers & Navigation:**
+  * **🧭 Viewport Camera Orientation Tripod Overlay:** Instant camera view snapping buttons (`Y` Top, `Z` Front, `X` Side, `3D` Isometric) pinned to the top-right of the viewport for precise modeling and alignment.
+  * **🟢 Real-Time Physics Collider Wireframe Debugger:** 1-click ToolStrip toggle (`🟢`) that dynamically projects live green wireframe bounding hulls (boxes, spheres, capsules, cylinders) for all scene colliders simultaneously.
+  * **🧲 Custom Grid Snapping Steps:** Right-click the snap button (`🧲`) to configure custom translation snapping increments (`0.1m`, `0.25m`, `0.5m`, `1.0m`, `2.0m`) with active status feedback.
   * **Light Range Gizmo:** Wireframe sphere matching point/spot light radius and color.
   * **Spatial Audio Gizmo:** Cyan wireframe sphere displaying audio maximum attenuation range.
   * **Physics Collision Gizmo:** Real-time green wireframe outlines displaying box, sphere, capsule, and cylinder collision bounds.
   * **Physics Joint Constraint Gizmo:** Gold wireframe cylinder/sphere gizmos at joint pivot locations for visual anchor alignment.
-* **🧩 Advanced ECS Component Inspector:**
+* **🧩 Advanced ECS Component Inspector & Power Tools:**
+  * **📋 Component Copy & Paste:** 1-click copy button (`📋`) on Render, Light, and Rigidbody cards allows copying entire component configurations and pasting them across different entities with a single click.
+  * **🎨 Expanded PBR Material Pipeline:** Comprehensive PBR pipeline supporting Diffuse, Emissive, Metalness, Roughness, Opacity, and **Normal (Bump) Texture Maps** with automatic base64 embedding in standalone exports.
   * **🎥 Camera:** FOV, Near Clip, and Far Clip.
   * **💡 Light Source:** Real-time visual color wheel picker, Intensity, Range, Cone Angles, and Shadow cascades.
   * **🎯 Collision Shapes:** Box, Sphere, Capsule, Cylinder, and Mesh.
@@ -474,7 +493,7 @@ Create reactive game mechanics through modular trigger volumes:
   * **✨ Particle Systems:** Built-in particle presets (🔥 Fire, 💨 Smoke, ⚡ Sparks, ✨ Magic Dust, 🌧️ Rain, 💥 Explosion) with 1-click preset switching, emission rate, particle scale, visual color tint picker, sorting, and lifetime controls.
   * **🔊 3D Spatial Audio:** Audio asset URL configuration with in-editor playback preview, Volume, Pitch, Loop toggles, AutoPlay on Scene Start, and **Min / Max Attenuation Distance** settings for realistic 3D acoustic falloff.
   * **⚡ Trigger Volumes:** Pro Mode addition and visual configuration of interactive proximity triggers.
-  * **📜 Custom Scripting:** 1-click code editor attachment and execution.
+  * **📜 Code Studio & Script Templates:** Full-featured scripting studio with built-in templates for **WASD Character Movement**, **Follow Camera**, **Light Flicker**, **Health & Combat System**, **Proximity Trigger Interactor**, and **Enemy Chase AI**.
 * **🗂️ Multi-Scene Management & Hierarchy Power Tools:**
   * **Multi-Scene Switcher:** Create and navigate between multiple levels (`Main Scene`, `Level_2`, etc.) with automatic background state retention and scene JSON snapshotting.
   * **Scene Power Tools:** 1-click **Rename (`✏️`)**, **Duplicate (`📋`)**, and **Delete (`🗑️`)** scene actions directly in the TopBar.
@@ -486,7 +505,7 @@ Create reactive game mechanics through modular trigger volumes:
   * **📂 Scene Import & 💾 Export:** Save and load full scene graphs as portable JSON files with complete component, model, trigger, and behavior state.
 * **📁 Enhanced Asset Browser & File Management:**
   * **Live Asset Search Filter:** Instant filename substring filtering via the dedicated Assets search bar.
-  * **Asset Right-Click Context Menu:** Right-click any asset in the project library to Rename, Duplicate, or Delete.
+  * **Asset Right-Click Context Menu:** Right-click any asset in the project library to Rename, Duplicate, Delete, **🎨 Create New Material Asset**, or **📦 Create Prefab from Selected Entity**.
 
 ---
 

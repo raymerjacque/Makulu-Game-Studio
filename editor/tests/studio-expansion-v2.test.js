@@ -15,6 +15,7 @@ test('Studio Expansion v2: All 80 behaviors exist in BEHAVIOR_CATALOG', () => {
   assert.ok(types.includes('weather_rain_snow_toggle'));
   assert.ok(types.includes('destructible_wall_cluster'));
   assert.ok(types.includes('inventory_drop_spawner'));
+  assert.ok(types.includes('audio_occlusion_zone'));
 });
 
 test('Studio Expansion v2: New 7 behaviors attach and update in BehaviorManager', () => {
@@ -33,6 +34,7 @@ test('Studio Expansion v2: New 7 behaviors attach and update in BehaviorManager'
   bm.attachBehavior(ent, 'weather_rain_snow_toggle', { weatherType: 'rain' });
   bm.attachBehavior(ent, 'destructible_wall_cluster', { rows: 3, cols: 4 });
   bm.attachBehavior(ent, 'inventory_drop_spawner', { dropItem: 'Health Potion' });
+  bm.attachBehavior(ent, 'audio_occlusion_zone', { radius: 6.0, muffling: 0.8 });
 
   assert.equal(bm.hasBehavior(ent, 'gravity_well_attractor'), true);
   assert.equal(bm.hasBehavior(ent, 'flashlight_battery'), true);
@@ -40,6 +42,7 @@ test('Studio Expansion v2: New 7 behaviors attach and update in BehaviorManager'
   assert.equal(bm.hasBehavior(ent, 'weather_rain_snow_toggle'), true);
   assert.equal(bm.hasBehavior(ent, 'destructible_wall_cluster'), true);
   assert.equal(bm.hasBehavior(ent, 'inventory_drop_spawner'), true);
+  assert.equal(bm.hasBehavior(ent, 'audio_occlusion_zone'), true);
 });
 
 test('Studio Expansion v2: Material normal map and emissive serialization', () => {

@@ -1927,6 +1927,14 @@ export class GameBundler {
             if (!b._state) b._state = { initialized: true };
           } else if (b.type === 'inventory_drop_spawner') {
             if (!b._state) b._state = { dropped: false };
+          } else if (b.type === 'audio_occlusion_zone') {
+            const player = app.root.findByName('Player') || app.root.findByName('Hero') || (app.root.findByTag && app.root.findByTag('player')[0]);
+            if (player) {
+              const dist = node.getPosition().distance(player.getPosition());
+              const radius = b.properties?.radius || 6.0;
+              b._playerInZone = dist <= radius;
+              b._occlusionFactor = b._playerInZone ? (b.properties?.muffling || 0.8) : 0.0;
+            }
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;
             if (b._cooldown > 0) b._cooldown -= dt;
