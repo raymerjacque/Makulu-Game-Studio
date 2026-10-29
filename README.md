@@ -115,7 +115,7 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **80 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Behavior Injection:** Attach any of the **90 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
 * **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
@@ -374,6 +374,26 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Configurable item and loot drop system that spawns pickups (health potions, ammunition, keys) upon enemy defeat.
 80. **🔇 Acoustic Sound Occlusion & Muffling:**
     Environmental low-pass audio dampening and acoustic occlusion volume that realistically muffles sounds when obstacles or walls intervene.
+81. **🦶 Procedural Footstep Audio:**
+    Cadence-timed rhythmic footstep audio playback synchronized with player WASD and arrow key locomotion.
+82. **🏷️ 3D Floating Text Nametag:**
+    World-space billboard nametag positioning with customizable height offset for character names, enemy ranks, and NPC dialogue tags.
+83. **⚠️ Fall Damage Kill Plane (Out of Bounds):**
+    Out-of-bounds safety volume that catches falling characters below a customizable altitude threshold (`minY`), resets linear velocity, triggers impact rumble, restores health, and teleports them to safe checkpoints.
+84. **🧲 Item Attractor Magnet Field:**
+    Radial attraction force field that accelerates collectible coins, keys, and health pickups towards the player.
+85. **🔴 Turret Laser Sight Beam:**
+    Target-tracking laser aiming beam that locks onto moving heroes and vehicles within detection range.
+86. **📦 Breakable Crate Loot Spawner:**
+    Destructible wooden crate with health depletion, splinter burst visual feedback, screen rumble, and procedural health pickup or loot drops.
+87. **☀️ Dynamic Celestial Sun Orbital Rotation:**
+    Smooth astronomical rotational controller that simulates continuous day-night celestial cycles for sunlight and skybox illumination.
+88. **📍 Radar Minimap Blip Indicator:**
+    Spatial position tracker broadcasting coordinate and color metadata for minimap radar displays.
+89. **💥 Combat Floating Damage Numbers:**
+    Dynamic floating numerical combat damage indicators that ascend and fade out upon weapon or spell impact.
+90. **📣 Multi-Kill Streak Announcer Audio:**
+    Rapid multi-kill streak tracker that rewards players with audio fanfares and visual fanfare during intense combat encounters.
 
 ---
 
@@ -389,6 +409,12 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
   * **💔 Hurt & Damage:** Sawtooth drop tone for player and enemy combat damage.
   * **🏆 Victory Fanfare:** Ascending celebratory arpeggio for level complete and portal triggers.
   * **💨 Dash Boost:** High-velocity wind-rush burst for directional dash maneuvers.
+  * **🦶 Footstep:** Low-frequency sine thump for grounded player movement.
+  * **🌀 Teleport:** Exponential ascending frequency ramp for spatial warps and portals.
+  * **⭐ Powerup:** Ascending multi-tone arpeggio chord for buffs and abilities.
+  * **🛡️ Shield Hit:** Resonant high-to-low ping for shield deflection and armor hits.
+  * **🔫 Weapon Reload:** Dual-click mechanical reload latching effect.
+  * **✨ Magic Spell:** Shimmering harmonic triple-oscillator chord for arcane spells.
 * **1-Click 16-Bit PCM WAV Exporting:** Generates authentic 16-bit PCM WAV Base64 Data URLs and exports them directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
 * **Universal Compilation:** Inlined directly into compiled standalone `.html` games for instant zero-dependency audio on any device.
 
@@ -476,6 +502,8 @@ Create reactive game mechanics through modular trigger volumes:
 * **🏔️ Procedural Terrain Sculptor:** Multi-octave Perlin noise heightmap mesh generator with customizable resolution (16×16 to 128×128 vertices), max altitude, roughness, seamless edge falloff, and elevation-based vertex coloring (beach sand, lush grass, mountain rock, and snow peak). Includes physics mesh collision.
 * **👁️ 3D Viewport Component Visual Wireframe Helpers & Navigation:**
   * **🧭 Viewport Camera Orientation Tripod Overlay:** Instant camera view snapping buttons (`Y` Top, `Z` Front, `X` Side, `3D` Isometric) pinned to the top-right of the viewport for precise modeling and alignment.
+  * **📸 1-Click High-Res Viewport Snapshot Tool:** Dedicated TopBar button (`📸 Snapshot`) and autonomous AI action (`capture_screenshot`) that captures PNG screenshots of the 3D scene, prompts instant download, and saves them to the project's Asset Browser.
+  * **⬇️ Drop to Floor Ground Helper:** 1-click Scene menu action (`⬇️ Drop Selected to Floor Ground`) that automatically positions any elevated or floating entity flush onto the ground plane based on its bounding height.
   * **🟢 Real-Time Physics Collider Wireframe Debugger:** 1-click ToolStrip toggle (`🟢`) that dynamically projects live green wireframe bounding hulls (boxes, spheres, capsules, cylinders) for all scene colliders simultaneously.
   * **🧲 Custom Grid Snapping Steps:** Right-click the snap button (`🧲`) to configure custom translation snapping increments (`0.1m`, `0.25m`, `0.5m`, `1.0m`, `2.0m`) with active status feedback.
   * **Light Range Gizmo:** Wireframe sphere matching point/spot light radius and color.
