@@ -415,6 +415,21 @@ export class GameBundler {
       if (pfx.bloom && pfx.bloom.enabled) {
         app.scene.exposure = (app.scene.exposure || 1.0) * (pfx.bloom.intensity || 1.0);
       }
+
+      if (pfx.colorGrading) {
+        const b = pfx.colorGrading.brightness !== undefined ? pfx.colorGrading.brightness : 1.0;
+        app.scene.exposure = (app.scene.exposure || 1.0) * b;
+      }
+
+      if (pfx.vignette && pfx.vignette.enabled) {
+        window._vignetteFX = pfx.vignette;
+      }
+      if (pfx.dof && pfx.dof.enabled) {
+        window._dofFX = pfx.dof;
+      }
+      if (pfx.chromaticAberration && pfx.chromaticAberration.enabled) {
+        window._chromaticFX = pfx.chromaticAberration;
+      }
     }
 
     if (SCENE_DATA.gravity && app.systems && app.systems.rigidbody) {
@@ -2031,6 +2046,97 @@ export class GameBundler {
               if (b._state.comboTimer <= 0) {
                 b._state.killStreak = 0;
               }
+            }
+          } else if (b.type === 'grappling_rope_physics') {
+            if (playerEntity) {
+              const maxDist = b.properties?.maxDistance || 25;
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist > maxDist) {
+                const tension = b.properties?.tension || 15.0;
+                const dir = node.getPosition().clone().sub(playerEntity.getPosition()).normalize();
+                if (playerEntity.rigidbody) {
+                  playerEntity.rigidbody.applyForce(dir.x * tension * dt * 60, dir.y * tension * dt * 60, dir.z * tension * dt * 60);
+                } else {
+                  playerEntity.translate(dir.x * tension * dt * 0.1, dir.y * tension * dt * 0.1, dir.z * tension * dt * 0.1);
+                }
+              }
+            }
+          } else if (b.type === 'portal_teleport_pair') {
+            if (playerEntity) {
+              if (!b._teleportCd) b._teleportCd = 0;
+              if (b._teleportCd > 0) b._teleportCd -= dt;
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist < 1.8 && b._teleportCd <= 0) {
+                b._teleportCd = b.properties?.cooldown || 1.5;
+                const pairedName = b.properties?.pairedEntity || 'Portal_B';
+                const targetPortal = app.root.findByName(pairedName);
+                if (targetPortal) {
+                  const destPos = targetPortal.getPosition().clone().add(targetPortal.forward.clone().mulScalar(2.0));
+                  if (playerEntity.rigidbody) playerEntity.rigidbody.teleport(destPos);
+                  else playerEntity.setPosition(destPos);
+                  if (window.playProceduralSFX) window.playProceduralSFX('teleport');
+                }
+              }
+            }
+          } else if (b.type === 'tactical_time_dilation') {
+            const triggerKey = (b.properties?.triggerKey || 't').toLowerCase();
+            if (keys[triggerKey]) {
+              if (!b._activeTimer) {
+                b._activeTimer = b.properties?.duration || 3.0;
+                if (window.playProceduralSFX) window.playProceduralSFX('powerup');
+              }
+            }
+            if (b._activeTimer && b._activeTimer > 0) {
+              b._activeTimer -= dt;
+            }
+          } else if (b.type === 'dynamic_weather_storm') {
+            if (!b._flashTimer) b._flashTimer = 0;
+            b._flashTimer -= dt;
+            if (b._flashTimer <= 0) {
+              b._flashTimer = b.properties?.flashInterval || 8.0;
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+              window.triggerScreenShake(0.7, 0.35);
+            }
+          } else if (b.type === 'loot_box_gacha') {
+            if (b.properties.health === undefined) b.properties.health = 20;
+            if (b.properties.health <= 0 && node.enabled) {
+              node.enabled = false;
+              if (window.playProceduralSFX) window.playProceduralSFX('victory');
+              window.triggerScreenShake(0.4, 0.2);
+            }
+          } else if (b.type === 'magnetic_shield') {
+            const pos = node.getPosition();
+            const radius = b.properties?.radius || 3.0;
+            const force = b.properties?.reflectForce || 20.0;
+            app.root.forEach(other => {
+              if (other !== node && other.enabled && (other.name.toLowerCase().includes('bullet') || other.name.toLowerCase().includes('projectile'))) {
+                const dist = pos.distance(other.getPosition());
+                if (dist <= radius) {
+                  const reflectDir = other.getPosition().clone().sub(pos).normalize();
+                  if (other.rigidbody) {
+                    other.rigidbody.applyForce(reflectDir.x * force, reflectDir.y * force, reflectDir.z * force);
+                  } else {
+                    other.translate(reflectDir.x * dt * force, reflectDir.y * dt * force, reflectDir.z * dt * force);
+                  }
+                }
+              }
+            });
+          } else if (b.type === 'climbable_ledge_parkour') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist <= (b.properties?.reachRadius || 1.5) && (keys['w'] || keys['arrowup'])) {
+                const climbSpeed = b.properties?.climbSpeed || 4.0;
+                playerEntity.translate(0, climbSpeed * dt, 0);
+                if (playerEntity.rigidbody) playerEntity.rigidbody.linearVelocity = pc.Vec3.ZERO;
+              }
+            }
+          } else if (b.type === 'orbiting_drone_companion') {
+            if (playerEntity) {
+              if (!b._angle) b._angle = 0;
+              b._angle += dt * 2.0;
+              const radius = b.properties?.orbitRadius || 3.0;
+              const pPos = playerEntity.getPosition();
+              node.setPosition(pPos.x + Math.cos(b._angle) * radius, pPos.y + 1.8, pPos.z + Math.sin(b._angle) * radius);
             }
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;

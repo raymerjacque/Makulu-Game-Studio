@@ -1405,10 +1405,125 @@ export class BehaviorManager {
                 b._state.killStreak = 0;
               }
             }
+          } else if (b.type === 'grappling_rope_physics') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const maxDist = b.params.maxDistance || 25;
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist > maxDist) {
+                const tension = b.params.tension || 15.0;
+                const dir = entity.getPosition().clone().sub(player.getPosition()).normalize();
+                if (player.rigidbody) {
+                  player.rigidbody.applyForce(dir.x * tension * dt * 60, dir.y * tension * dt * 60, dir.z * tension * dt * 60);
+                } else {
+                  player.translate(dir.x * tension * dt * 0.1, dir.y * tension * dt * 0.1, dir.z * tension * dt * 0.1);
+                }
+              }
+            }
+          } else if (b.type === 'portal_teleport_pair') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              if (!b._teleportCd) b._teleportCd = 0;
+              if (b._teleportCd > 0) b._teleportCd -= dt;
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist < 1.8 && b._teleportCd <= 0) {
+                b._teleportCd = b.params.cooldown || 1.5;
+                const pairedName = b.params.pairedEntity || 'Portal_B';
+                const app = this.editor.getApp();
+                const targetPortal = app ? app.root.findByName(pairedName) : null;
+                if (targetPortal) {
+                  const destPos = targetPortal.getPosition().clone().add(targetPortal.forward.clone().mulScalar(2.0));
+                  if (player.rigidbody) player.rigidbody.teleport(destPos);
+                  else player.setPosition(destPos);
+                  proceduralSFX.play('teleport');
+                  if (typeof showToast === 'function') showToast(`🌀 Spatial Warp to ${pairedName}!`, 'info');
+                }
+              }
+            }
+          } else if (b.type === 'tactical_time_dilation') {
+            const triggerKey = (b.params.triggerKey || 't').toLowerCase();
+            if (this.isKeyDown(triggerKey)) {
+              if (!b._activeTimer) {
+                b._activeTimer = b.params.duration || 3.0;
+                proceduralSFX.play('powerup');
+                if (typeof showToast === 'function') showToast(`⌛ Bullet-Time Matrix Dilation Activated!`, 'success');
+              }
+            }
+            if (b._activeTimer && b._activeTimer > 0) {
+              b._activeTimer -= dt;
+            }
+          } else if (b.type === 'dynamic_weather_storm') {
+            if (!b._flashTimer) b._flashTimer = 0;
+            b._flashTimer -= dt;
+            if (b._flashTimer <= 0) {
+              b._flashTimer = b.params.flashInterval || 8.0;
+              proceduralSFX.play('explosion');
+              this.triggerScreenShake(0.7, 0.35);
+              if (typeof showToast === 'function') showToast(`⛈️ Lightning Flash & Thunder Strike!`, 'info');
+            }
+          } else if (b.type === 'loot_box_gacha') {
+            if (b.params.health === undefined) b.params.health = 20;
+            if (b.params.health <= 0 && entity.enabled) {
+              entity.enabled = false;
+              proceduralSFX.play('victory');
+              this.triggerScreenShake(0.4, 0.2);
+              if (typeof showToast === 'function') showToast(`🎁 Mystery Loot Box Unlocked! Items Dropped!`, 'success');
+            }
+          } else if (b.type === 'magnetic_shield') {
+            const pos = entity.getPosition();
+            const radius = b.params.radius || 3.0;
+            const force = b.params.reflectForce || 20.0;
+            const app = this.editor.getApp();
+            if (app) {
+              app.root.forEach(other => {
+                if (other !== entity && other.enabled && (other.name.toLowerCase().includes('bullet') || other.name.toLowerCase().includes('projectile'))) {
+                  const dist = pos.distance(other.getPosition());
+                  if (dist <= radius) {
+                    const reflectDir = other.getPosition().clone().sub(pos).normalize();
+                    if (other.rigidbody) {
+                      other.rigidbody.applyForce(reflectDir.x * force, reflectDir.y * force, reflectDir.z * force);
+                    } else {
+                      other.translate(reflectDir.x * dt * force, reflectDir.y * dt * force, reflectDir.z * dt * force);
+                    }
+                  }
+                }
+              });
+            }
+          } else if (b.type === 'combo_hit_counter_hud') {
+            if (!b._comboTimer) b._comboTimer = 0;
+            if (b._comboTimer > 0) b._comboTimer -= dt;
+          } else if (b.type === 'climbable_ledge_parkour') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist <= (b.params.reachRadius || 1.5) && (this.isKeyDown('w') || this.isKeyDown('arrowup'))) {
+                const climbSpeed = b.params.climbSpeed || 4.0;
+                player.translate(0, climbSpeed * dt, 0);
+                if (player.rigidbody) player.rigidbody.linearVelocity = pc.Vec3.ZERO;
+              }
+            }
+          } else if (b.type === 'orbiting_drone_companion') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              if (!b._angle) b._angle = 0;
+              b._angle += dt * 2.0;
+              const radius = b.params.orbitRadius || 3.0;
+              const pPos = player.getPosition();
+              entity.setPosition(pPos.x + Math.cos(b._angle) * radius, pPos.y + 1.8, pPos.z + Math.sin(b._angle) * radius);
+            }
+          } else if (b.type === 'directional_damage_indicator') {
+            if (!b._fadeTimer) b._fadeTimer = 0;
+            if (b._fadeTimer > 0) b._fadeTimer -= dt;
           }
         }
       }
     });
+  }
+
+  findPlayerEntity() {
+    const app = this.editor.getApp();
+    if (!app) return null;
+    return app.root.find(node => node.name.toLowerCase().includes('player') || node.name.toLowerCase().includes('character') || node.name.toLowerCase().includes('hero') || node.name.toLowerCase().includes('warrior'));
   }
 
   isKeyDown(key) {

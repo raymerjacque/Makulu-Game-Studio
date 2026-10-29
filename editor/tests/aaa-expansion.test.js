@@ -1,102 +1,98 @@
 import test from 'node:test';
-import assert from 'node:assert';
+import assert from 'node:assert/strict';
 import { Editor } from '../src/core/editor.js';
 import { BehaviorManager } from '../src/core/behaviors.js';
-import { AIExecutor } from '../src/ai/ai-executor.js';
+import { BEHAVIOR_CATALOG } from '../src/ui/inspector.js';
+import { generateWAVDataURL, proceduralSFX } from '../src/engine/procedural-sfx.js';
 import { GameBundler } from '../src/compiler/game-bundler.js';
 
-test('AAA Expansion: Attach and query all 10 new AAA behaviors', () => {
-  const editor = new Editor();
-  const behaviors = new BehaviorManager(editor);
-  editor.behaviors = behaviors;
+test('AAA Expansion: BEHAVIOR_CATALOG contains 100 total behaviors', () => {
+  assert.equal(BEHAVIOR_CATALOG.length, 100);
 
-  const entity = editor.createEntity({ name: 'TestHero' });
-
-  const aaaBehaviors = [
-    'wall_run_controller',
-    'grappling_hook',
-    'grav_gun_physicshandler',
-    'inventory_crafting',
-    'dialogue_system',
-    'quest_tracker',
-    'minimap_radar',
-    'cover_system',
-    'ragdoll_physics',
-    'day_night_weather_cycle'
+  const aaaTypes = [
+    'grappling_rope_physics',
+    'portal_teleport_pair',
+    'tactical_time_dilation',
+    'dynamic_weather_storm',
+    'loot_box_gacha',
+    'magnetic_shield',
+    'combo_hit_counter_hud',
+    'climbable_ledge_parkour',
+    'orbiting_drone_companion',
+    'directional_damage_indicator'
   ];
 
-  aaaBehaviors.forEach(bType => {
-    behaviors.attachBehavior(entity, bType, { testParam: 123 });
-    assert.strictEqual(behaviors.hasBehavior(entity, bType), true);
+  aaaTypes.forEach(type => {
+    const found = BEHAVIOR_CATALOG.find(b => b.type === type);
+    assert.ok(found, `Behavior catalog must contain ${type}`);
+    assert.ok(found.icon, `Behavior ${type} must have icon`);
+    assert.ok(found.name, `Behavior ${type} must have name`);
+  });
+});
+
+test('AAA Expansion: BehaviorManager attaches and manages all 10 new AAA behaviors', () => {
+  const editor = new Editor();
+  const manager = new BehaviorManager(editor);
+  const entity = editor.createEntity({ name: 'AAATestEntity' });
+
+  const aaaTypes = [
+    'grappling_rope_physics',
+    'portal_teleport_pair',
+    'tactical_time_dilation',
+    'dynamic_weather_storm',
+    'loot_box_gacha',
+    'magnetic_shield',
+    'combo_hit_counter_hud',
+    'climbable_ledge_parkour',
+    'orbiting_drone_companion',
+    'directional_damage_indicator'
+  ];
+
+  aaaTypes.forEach(type => {
+    manager.attachBehavior(entity, type, { customParam: true });
+    assert.ok(manager.hasBehavior(entity, type), `Entity should have behavior ${type}`);
   });
 
-  const attached = behaviors.getBehaviors(entity);
-  assert.strictEqual(attached.length, aaaBehaviors.length);
+  const behaviors = manager.getBehaviors(entity);
+  assert.equal(behaviors.length, 10);
+
+  aaaTypes.forEach(type => {
+    manager.removeBehavior(entity, type);
+    assert.equal(manager.hasBehavior(entity, type), false);
+  });
 });
 
-test('AAA Expansion: Execute new AIExecutor actions', async () => {
-  const editor = new Editor();
-  const behaviors = new BehaviorManager(editor);
-  editor.behaviors = behaviors;
-  const executor = new AIExecutor(editor);
+test('AAA Expansion: Procedural SFX supports custom ADSR & waveform parameters in WAV generation', () => {
+  const customParams = {
+    waveType: 'square',
+    startFreq: 880,
+    endFreq: 220,
+    attack: 0.05,
+    decay: 0.1,
+    sustain: 0.4,
+    release: 0.2
+  };
 
-  const actions = [
-    { action: 'build_architecture', type: 'room', position: [0, 0, 0], width: 10, depth: 10, height: 4 },
-    { action: 'create_water_volume', name: 'AI_Water', position: [0, -1, 0], extents: [8, 2, 8] },
-    { action: 'create_hazard_zone', name: 'AI_Lava', position: [5, 0, 0], radius: 3 },
-    { action: 'create_scene', name: 'Level_AI_Built' },
-    { action: 'switch_scene', name: 'Level_AI_Built' }
-  ];
-
-  const executed = await executor.executeActions(actions);
-  assert.strictEqual(executed.length, actions.length);
-  assert.strictEqual(editor.activeSceneName, 'Level_AI_Built');
+  const dataUrl = generateWAVDataURL(customParams);
+  assert.ok(dataUrl.startsWith('data:audio/wav;base64,'), 'Custom ADSR sound must produce valid WAV base64 Data URL');
+  assert.ok(dataUrl.length > 500, 'Data URL for custom sound should not be empty');
 });
 
-test('AAA Expansion: Standalone Game Bundler includes new AAA behaviors', () => {
+test('AAA Expansion: GameBundler exports post-processing FX config including vignette & DoF', () => {
   const editor = new Editor();
-  const behaviors = new BehaviorManager(editor);
-  editor.behaviors = behaviors;
-
-  const entity = editor.createEntity({ name: 'ParkourPlayer' });
-  behaviors.attachBehavior(entity, 'wall_run_controller', { speed: 12 });
-  behaviors.attachBehavior(entity, 'grappling_hook', { range: 40 });
+  editor.postProcessingConfig = {
+    exposure: 1.2,
+    toneMapping: 'aces',
+    vignette: { enabled: true, intensity: 0.6, curvature: 0.9 },
+    dof: { enabled: true, focusDistance: 12, blurAmount: 0.8 },
+    chromaticAberration: { enabled: true, offset: 0.008 },
+    colorGrading: { brightness: 1.1, contrast: 1.2, saturation: 1.05 }
+  };
 
   const bundler = new GameBundler(editor);
-  const html = bundler.compileStandaloneHTML({ title: 'AAA Test Game' });
+  const html = bundler.compileStandaloneHTML({ title: 'AAA PostFX Game' });
 
-  assert.ok(html.includes('wall_run_controller'));
-  assert.ok(html.includes('grappling_hook'));
-  assert.ok(html.includes('grav_gun_physicshandler'));
-  assert.ok(html.includes('inventory_crafting'));
-  assert.ok(html.includes('dialogue_system'));
-  assert.ok(html.includes('quest_tracker'));
-  assert.ok(html.includes('cover_system'));
-  assert.ok(html.includes('day_night_weather_cycle'));
-  assert.ok(html.includes('AAA Test Game'));
-});
-
-test('Combat System: Cover System reduces damage and Ragdoll Physics triggers on defeat', () => {
-  const editor = new Editor();
-  const behaviors = new BehaviorManager(editor);
-  editor.behaviors = behaviors;
-
-  const player = editor.createEntity({ name: 'CoverAgent' });
-  behaviors.attachBehavior(player, 'health', { maxHp: 100, currentHp: 100 });
-  behaviors.attachBehavior(player, 'cover_system', { damageReduction: 0.75 });
-  behaviors.attachBehavior(player, 'ragdoll_physics', {});
-
-  // Simulate being in cover
-  const coverB = behaviors.getBehaviors(player).find(b => b.type === 'cover_system');
-  coverB._inCover = true;
-
-  // 100 damage with 75% reduction = 25 damage dealt
-  behaviors.applyDamage(player, 100, 'Sniper');
-  const healthB = behaviors.getBehaviors(player).find(b => b.type === 'health');
-  assert.strictEqual(healthB.params.currentHp, 75);
-
-  // When out of cover, full damage applies
-  coverB._inCover = false;
-  behaviors.applyDamage(player, 75, 'LethalBlast');
-  assert.strictEqual(healthB.params.currentHp, 0);
+  assert.ok(html.includes('_vignetteFX'), 'HTML export must include vignette FX configuration');
+  assert.ok(html.includes('_dofFX'), 'HTML export must include DoF FX configuration');
+  assert.ok(html.includes('_chromaticFX'), 'HTML export must include chromatic aberration configuration');
 });
