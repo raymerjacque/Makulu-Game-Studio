@@ -65,6 +65,12 @@ export class SFXStudioModal {
               <button class="btn sfx-type-btn" data-type="hurt" style="justify-content: flex-start; gap: 6px; padding: 8px;">💔 Hurt / Damage</button>
               <button class="btn sfx-type-btn" data-type="victory" style="justify-content: flex-start; gap: 6px; padding: 8px;">🏆 Victory Fanfare</button>
               <button class="btn sfx-type-btn" data-type="boost" style="justify-content: flex-start; gap: 6px; padding: 8px;">💨 Dash Boost</button>
+              <button class="btn sfx-type-btn" data-type="footstep" style="justify-content: flex-start; gap: 6px; padding: 8px;">🦶 Footstep</button>
+              <button class="btn sfx-type-btn" data-type="teleport" style="justify-content: flex-start; gap: 6px; padding: 8px;">🌀 Teleport</button>
+              <button class="btn sfx-type-btn" data-type="powerup" style="justify-content: flex-start; gap: 6px; padding: 8px;">⭐ Powerup</button>
+              <button class="btn sfx-type-btn" data-type="shield_hit" style="justify-content: flex-start; gap: 6px; padding: 8px;">🛡️ Shield Hit</button>
+              <button class="btn sfx-type-btn" data-type="reload" style="justify-content: flex-start; gap: 6px; padding: 8px;">🔫 Weapon Reload</button>
+              <button class="btn sfx-type-btn" data-type="magic_spell" style="justify-content: flex-start; gap: 6px; padding: 8px;">✨ Magic Spell</button>
             </div>
           </div>
 

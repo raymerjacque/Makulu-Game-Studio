@@ -550,6 +550,26 @@ export class AIExecutor {
             break;
           }
 
+          case 'capture_screenshot': {
+            const canvas = typeof document !== 'undefined' ? document.getElementById('viewport-canvas') : null;
+            if (canvas) {
+              const dataUrl = canvas.toDataURL('image/png');
+              if (this.editor.assetsPanel) {
+                this.editor.assetsPanel.addAsset({
+                  id: Date.now().toString(),
+                  name: act.name || `AI_Snapshot_${Date.now().toString().slice(-4)}.png`,
+                  type: 'textures',
+                  icon: '🖼️',
+                  size: '180 KB',
+                  url: dataUrl,
+                  base64Data: dataUrl
+                });
+              }
+            }
+            executed.push({ action: act.action, target: act.name || 'Viewport Snapshot' });
+            break;
+          }
+
           default:
             console.warn(`AIExecutor: Unknown action "${act.action}"`);
         }

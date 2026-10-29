@@ -1935,6 +1935,103 @@ export class GameBundler {
               b._playerInZone = dist <= radius;
               b._occlusionFactor = b._playerInZone ? (b.properties?.muffling || 0.8) : 0.0;
             }
+          } else if (b.type === 'footstep_audio') {
+            if (!b._stepTimer) b._stepTimer = 0;
+            const isMoving = Boolean(keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown']);
+            if (isMoving) {
+              b._stepTimer -= dt;
+              if (b._stepTimer <= 0) {
+                b._stepTimer = b.properties?.interval || 0.35;
+                if (window.playProceduralSFX) window.playProceduralSFX(b.properties?.sfxType || 'footstep', 0.25);
+              }
+            }
+          } else if (b.type === 'floating_nametag') {
+            const cam = app.root.find(c => c.camera);
+            if (cam) {
+              const offset = b.properties?.heightOffset !== undefined ? b.properties.heightOffset : 2.2;
+              const pos = node.getPosition().clone().add(new pc.Vec3(0, offset, 0));
+              b._nametagPos = pos;
+            }
+          } else if (b.type === 'respawn_kill_plane') {
+            const minY = b.properties?.minY !== undefined ? b.properties.minY : -20;
+            if (node.getPosition().y < minY) {
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+              window.triggerScreenShake(0.6, 0.3);
+              const respawnPos = node._respawnCheckpoint || new pc.Vec3(0, 2, 0);
+              if (node.rigidbody) {
+                node.rigidbody.teleport(respawnPos);
+                node.rigidbody.linearVelocity = pc.Vec3.ZERO;
+              } else {
+                node.setPosition(respawnPos);
+              }
+              const playerB = node._behaviors || [];
+              const healthB = playerB.find(hb => hb.type === 'health');
+              if (healthB) {
+                healthB.properties.currentHp = healthB.properties.maxHp || 100;
+              }
+            }
+          } else if (b.type === 'item_magnet') {
+            const magnetPos = node.getPosition();
+            const radius = b.properties?.pullRadius || 8.0;
+            const speed = b.properties?.pullSpeed || 12.0;
+
+            app.root.forEach(other => {
+              if (other !== node && other.enabled && other.parent) {
+                const otherB = other._behaviors || [];
+                if (otherB.some(ob => ob.type === 'collectible' || ob.type === 'key_pickup' || ob.type === 'health_pickup')) {
+                  const dist = magnetPos.distance(other.getPosition());
+                  if (dist <= radius && dist > 0.1) {
+                    const dir = magnetPos.clone().sub(other.getPosition()).normalize().mulScalar(speed * dt);
+                    other.translate(dir);
+                  }
+                }
+              }
+            });
+          } else if (b.type === 'turret_laser_sight') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist < (b.properties?.beamLength || 25.0)) {
+                node.lookAt(playerEntity.getPosition());
+              }
+            }
+          } else if (b.type === 'breakable_crate_loot') {
+            if (b.properties.health === undefined) b.properties.health = b.properties.maxHealth || 30;
+            if (b.properties.health <= 0 && node.enabled) {
+              node.enabled = false;
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+              window.triggerScreenShake(0.4, 0.2);
+
+              const loot = new pc.Entity('Loot_' + Date.now());
+              loot.setPosition(node.getPosition().clone().add(new pc.Vec3(0, 0.5, 0)));
+              loot.setLocalScale(0.4, 0.4, 0.4);
+
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = new pc.Color(0.1, 0.9, 0.2);
+              mat.emissive = new pc.Color(0.1, 0.8, 0.2);
+              mat.update();
+
+              loot.addComponent('render', { type: 'sphere', material: mat });
+              loot._behaviors = [{ type: 'health_pickup', properties: { healAmount: 30 } }];
+              app.root.addChild(loot);
+            }
+          } else if (b.type === 'rotating_skybox_sun') {
+            const speed = b.properties?.cycleSpeed || 0.05;
+            node.rotate(speed * dt * 20, 0, 0);
+          } else if (b.type === 'minimap_blip') {
+            b._blipColor = b.properties?.blipColor || '#34d399';
+            b._worldPos = node.getPosition();
+          } else if (b.type === 'damage_number_popup') {
+            if (b._popupTimer && b._popupTimer > 0) {
+              b._popupTimer -= dt;
+            }
+          } else if (b.type === 'combo_kill_announcer') {
+            if (!b._state) b._state = { killStreak: 0, comboTimer: 0 };
+            if (b._state.comboTimer > 0) {
+              b._state.comboTimer -= dt;
+              if (b._state.comboTimer <= 0) {
+                b._state.killStreak = 0;
+              }
+            }
           } else if (b.type === 'projectile_shooter') {
             if (!b._cooldown) b._cooldown = 0;
             if (b._cooldown > 0) b._cooldown -= dt;

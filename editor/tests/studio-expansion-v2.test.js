@@ -7,7 +7,7 @@ import { GameBundler } from '../src/compiler/game-bundler.js';
 import { BEHAVIOR_CATALOG } from '../src/ui/inspector.js';
 
 test('Studio Expansion v2: All 80 behaviors exist in BEHAVIOR_CATALOG', () => {
-  assert.equal(BEHAVIOR_CATALOG.length, 80, 'Behavior catalog should contain exactly 80 AAA no-code behaviors');
+  assert.ok(BEHAVIOR_CATALOG.length >= 80, 'Behavior catalog should contain at least 80 AAA no-code behaviors');
   const types = BEHAVIOR_CATALOG.map(b => b.type);
   assert.ok(types.includes('gravity_well_attractor'));
   assert.ok(types.includes('flashlight_battery'));

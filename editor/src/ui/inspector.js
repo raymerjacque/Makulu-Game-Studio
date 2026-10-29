@@ -83,7 +83,17 @@ export const BEHAVIOR_CATALOG = [
   { type: 'weather_rain_snow_toggle', icon: '🌧️', name: 'Dynamic Weather & Surface Wetness', defaultParams: { weatherType: 'rain', intensity: 1.0 } },
   { type: 'destructible_wall_cluster', icon: '🧱', name: 'Destructible Brick Wall Cluster', defaultParams: { rows: 3, cols: 4, brickHealth: 20 } },
   { type: 'inventory_drop_spawner', icon: '🎁', name: 'Defeat Loot Drop Table Spawner', defaultParams: { dropItem: 'Health Potion', dropChance: 1.0 } },
-  { type: 'audio_occlusion_zone', icon: '🔇', name: 'Acoustic Sound Occlusion & Muffling', defaultParams: { radius: 6.0, muffling: 0.8 } }
+  { type: 'audio_occlusion_zone', icon: '🔇', name: 'Acoustic Sound Occlusion & Muffling', defaultParams: { radius: 6.0, muffling: 0.8 } },
+  { type: 'footstep_audio', icon: '🦶', name: 'Procedural Footstep Audio', defaultParams: { interval: 0.35, sfxType: 'footstep' } },
+  { type: 'floating_nametag', icon: '🏷️', name: '3D Floating Text Nametag', defaultParams: { text: 'Player 1', heightOffset: 2.2 } },
+  { type: 'respawn_kill_plane', icon: '⚠️', name: 'Fall Damage Kill Plane (Out of Bounds)', defaultParams: { minY: -20, autoRespawn: true } },
+  { type: 'item_magnet', icon: '🧲', name: 'Item Attractor Magnet Field', defaultParams: { pullRadius: 8.0, pullSpeed: 12 } },
+  { type: 'turret_laser_sight', icon: '🔴', name: 'Turret Laser Sight Beam', defaultParams: { beamLength: 25.0, color: [1, 0, 0] } },
+  { type: 'breakable_crate_loot', icon: '📦', name: 'Breakable Crate Loot Spawner', defaultParams: { health: 30, lootItem: 'Health Potion' } },
+  { type: 'rotating_skybox_sun', icon: '☀️', name: 'Dynamic Celestial Sun Orbital Rotation', defaultParams: { cycleSpeed: 0.05 } },
+  { type: 'minimap_blip', icon: '📍', name: 'Radar Minimap Blip Indicator', defaultParams: { blipColor: '#34d399', shape: 'dot' } },
+  { type: 'damage_number_popup', icon: '💥', name: 'Combat Floating Damage Numbers', defaultParams: { duration: 0.8, color: '#f87171' } },
+  { type: 'combo_kill_announcer', icon: '📣', name: 'Multi-Kill Streak Announcer Audio', defaultParams: { comboTimeout: 3.5 } }
 ];
 
 /**
