@@ -115,8 +115,9 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **110 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `navmesh_agent`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
-* **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
+* **Behavior Injection:** Attach any of the **115 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `navmesh_agent`, `crouch_stealth_mechanic`, `grappling_hook_rope_beam`, `procedural_water_ripple`, `enemy_boss_healthbar_hud`, `screen_blood_vignette`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **HUD & Atmosphere Control:** Configure 2D HUD screens via `set_hud_config`, switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
+* **Instant Particle & Light Generation:** Procedurally generate pre-tuned particle systems (`create_particle_preset`) or styled physical light fixtures (`create_light_fixture`).
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
 * **Component Engineering:** Attach Rigidbody, Collision, Light, Render, Audio (`add_sound`), and Particle (`add_particle_system`) components.
@@ -434,6 +435,16 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Hot-key triggered (`V`) military FLIR thermal imaging mode that boosts ambient illumination and overlays high-contrast visibility filters.
 110. **🔫 Weapon Recoil & Camera Kickback:**
     Physical weapon kickback and dynamic camera pitch displacement with realistic exponential recovery dampening.
+111. **🥷 Crouch & Stealth Crawl:**
+    Hot-key triggered (`Ctrl` / `C`) crouching stance scaling down character bounding height, dampening movement velocity to a tactical stalk, and reducing enemy AI stealth detection radius.
+112. **🪝 Visual Grappling Hook Tether Beam:**
+    Dynamic visual tether beam connecting player forward anchors with customizable beam thickness and color glow.
+113. **🌊 Interactive Water Surface Ripples:**
+    Procedural sinusoidal elevation wave simulation for buoyant props and swimming entities.
+114. **🐉 Screen-Top Boss Health Bar HUD:**
+    Epic screen-top boss health bar with customized boss title, maximum health, red fill gradient, and automatic defeat fade-out.
+115. **🩸 Low HP & Damage Blood Screen Vignette:**
+    Cinematic full-screen radial blood vignette that pulses and intensifies when player health drops below critical thresholds or upon taking damage.
 
 ---
 
@@ -466,6 +477,8 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
 Design and customize responsive screen UI overlays directly from the TopBar (`Tools ▾ -> 📺 HUD`):
 * **❤️ Health Bar Overlay:** Toggleable health bar with customizable label, max health, custom fill colors, and animated depletion.
 * **⚡ Stamina / Sprint Bar Overlay:** Toggleable stamina bar with customizable label, max stamina, sprint drain rate, and yellow/gold fill styling.
+* **🐉 Screen-Top Boss Health Bar:** Epic boss health bar with customizable boss title and animated HP gauge for boss encounters.
+* **🩸 Low HP & Damage Blood Screen Vignette:** Radial red vignette that flashes upon taking damage and pulses when health drops below critical thresholds.
 * **⭐ Score Counter:** Dynamic score counter with prefix label and live updates from collectible coins and trigger points.
 * **🎯 Reticle & Crosshair:** Visual center aim reticle (dot, cross, circle) for aiming and interaction.
 * **🔫 Ammo & Weapon Overlay:** Live weapon name and ammo counter (`hud-ammo-counter`) linked to the weapon inventory.
