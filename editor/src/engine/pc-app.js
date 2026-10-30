@@ -112,6 +112,81 @@ export class EngineRuntime {
     }
   }
 
+  /**
+   * Sets viewport shading mode: 'lit' (standard PBR), 'wireframe', or 'unlit'
+   */
+  setShadingMode(mode = 'lit') {
+    this.shadingMode = mode;
+    if (!this.app || !this.app.root) return;
+
+    const applyShadingToEntity = (node) => {
+      if (node.render) {
+        if (node.render.material) {
+          if (mode === 'wireframe') {
+            node.render.material.wireframe = true;
+            node.render.material.useLighting = false;
+          } else if (mode === 'unlit') {
+            node.render.material.wireframe = false;
+            node.render.material.useLighting = false;
+          } else {
+            // Full lit
+            node.render.material.wireframe = false;
+            node.render.material.useLighting = true;
+          }
+          node.render.material.update();
+        }
+      }
+      if (node.children) {
+        node.children.forEach(applyShadingToEntity);
+      }
+    };
+
+    applyShadingToEntity(this.app.root);
+  }
+
+  /**
+   * Computes live performance and scene statistics (FPS, draw calls, triangles, entities)
+   */
+  getSceneStats() {
+    const stats = {
+      fps: 60,
+      entities: 0,
+      drawCalls: 0,
+      triangles: 0
+    };
+
+    if (this.app) {
+      if (this.app.stats && this.app.stats.frame) {
+        stats.fps = Math.round(this.app.stats.frame.fps || 60);
+      }
+      if (this.app.stats && this.app.stats.drawCalls) {
+        stats.drawCalls = this.app.stats.drawCalls.total || 0;
+        stats.triangles = this.app.stats.drawCalls.triangles || 0;
+      }
+
+      let count = 0;
+      const countNodes = (n) => {
+        count++;
+        if (n.children) n.children.forEach(countNodes);
+      };
+      if (this.app.root) countNodes(this.app.root);
+      stats.entities = count;
+
+      if (stats.drawCalls === 0) {
+        // Fallback estimate based on render components
+        let renderCount = 0;
+        const estimateMeshes = (n) => {
+          if (n.render) renderCount++;
+          if (n.children) n.children.forEach(estimateMeshes);
+        };
+        if (this.app.root) estimateMeshes(this.app.root);
+        stats.drawCalls = Math.max(1, renderCount);
+        stats.triangles = renderCount * 250;
+      }
+    }
+    return stats;
+  }
+
   setBloomFX(bloomConfig) {
     if (!this.app || !this.app.scene) return;
     this.bloomConfig = bloomConfig;

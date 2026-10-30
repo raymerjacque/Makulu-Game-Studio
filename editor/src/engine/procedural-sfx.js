@@ -400,6 +400,81 @@ class ProceduralSFXManager {
           osc.start(now);
           osc.stop(now + 0.3);
         });
+      } else if (type === 'whoosh') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(450, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.22);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0.4, now + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      } else if (type === 'laser_heavy') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'magic_portal') {
+        [220, 330, 440, 660].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+          osc.frequency.linearRampToValueAtTime(freq * 1.6, now + idx * 0.04 + 0.3);
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.2, now + idx * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.04 + 0.3);
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(now + idx * 0.04);
+          osc.stop(now + idx * 0.04 + 0.3);
+        });
+      } else if (type === 'equip_item') {
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(783.99, now + 0.06);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.14);
+      } else if (type === 'heartbeat_low_hp') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(90, now);
+        osc.frequency.exponentialRampToValueAtTime(35, now + 0.18);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      } else if (type === 'ui_click') {
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1200, now);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.04);
       }
     } catch (e) {
       console.warn('ProceduralSFXManager playback error:', e);
@@ -521,6 +596,22 @@ export function generateWAVDataURL(typeOrParams, sampleRate = 22050) {
         sample = Math.sin(2 * Math.PI * Math.max(100, freq) * t) * Math.exp(-t * 18) * 0.6;
       } else if (type === 'magic_spell') {
         sample = (Math.sin(2 * Math.PI * 600 * t) + Math.sin(2 * Math.PI * 900 * t) + Math.sin(2 * Math.PI * 1200 * t)) * 0.2 * Math.exp(-t * 6);
+      } else if (type === 'whoosh') {
+        const freq = 150 + Math.sin(t * 15) * 200;
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 10) * 0.5;
+      } else if (type === 'laser_heavy') {
+        const freq = Math.max(30, 440 - t * 1200);
+        sample = ((2 * ((freq * t) % 1)) - 1) * Math.exp(-t * 7) * 0.7;
+      } else if (type === 'magic_portal') {
+        sample = (Math.sin(2 * Math.PI * (220 + t * 400) * t) + Math.sin(2 * Math.PI * (440 + t * 600) * t)) * 0.25 * Math.exp(-t * 4);
+      } else if (type === 'equip_item') {
+        const freq = t < 0.06 ? 523 : 784;
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 14) * 0.5;
+      } else if (type === 'heartbeat_low_hp') {
+        const freq = Math.max(30, 90 - t * 300);
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 12) * 0.8;
+      } else if (type === 'ui_click') {
+        sample = (Math.sin(2 * Math.PI * 1200 * t) >= 0 ? 0.3 : -0.3) * Math.exp(-t * 40);
       } else {
         sample = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-t * 6) * 0.5;
       }

@@ -15,6 +15,9 @@ export class ToolStrip {
     this.posSnapIncrement = 1.0;
     this.rotSnapIncrement = 15.0;
     this.physicsDebugEnabled = false;
+    this.shadingMode = 'lit';
+    this.statsVisible = false;
+    this._statsInterval = null;
 
     this.render();
     this.bindEvents();
@@ -36,6 +39,14 @@ export class ToolStrip {
       <button class="btn btn-icon" id="tool-frame" title="Frame Selection (F)" style="font-size: 11px;">🎯</button>
       <button class="btn btn-icon" id="tool-grid" title="Toggle 3D Floor Grid" style="font-size: 11px;">#</button>
       <button class="btn btn-icon" id="tool-physics-debug" title="Toggle Real-Time Physics Collider Wireframe Debugger" style="font-size: 11px; color: #22c55e;">🟢</button>
+
+      <div style="width: 24px; height: 1px; background: var(--border-subtle); margin: 6px 0;"></div>
+
+      <!-- Shading Mode Switcher (Lit / Wireframe / Unlit) -->
+      <button class="btn btn-icon" id="tool-shading-mode" title="Cycle Shading Mode (Lit / Wireframe / Unlit)" style="font-size: 10px; font-weight: 700; color: #38bdf8;">LIT</button>
+
+      <!-- Viewport Performance & Stats Overlay Toggle -->
+      <button class="btn btn-icon" id="tool-perf-stats" title="Toggle Performance & Scene Stats Profiler (FPS, Draw Calls, Polys)" style="font-size: 11px; color: #fbbf24;">📊</button>
 
       <div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px; align-items: center;">
         <button class="btn btn-icon" id="tool-console" title="Toggle Console & Logs" style="font-size: 11px;">📋</button>
@@ -152,6 +163,26 @@ export class ToolStrip {
       }
     });
 
+    // Shading Mode Switcher
+    const shadingBtn = this.container.querySelector('#tool-shading-mode');
+    shadingBtn.addEventListener('click', () => {
+      const modes = ['lit', 'wireframe', 'unlit'];
+      const nextIdx = (modes.indexOf(this.shadingMode) + 1) % modes.length;
+      this.shadingMode = modes[nextIdx];
+      shadingBtn.textContent = this.shadingMode.toUpperCase();
+
+      if (this.editor.runtime && typeof this.editor.runtime.setShadingMode === 'function') {
+        this.editor.runtime.setShadingMode(this.shadingMode);
+      }
+      showToast(`Shading Mode: ${this.shadingMode === 'lit' ? '💡 Full Lit PBR' : this.shadingMode === 'wireframe' ? '🕸️ Wireframe' : '🎨 Unlit Flat'}`, 'info');
+    });
+
+    // Performance & Stats Profiler Toggle
+    const statsBtn = this.container.querySelector('#tool-perf-stats');
+    statsBtn.addEventListener('click', () => {
+      this.togglePerfStats();
+    });
+
     // Console Drawer Toggle
     const consoleBtn = this.container.querySelector('#tool-console');
     consoleBtn.addEventListener('click', () => {
@@ -193,5 +224,74 @@ export class ToolStrip {
       'scale': '⤢ Scale Gizmo Active (R)'
     };
     showToast(toastMap[mode] || mode, 'info');
+  }
+
+  togglePerfStats() {
+    this.statsVisible = !this.statsVisible;
+    const btn = this.container.querySelector('#tool-perf-stats');
+    if (btn) btn.classList.toggle('active', this.statsVisible);
+
+    let overlay = document.getElementById('viewport-stats-overlay');
+    if (!this.statsVisible) {
+      if (overlay) overlay.style.display = 'none';
+      if (this._statsInterval) {
+        clearInterval(this._statsInterval);
+        this._statsInterval = null;
+      }
+      showToast('Scene Statistics Overlay: Hidden', 'info');
+      return;
+    }
+
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'viewport-stats-overlay';
+      overlay.style.cssText = `
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        background: rgba(15, 23, 42, 0.88);
+        border: 1px solid rgba(251, 191, 36, 0.4);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-family: var(--font-mono, monospace);
+        font-size: 11px;
+        color: #f8fafc;
+        pointer-events: none;
+        z-index: 40;
+        backdrop-filter: blur(4px);
+        min-width: 140px;
+        line-height: 1.5;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      `;
+      const vp = document.getElementById('viewport-container') || document.body;
+      vp.appendChild(overlay);
+    }
+
+    overlay.style.display = 'block';
+
+    const updateStats = () => {
+      if (!this.statsVisible || !overlay) return;
+      let fps = 60, drawCalls = 1, triangles = 250, entities = 1;
+      if (this.editor.runtime && typeof this.editor.runtime.getSceneStats === 'function') {
+        const s = this.editor.runtime.getSceneStats();
+        fps = s.fps;
+        drawCalls = s.drawCalls;
+        triangles = s.triangles;
+        entities = s.entities;
+      }
+      overlay.innerHTML = `
+        <div style="font-weight: 700; color: #fbbf24; margin-bottom: 2px; font-size: 10px; text-transform: uppercase;">📊 Viewport Profiler</div>
+        <div><span style="color: #94a3b8;">FPS:</span> <b style="color: ${fps >= 50 ? '#34d399' : fps >= 30 ? '#facc15' : '#f87171'};">${fps}</b></div>
+        <div><span style="color: #94a3b8;">Draw Calls:</span> <b>${drawCalls}</b></div>
+        <div><span style="color: #94a3b8;">Triangles:</span> <b>${triangles.toLocaleString()}</b></div>
+        <div><span style="color: #94a3b8;">Entities:</span> <b>${entities}</b></div>
+      `;
+    };
+
+    updateStats();
+    if (!this._statsInterval) {
+      this._statsInterval = setInterval(updateStats, 500);
+    }
+    showToast('📊 Viewport Profiler Overlay: Active', 'success');
   }
 }

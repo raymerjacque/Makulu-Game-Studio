@@ -78,6 +78,33 @@ export class ProjectSettingsModal {
             </select>
           </div>
 
+          <!-- PlayCanvas Clustered Lighting Pipeline -->
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 10px; margin-top: 4px;">
+            <div style="font-weight: 700; font-size: 11px; color: var(--accent-orange); margin-bottom: 8px;">💡 PlayCanvas Clustered Lighting & Shadow Atlas</div>
+
+            <div class="prop-row" style="margin-bottom: 6px;">
+              <span class="prop-label" style="width: 140px;">Clustered Lighting</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="proj-clustered-lighting" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 6px;">
+              <span class="prop-label" style="width: 140px;">Shadow Atlas Size</span>
+              <select class="select-input" id="proj-shadow-atlas-size" style="flex: 1;">
+                <option value="2048">2048 x 2048 (Balanced)</option>
+                <option value="4096">4096 x 4096 (Ultra AAA)</option>
+                <option value="1024">1024 x 1024 (Performance)</option>
+              </select>
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 6px;">
+              <span class="prop-label" style="width: 140px;">Max Clustered Lights</span>
+              <input type="number" id="proj-max-clustered-lights" min="16" max="256" step="16" class="text-input" value="64" style="flex: 1;">
+            </div>
+          </div>
+
           <div style="border-top: 1px solid var(--border-subtle); padding-top: 10px; margin-top: 4px;">
             <div style="font-weight: 700; font-size: 11px; color: var(--accent-orange); margin-bottom: 8px;">🔊 Global Audio Mixer Bus Volumes</div>
 
@@ -180,9 +207,18 @@ export class ProjectSettingsModal {
         const musicVol = parseFloat(this.modal.querySelector('#proj-audio-music').value) || 0.8;
         const sfxVol = parseFloat(this.modal.querySelector('#proj-audio-sfx').value) || 1.0;
 
+        const clustered = this.modal.querySelector('#proj-clustered-lighting')?.checked ?? true;
+        const atlasSize = parseInt(this.modal.querySelector('#proj-shadow-atlas-size')?.value, 10) || 2048;
+        const maxLights = parseInt(this.modal.querySelector('#proj-max-clustered-lights')?.value, 10) || 64;
+
         if (title) this.editor.projectName = title;
 
         this.editor.shadowResolution = shadowRes;
+        this.editor.clusteredLightingSettings = {
+          enabled: clustered,
+          shadowAtlasResolution: atlasSize,
+          maxLights: maxLights
+        };
         this.editor.audioVolumes = { master: masterVol, music: musicVol, sfx: sfxVol };
         this.editor.textureCompressionSettings = {
           targetFormat: texTarget,
@@ -195,6 +231,10 @@ export class ProjectSettingsModal {
         if (app) {
           if (app.systems && app.systems.rigidbody) {
             app.systems.rigidbody.gravity.set(0, gravityY, 0);
+          }
+          if (app.scene && app.scene.lighting) {
+            app.scene.lighting.shadowAtlasResolution = atlasSize;
+            app.scene.lighting.maxLightsPerCell = maxLights;
           }
           if (app.scene) {
             if (tonemap === 'aces') app.scene.toneMapping = pc.TONEMAP_ACES;
