@@ -446,6 +446,16 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Epic screen-top boss health bar with customized boss title, maximum health, red fill gradient, and automatic defeat fade-out.
 115. **🩸 Low HP & Damage Blood Screen Vignette:**
     Cinematic full-screen radial blood vignette that pulses and intensifies when player health drops below critical thresholds or upon taking damage.
+116. **🪢 Grappling Hook Cable Pendulum Physics Swing:**
+    Realistic momentum-preserving pendulum cable swing physics propelling airborne players across chasms and vertical obstacles.
+117. **🐉 Boss Phase Transition Shield & Earthquake Blast:**
+    Multi-stage boss battle progression system activating invulnerability shields, screen-shaking seismic blasts, and enrage states at configurable health thresholds.
+118. **🛤️ Procedural Spline Mesh Rail & Cable Deformer:**
+    Dynamic curve geometry generator creating continuous coaster rails, hanging suspension cables, and pipe conduits along 3D splines.
+119. **💥 High-Octane Combat Impact & Hitstop VFX:**
+    Fighting game-style frame freeze (hitstop), radial impact blur, and directional trauma shake for heavy combat impacts.
+120. **🎁 Interactive Treasure Chest with Gold Particle Burst:**
+    Action-RPG loot container with lid-opening animation, celebratory gold sparkle burst, procedural chime audio, and automatic inventory deposit.
 
 ---
 
