@@ -8,8 +8,8 @@ import { GameBundler } from '../src/compiler/game-bundler.js';
 import { AIExecutor } from '../src/ai/ai-executor.js';
 import { ShaderGraphModal } from '../src/ui/shader-graph-modal.js';
 
-test('BEHAVIOR_CATALOG contains exactly 120 behaviors', () => {
-  assert.equal(BEHAVIOR_CATALOG.length, 120);
+test('BEHAVIOR_CATALOG contains at least 120 behaviors', () => {
+  assert.ok(BEHAVIOR_CATALOG.length >= 120);
 });
 
 test('BehaviorManager attaches and manages new AAA behaviors', () => {

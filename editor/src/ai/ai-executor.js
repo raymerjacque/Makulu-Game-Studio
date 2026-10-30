@@ -664,6 +664,74 @@ export class AIExecutor {
             break;
           }
 
+          case 'create_flow_graph': {
+            const target = this.findTarget(act.target);
+            if (target && this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(target, 'visual_flow_graph', {
+                title: act.title || 'AI Visual Flow Graph',
+                graphData: act.graphData || {}
+              });
+              executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'set_hdri_skybox': {
+            if (this.editor.runtime) {
+              this.editor.runtime.setAtmosphere(act.preset || 'day');
+              executed.push({ action: act.action, target: act.preset || 'day' });
+            }
+            break;
+          }
+
+          case 'configure_joint': {
+            const target = this.findTarget(act.target);
+            if (target) {
+              target.joint = {
+                type: act.jointType || 'hinge',
+                targetEntity: act.targetEntity || '',
+                pivot: act.pivot || [0, 0, 0],
+                axis: act.axis || [0, 1, 0]
+              };
+              this.editor.events.emit('entity:component:changed', target);
+              executed.push({ action: act.action, target: target.name });
+            }
+            break;
+          }
+
+          case 'sculpt_terrain_heightmap': {
+            const gen = new TerrainGenerator(this.editor);
+            gen.generate({
+              name: act.name || 'Sculpted Terrain',
+              width: act.width || 50,
+              depth: act.depth || 50,
+              maxHeight: act.maxHeight || 10,
+              brushMode: act.brushMode || 'raise'
+            });
+            executed.push({ action: act.action, target: act.name || 'Sculpted Terrain' });
+            break;
+          }
+
+          case 'generate_sfx_preset': {
+            if (this.editor.assetsPanel) {
+              const name = act.name || `SFX_${act.preset || 'custom'}.wav`;
+              this.editor.assetsPanel.addAsset({
+                id: Date.now().toString(),
+                name: name,
+                type: 'audio',
+                icon: '🔊',
+                size: '14 KB'
+              });
+              executed.push({ action: act.action, target: name });
+            }
+            break;
+          }
+
+          case 'open_tool_modal': {
+            executed.push({ action: act.action, target: act.modal || 'Tool Modal' });
+            break;
+          }
+
           default:
             console.warn(`AIExecutor: Unknown action "${act.action}"`);
         }

@@ -46,7 +46,7 @@ export class SFXStudioModal {
     `;
 
     this.modal.innerHTML = `
-      <div style="width: 600px; background: var(--bg-darkest); border: 1px solid #a855f7; border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(168,85,247,0.25); display: flex; flex-direction: column; overflow: hidden;">
+      <div style="width: 620px; background: var(--bg-darkest); border: 1px solid #a855f7; border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(168,85,247,0.25); display: flex; flex-direction: column; overflow: hidden;">
 
         <!-- Header -->
         <div style="height: 48px; background: var(--bg-darker); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
@@ -63,25 +63,35 @@ export class SFXStudioModal {
         <!-- Body -->
         <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 540px;">
 
+          <!-- Waveform Canvas Visualizer -->
+          <div style="background: #0d0614; border: 1px solid rgba(168,85,247,0.3); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 10px; color: #c084fc; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Real-Time Audio Waveform Visualizer</div>
+            <canvas id="sfx-waveform-canvas" width="560" height="60" style="width: 100%; height: 60px; background: #000; border-radius: 6px; border: 1px solid var(--border-subtle);"></canvas>
+          </div>
+
           <!-- Preset Sound Type Selection -->
           <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
             <div style="font-size: 12px; font-weight: 700; color: #c084fc; margin-bottom: 10px;">🎵 Preset Sound Effect Categories</div>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="sfx-preset-grid">
-              <button class="btn sfx-type-btn active" data-type="laser" style="justify-content: flex-start; gap: 6px; padding: 8px;">🔫 Laser / Shoot</button>
-              <button class="btn sfx-type-btn" data-type="explosion" style="justify-content: flex-start; gap: 6px; padding: 8px;">💥 Explosion</button>
-              <button class="btn sfx-type-btn" data-type="coin" style="justify-content: flex-start; gap: 6px; padding: 8px;">🪙 Coin / Pickup</button>
-              <button class="btn sfx-type-btn" data-type="jump" style="justify-content: flex-start; gap: 6px; padding: 8px;">🚀 Jump / Impulse</button>
-              <button class="btn sfx-type-btn" data-type="door" style="justify-content: flex-start; gap: 6px; padding: 8px;">🔓 Door Unlock</button>
-              <button class="btn sfx-type-btn" data-type="hurt" style="justify-content: flex-start; gap: 6px; padding: 8px;">💔 Hurt / Damage</button>
-              <button class="btn sfx-type-btn" data-type="victory" style="justify-content: flex-start; gap: 6px; padding: 8px;">🏆 Victory Fanfare</button>
-              <button class="btn sfx-type-btn" data-type="boost" style="justify-content: flex-start; gap: 6px; padding: 8px;">💨 Dash Boost</button>
-              <button class="btn sfx-type-btn" data-type="footstep" style="justify-content: flex-start; gap: 6px; padding: 8px;">🦶 Footstep</button>
-              <button class="btn sfx-type-btn" data-type="teleport" style="justify-content: flex-start; gap: 6px; padding: 8px;">🌀 Teleport</button>
-              <button class="btn sfx-type-btn" data-type="powerup" style="justify-content: flex-start; gap: 6px; padding: 8px;">⭐ Powerup</button>
-              <button class="btn sfx-type-btn" data-type="shield_hit" style="justify-content: flex-start; gap: 6px; padding: 8px;">🛡️ Shield Hit</button>
-              <button class="btn sfx-type-btn" data-type="reload" style="justify-content: flex-start; gap: 6px; padding: 8px;">🔫 Weapon Reload</button>
-              <button class="btn sfx-type-btn" data-type="magic_spell" style="justify-content: flex-start; gap: 6px; padding: 8px;">✨ Magic Spell</button>
+              <button class="btn sfx-type-btn active" data-type="laser" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🔫 Laser / Shoot</button>
+              <button class="btn sfx-type-btn" data-type="explosion" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">💥 Explosion</button>
+              <button class="btn sfx-type-btn" data-type="coin" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🪙 Coin / Pickup</button>
+              <button class="btn sfx-type-btn" data-type="jump" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🚀 Jump / Impulse</button>
+              <button class="btn sfx-type-btn" data-type="door" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🔓 Door Unlock</button>
+              <button class="btn sfx-type-btn" data-type="hurt" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">💔 Hurt / Damage</button>
+              <button class="btn sfx-type-btn" data-type="victory" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🏆 Victory Fanfare</button>
+              <button class="btn sfx-type-btn" data-type="boost" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">💨 Dash Boost</button>
+              <button class="btn sfx-type-btn" data-type="footstep_grass" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🌿 Footstep Grass</button>
+              <button class="btn sfx-type-btn" data-type="footstep_stone" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🪨 Footstep Stone</button>
+              <button class="btn sfx-type-btn" data-type="slash_sword" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">⚔️ Sword Slash</button>
+              <button class="btn sfx-type-btn" data-type="shield_block" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🛡️ Shield Block</button>
+              <button class="btn sfx-type-btn" data-type="reload_gun" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🔫 Reload Lock</button>
+              <button class="btn sfx-type-btn" data-type="engine_rumble" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🏎️ Engine Rumble</button>
+              <button class="btn sfx-type-btn" data-type="ambient_dungeon" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🏰 Dungeon Drone</button>
+              <button class="btn sfx-type-btn" data-type="thunder_bolt" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">⚡ Thunder Strike</button>
+              <button class="btn sfx-type-btn" data-type="teleport" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🌀 Teleport Warp</button>
+              <button class="btn sfx-type-btn" data-type="magic_spell" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">✨ Arcane Spell</button>
             </div>
           </div>
 
@@ -181,6 +191,7 @@ export class SFXStudioModal {
         btn.classList.add('active');
         this.sfxType = btn.dataset.type;
         playProceduralSFX(this.sfxType, this.volume);
+        this.drawWaveformVisual();
       });
     });
 
@@ -198,11 +209,13 @@ export class SFXStudioModal {
 
     this.modal.querySelector('#sfx-btn-preview').addEventListener('click', () => {
       playProceduralSFX(this.sfxType, this.volume);
+      this.drawWaveformVisual();
     });
 
     this.modal.querySelector('#sfx-btn-preview-custom').addEventListener('click', () => {
       readCustomInputs();
       proceduralSFX.playCustom(this.customParams, this.volume);
+      this.drawWaveformVisual();
     });
 
     this.modal.querySelector('#sfx-btn-export-asset').addEventListener('click', () => {
@@ -225,9 +238,35 @@ export class SFXStudioModal {
     });
   }
 
+  drawWaveformVisual() {
+    const canvas = this.modal.querySelector('#sfx-waveform-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0f051d';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 2;
+
+    const midY = canvas.height / 2;
+    ctx.moveTo(0, midY);
+
+    for (let x = 0; x < canvas.width; x += 4) {
+      const t = x / canvas.width;
+      const y = midY + Math.sin(t * Math.PI * 16) * (1 - t) * (midY - 8);
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
   open() {
     this.modal.style.display = 'flex';
     this.isOpen = true;
+    setTimeout(() => this.drawWaveformVisual(), 50);
   }
 
   close() {

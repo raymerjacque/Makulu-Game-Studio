@@ -215,7 +215,7 @@ class ProceduralSFXManager {
           osc.start(now + idx * 0.1);
           osc.stop(now + idx * 0.1 + 0.3);
         });
-      } else if (type === 'footstep') {
+      } else if (type === 'footstep' || type === 'footstep_grass') {
         const osc = ctx.createOscillator();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(80, now);
@@ -229,6 +229,117 @@ class ProceduralSFXManager {
         gain.connect(master);
         osc.start(now);
         osc.stop(now + 0.08);
+      } else if (type === 'footstep_stone') {
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.06);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      } else if (type === 'slash_sword') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } else if (type === 'shield_block') {
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'reload_gun') {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        osc1.type = 'square';
+        osc2.type = 'square';
+        osc1.frequency.setValueAtTime(400, now);
+        osc2.frequency.setValueAtTime(700, now + 0.09);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(master);
+        osc1.start(now); osc1.stop(now + 0.08);
+        osc2.start(now + 0.09); osc2.stop(now + 0.2);
+      } else if (type === 'engine_rumble') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(50, now);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      } else if (type === 'ambient_dungeon') {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(55, now);
+        osc.frequency.linearRampToValueAtTime(65, now + 0.6);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      } else if (type === 'thunder_bolt') {
+        const bufferSize = ctx.sampleRate * 0.5;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        filter.frequency.linearRampToValueAtTime(60, now + 0.5);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(1.0, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(master);
+        noise.start(now);
       } else if (type === 'teleport') {
         const osc = ctx.createOscillator();
         osc.type = 'sine';
@@ -273,23 +384,6 @@ class ProceduralSFXManager {
         gain.connect(master);
         osc.start(now);
         osc.stop(now + 0.15);
-      } else if (type === 'reload') {
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        osc1.type = 'square';
-        osc2.type = 'square';
-        osc1.frequency.setValueAtTime(400, now);
-        osc2.frequency.setValueAtTime(700, now + 0.09);
-
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.4, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(master);
-        osc1.start(now); osc1.stop(now + 0.08);
-        osc2.start(now + 0.09); osc2.stop(now + 0.2);
       } else if (type === 'magic_spell') {
         [600, 900, 1200].forEach((freq, idx) => {
           const osc = ctx.createOscillator();
@@ -331,16 +425,18 @@ export function generateWAVDataURL(typeOrParams, sampleRate = 22050) {
     params = { preset: typeOrParams };
   }
 
-  const type = params.preset || 'laser';
+  const type = params.preset || (typeof typeOrParams === 'string' ? typeOrParams : 'laser');
   const durationMap = {
     laser: 0.15, shoot: 0.15, explosion: 0.35, impact: 0.35, coin: 0.25,
     collect: 0.25, pickup: 0.25, jump: 0.18, boost: 0.18, door: 0.35,
     unlock: 0.35, hurt: 0.2, damage: 0.2, victory: 0.6, win: 0.6,
-    footstep: 0.08, teleport: 0.28, powerup: 0.3, shield_hit: 0.15,
+    footstep: 0.08, footstep_grass: 0.08, footstep_stone: 0.06, slash_sword: 0.12,
+    shield_block: 0.15, reload_gun: 0.2, engine_rumble: 0.4, ambient_dungeon: 0.6,
+    thunder_bolt: 0.5, teleport: 0.28, powerup: 0.3, shield_hit: 0.15,
     reload: 0.2, magic_spell: 0.3
   };
 
-  const duration = params.duration || (params.attack || 0.02) + (params.decay || 0.1) + (params.release || 0.2) || durationMap[type] || 0.3;
+  const duration = params.duration || (params.attack !== undefined ? (params.attack + (params.decay || 0.1) + (params.release || 0.2)) : null) || durationMap[type] || 0.3;
   const numSamples = Math.floor(sampleRate * duration);
   const samples = new Float32Array(numSamples);
 
@@ -370,47 +466,64 @@ export function generateWAVDataURL(typeOrParams, sampleRate = 22050) {
       else env = sustain * Math.max(0, 1 - (t - attack - decay) / Math.max(0.01, duration - attack - decay));
 
       sample = rawWave * env;
-    } else if (type === 'laser' || type === 'shoot') {
-      const freq = 880 * Math.exp(-t * 13.8);
-      const phase = (2 * Math.PI * freq * t) % (2 * Math.PI);
-      const saw = (phase / Math.PI) - 1;
-      const gain = Math.max(0, 1 - t / 0.15);
-      sample = saw * gain * 0.6;
-    } else if (type === 'explosion' || type === 'impact') {
-      const noise = Math.random() * 2 - 1;
-      const gain = Math.max(0, 1 - t / 0.35);
-      const alpha = Math.exp(-t * 10);
-      sample = noise * gain * alpha;
-    } else if (type === 'coin' || type === 'collect' || type === 'pickup') {
-      let freq = 987.77;
-      let gain = Math.max(0, 1 - t / 0.25) * 0.5;
-      if (t >= 0.08) freq = 1318.51;
-      sample = Math.sin(2 * Math.PI * freq * t) * gain;
-    } else if (type === 'jump' || type === 'boost') {
-      const freq = 150 * Math.exp(t * 7.7);
-      const sq = Math.sin(2 * Math.PI * freq * t) >= 0 ? 0.4 : -0.4;
-      const gain = Math.max(0, 1 - t / 0.18);
-      sample = sq * gain;
-    } else if (type === 'door' || type === 'unlock') {
-      const freq = 220 + t * 733;
-      const tri = Math.abs((((freq * t) % 1) - 0.5) * 4) - 1;
-      const gain = Math.max(0, 1 - t / 0.35) * 0.5;
-      sample = tri * gain;
-    } else if (type === 'hurt' || type === 'damage') {
-      const freq = 180 - t * 600;
-      const saw = ((((freq * t) % 1) + 1) % 1) * 2 - 1;
-      const gain = Math.max(0, 1 - t / 0.2) * 0.8;
-      sample = saw * gain;
-    } else if (type === 'victory' || type === 'win') {
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      const stepIdx = Math.min(3, Math.floor(t / 0.1));
-      const freq = notes[stepIdx];
-      const noteT = t - stepIdx * 0.1;
-      const gain = Math.max(0, 1 - noteT / 0.3) * 0.5;
-      const tri = Math.abs((((freq * t) % 1) - 0.5) * 4) - 1;
-      sample = tri * gain;
     } else {
-      sample = Math.sin(2 * Math.PI * 440 * t) * Math.max(0, 1 - t / duration) * 0.5;
+      // Preset synthesis formulas
+      if (type === 'laser' || type === 'shoot') {
+        const freq = 880 * Math.exp(-t * 12);
+        sample = ((2 * ((freq * t) % 1)) - 1) * Math.exp(-t * 15) * 0.6;
+      } else if (type === 'explosion' || type === 'impact' || type === 'thunder_bolt') {
+        const env = Math.exp(-t * (type === 'thunder_bolt' ? 4 : 8));
+        sample = (Math.random() * 2 - 1) * env;
+      } else if (type === 'coin' || type === 'collect' || type === 'pickup') {
+        const freq = t < 0.08 ? 987.77 : 1318.51;
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 8) * 0.5;
+      } else if (type === 'jump' || type === 'boost') {
+        const freq = 150 + t * 2500;
+        sample = (Math.sin(2 * Math.PI * freq * t) >= 0 ? 0.4 : -0.4) * Math.exp(-t * 10);
+      } else if (type === 'door' || type === 'unlock') {
+        const freq = 220 + t * 600;
+        sample = (Math.abs((((freq * t) % 1) - 0.5) * 4) - 1) * Math.exp(-t * 5) * 0.5;
+      } else if (type === 'hurt' || type === 'damage') {
+        const freq = 180 - t * 400;
+        sample = ((2 * ((freq * t) % 1)) - 1) * Math.exp(-t * 12) * 0.7;
+      } else if (type === 'victory' || type === 'win') {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        const step = Math.min(3, Math.floor(t / 0.12));
+        const freq = notes[step];
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-(t - step * 0.12) * 6) * 0.5;
+      } else if (type === 'footstep' || type === 'footstep_grass') {
+        const freq = 80 - t * 500;
+        sample = Math.sin(2 * Math.PI * Math.max(20, freq) * t) * Math.exp(-t * 25) * 0.4;
+      } else if (type === 'footstep_stone') {
+        const freq = 180 - t * 1500;
+        sample = (Math.abs((((freq * t) % 1) - 0.5) * 4) - 1) * Math.exp(-t * 30) * 0.5;
+      } else if (type === 'slash_sword') {
+        const freq = 600 - t * 3000;
+        sample = ((2 * ((freq * t) % 1)) - 1) * Math.exp(-t * 20) * 0.7;
+      } else if (type === 'shield_block') {
+        const freq = 300 - t * 1200;
+        sample = (Math.sin(2 * Math.PI * Math.max(40, freq) * t) >= 0 ? 0.5 : -0.5) * Math.exp(-t * 15);
+      } else if (type === 'reload_gun') {
+        const freq = t < 0.09 ? 400 : 700;
+        sample = (Math.sin(2 * Math.PI * freq * t) >= 0 ? 0.3 : -0.3) * Math.exp(-t * 10);
+      } else if (type === 'engine_rumble' || type === 'ambient_dungeon') {
+        const freq = type === 'engine_rumble' ? (50 + t * 75) : (55 + Math.sin(t * 10) * 10);
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 2) * 0.5;
+      } else if (type === 'teleport') {
+        const freq = 200 + t * 4500;
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 8) * 0.5;
+      } else if (type === 'powerup') {
+        const notes = [440, 554.37, 659.25, 880];
+        const step = Math.min(3, Math.floor(t / 0.06));
+        sample = (Math.sin(2 * Math.PI * notes[step] * t) >= 0 ? 0.3 : -0.3) * Math.exp(-(t - step * 0.06) * 12);
+      } else if (type === 'shield_hit') {
+        const freq = 1200 - t * 5000;
+        sample = Math.sin(2 * Math.PI * Math.max(100, freq) * t) * Math.exp(-t * 18) * 0.6;
+      } else if (type === 'magic_spell') {
+        sample = (Math.sin(2 * Math.PI * 600 * t) + Math.sin(2 * Math.PI * 900 * t) + Math.sin(2 * Math.PI * 1200 * t)) * 0.2 * Math.exp(-t * 6);
+      } else {
+        sample = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-t * 6) * 0.5;
+      }
     }
 
     samples[i] = Math.max(-1, Math.min(1, sample));
@@ -456,9 +569,6 @@ export function generateWAVDataURL(typeOrParams, sampleRate = 22050) {
   return `data:audio/wav;base64,${base64}`;
 }
 
-/**
- * Stringified runtime for standalone HTML game compilation
- */
 export const PROCEDURAL_SFX_RUNTIME_CODE = `
 window.playProceduralSFX = function(type, volume) {
   try {
@@ -480,17 +590,19 @@ window.playProceduralSFX = function(type, volume) {
       osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(110, now + 0.15);
       const gain = ctx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
       osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.15);
-    } else if (type === 'explosion' || type === 'impact') {
-      const bufferSize = ctx.sampleRate * 0.35;
+    } else if (type === 'explosion' || type === 'impact' || type === 'thunder_bolt') {
+      const dur = type === 'thunder_bolt' ? 0.5 : 0.35;
+      const bufferSize = ctx.sampleRate * dur;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
       const noise = ctx.createBufferSource(); noise.buffer = buffer;
-      const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1000, now); filter.frequency.linearRampToValueAtTime(100, now + 0.35);
-      const gain = ctx.createGain(); gain.gain.setValueAtTime(1.0, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1000, now); filter.frequency.linearRampToValueAtTime(80, now + dur);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(1.0, now); gain.gain.exponentialRampToValueAtTime(0.01, now + dur);
       noise.connect(filter); filter.connect(gain); gain.connect(master); noise.start(now);
     } else if (type === 'coin' || type === 'collect' || type === 'pickup') {
-      const osc1 = ctx.createOscillator(); const osc2 = ctx.createOscillator(); osc1.type = 'sine'; osc2.type = 'sine';
+      const osc1 = ctx.createOscillator(); const osc2 = ctx.createOscillator();
+      osc1.type = 'sine'; osc2.type = 'sine';
       osc1.frequency.setValueAtTime(987.77, now); osc2.frequency.setValueAtTime(1318.51, now + 0.08);
       const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
       osc1.connect(gain); osc2.connect(gain); gain.connect(master);
@@ -512,15 +624,40 @@ window.playProceduralSFX = function(type, volume) {
       osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.2);
     } else if (type === 'victory' || type === 'win') {
       [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-        const osc = ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, now + idx * 0.1);
-        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, now + idx * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+        const osc = ctx.createOscillator(); osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, now + idx * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
         osc.connect(gain); gain.connect(master); osc.start(now + idx * 0.1); osc.stop(now + idx * 0.1 + 0.3);
       });
-    } else if (type === 'footstep') {
-      const osc = ctx.createOscillator(); osc.type = 'sine';
-      osc.frequency.setValueAtTime(80, now); osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
-      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+    } else if (type === 'footstep' || type === 'footstep_grass' || type === 'footstep_stone') {
+      const osc = ctx.createOscillator(); osc.type = type === 'footstep_stone' ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(type === 'footstep_stone' ? 180 : 80, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
       osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.08);
+    } else if (type === 'slash_sword') {
+      const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.7, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+      osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.12);
+    } else if (type === 'shield_block') {
+      const osc = ctx.createOscillator(); osc.type = 'square';
+      osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.8, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.15);
+    } else if (type === 'reload_gun') {
+      const osc1 = ctx.createOscillator(); const osc2 = ctx.createOscillator();
+      osc1.type = 'square'; osc2.type = 'square';
+      osc1.frequency.setValueAtTime(400, now); osc2.frequency.setValueAtTime(700, now + 0.09);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc1.connect(gain); osc2.connect(gain); gain.connect(master);
+      osc1.start(now); osc1.stop(now + 0.08); osc2.start(now + 0.09); osc2.stop(now + 0.2);
+    } else if (type === 'engine_rumble' || type === 'ambient_dungeon') {
+      const osc = ctx.createOscillator(); osc.type = type === 'engine_rumble' ? 'sawtooth' : 'sine';
+      osc.frequency.setValueAtTime(50, now); osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.4);
     } else if (type === 'teleport') {
       const osc = ctx.createOscillator(); osc.type = 'sine';
       osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(1600, now + 0.28);
@@ -528,8 +665,10 @@ window.playProceduralSFX = function(type, volume) {
       osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.28);
     } else if (type === 'powerup') {
       [440, 554.37, 659.25, 880].forEach((freq, idx) => {
-        const osc = ctx.createOscillator(); osc.type = 'square'; osc.frequency.setValueAtTime(freq, now + idx * 0.06);
-        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.3, now + idx * 0.06); gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.06 + 0.15);
+        const osc = ctx.createOscillator(); osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.3, now + idx * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.06 + 0.15);
         osc.connect(gain); gain.connect(master); osc.start(now + idx * 0.06); osc.stop(now + idx * 0.06 + 0.15);
       });
     } else if (type === 'shield_hit') {
@@ -537,18 +676,18 @@ window.playProceduralSFX = function(type, volume) {
       osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.15);
       const gain = ctx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
       osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.15);
-    } else if (type === 'reload') {
-      const osc1 = ctx.createOscillator(); const osc2 = ctx.createOscillator(); osc1.type = 'square'; osc2.type = 'square';
-      osc1.frequency.setValueAtTime(400, now); osc2.frequency.setValueAtTime(700, now + 0.09);
-      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-      osc1.connect(gain); osc2.connect(gain); gain.connect(master);
-      osc1.start(now); osc1.stop(now + 0.08); osc2.start(now + 0.09); osc2.stop(now + 0.2);
     } else if (type === 'magic_spell') {
       [600, 900, 1200].forEach((freq, idx) => {
-        const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now); osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.3);
+        const osc = ctx.createOscillator(); osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now); osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.3);
         const gain = ctx.createGain(); gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.3);
       });
+    } else {
+      const osc = ctx.createOscillator(); osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now); osc.frequency.exponentialRampToValueAtTime(220, now + 0.2);
+      const gain = ctx.createGain(); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now + 0.2);
     }
   } catch(e) {}
 };

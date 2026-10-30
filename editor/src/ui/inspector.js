@@ -123,7 +123,22 @@ export const BEHAVIOR_CATALOG = [
   { type: 'enemy_boss_phase_transition', icon: '🐉', name: 'Boss Phase Transition Shield & Earthquake Blast', defaultParams: { phaseThreshold: 0.5, shieldHp: 200, blastDamage: 40 } },
   { type: 'procedural_spline_mesh_deformer', icon: '🛤️', name: 'Procedural Spline Mesh Rail & Cable Deformer', defaultParams: { curveRadius: 5.0, segmentLength: 1.0 } },
   { type: 'screen_space_impact_vfx', icon: '💥', name: 'High-Octane Combat Impact & Hitstop VFX', defaultParams: { hitstopMs: 80, shakeIntensity: 0.6 } },
-  { type: 'interactive_inventory_chest', icon: '🎁', name: 'Interactive Treasure Chest with Gold Particle Burst', defaultParams: { radius: 2.5, goldAmount: 100 } }
+  { type: 'interactive_inventory_chest', icon: '🎁', name: 'Interactive Treasure Chest with Gold Particle Burst', defaultParams: { radius: 2.5, goldAmount: 100 } },
+  { type: 'visual_flow_graph', icon: '⚡', name: 'Visual Behavior & Logic Flow Graph', defaultParams: { title: 'Custom Logic Flow' } },
+  { type: 'reflection_probe_cubemap', icon: '🌅', name: 'Environment Reflection Probe Cubemap', defaultParams: { intensity: 1.0 } },
+  { type: 'vehicle_suspension_physics', icon: '🏎️', name: '4-Wheel Vehicle Suspension Physics', defaultParams: { stiffness: 20, damping: 2.5 } },
+  { type: 'procedural_chain_rope_physics', icon: '🪢', name: 'Chain & Rope Physics Tether', defaultParams: { segments: 8, tension: 15.0 } },
+  { type: 'cinematic_camera_rail', icon: '🎬', name: 'Cinematic Camera Motion Spline Rail', defaultParams: { duration: 5.0, loop: true } },
+  { type: 'interactive_switch_toggle', icon: '🔘', name: 'Interactive Lever / Button Switch', defaultParams: { radius: 2.0, targetEntity: 'Door' } },
+  { type: 'weapon_overheat_system', icon: '🔥', name: 'Weapon Heat Capacity & Overheat Lock', defaultParams: { maxHeat: 100, coolRate: 20 } },
+  { type: 'quest_journal_tracker', icon: '📜', name: 'Multi-Quest Objective Journal Log', defaultParams: { questTitle: 'Slay the Dragon' } },
+  { type: 'inventory_quick_slot_bar', icon: '🎒', name: 'Quick Slot Action Bar (1-9 Keys)', defaultParams: { slotCount: 9 } },
+  { type: 'procedural_footstep_surface_detector', icon: '🦶', name: 'Terrain Surface Footstep FX', defaultParams: { rayDistance: 1.2 } },
+  { type: 'screen_space_vignette', icon: '🎬', name: 'Cinematic Camera Lens Vignette', defaultParams: { intensity: 0.5 } },
+  { type: 'dynamic_foliage_wind', icon: '🌿', name: 'Harmonic Foliage Wind Bending', defaultParams: { windSpeed: 2.0, flexAmount: 0.1 } },
+  { type: 'destruction_cluster_explosion', icon: '💥', name: 'Cluster Explosive Shattering', defaultParams: { chunks: 12, blastForce: 25 } },
+  { type: 'enemy_boss_rage_phase', icon: '🐉', name: 'Boss Phase 2 Enrage & Seismic Surge', defaultParams: { healthThreshold: 0.4 } },
+  { type: 'hud_floating_minimap', icon: '🗺️', name: 'HUD Floating Minimap Surveillance', defaultParams: { scanRange: 35.0 } }
 ];
 
 /**
