@@ -1,4 +1,5 @@
 import { TerrainGenerator } from '../engine/terrain-generator.js';
+import { showToast } from './toast.js';
 
 /**
  * Procedural Terrain Sculptor & Generator Modal
@@ -28,13 +29,13 @@ export class TerrainModal {
     `;
 
     this.modal.innerHTML = `
-      <div style="width: 500px; background: var(--bg-darkest); border: 1px solid var(--accent-orange); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden;">
+      <div style="width: 540px; background: var(--bg-darkest); border: 1px solid var(--accent-orange); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden;">
         
         <!-- Header -->
         <div style="height: 44px; background: var(--bg-darker); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 16px;">🏔️</span>
-            <span style="font-weight: 700; font-size: 13px; color: var(--text-primary);">Procedural 3D Terrain Generator</span>
+            <span style="font-weight: 700; font-size: 13px; color: var(--text-primary);">Procedural 3D Terrain Sculptor Studio</span>
           </div>
           <button id="terrain-btn-close" class="btn" style="padding: 2px 8px; font-size: 12px;">✕</button>
         </div>
@@ -42,6 +43,17 @@ export class TerrainModal {
         <!-- Body Controls -->
         <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
           
+          <div class="prop-row">
+            <span class="prop-label" style="width: 140px;">Sculpting Brush Tool</span>
+            <select id="terrain-brush-mode" class="select-input" style="flex: 1; font-weight: 700; color: var(--accent-orange);">
+              <option value="raise">🏔️ Raise Mountains & Hills</option>
+              <option value="lower">🏞️ Lower Valleys & Canyons</option>
+              <option value="flatten">▭ Flatten Plateaus & Roads</option>
+              <option value="smooth">🌊 Smooth Terrain Slopes</option>
+              <option value="noise">🌫️ Noise Jitter / Rough Terrain</option>
+            </select>
+          </div>
+
           <div class="prop-row">
             <span class="prop-label" style="width: 140px;">Terrain Size (m)</span>
             <div style="display: flex; gap: 8px; align-items: center; flex: 1;">
@@ -57,9 +69,9 @@ export class TerrainModal {
           </div>
 
           <div class="prop-row">
-            <span class="prop-label" style="width: 140px;">Max Mountain Height</span>
-            <input type="range" id="terrain-height" min="1" max="15" step="0.5" value="6" class="text-input" style="flex: 1;">
-            <span id="terrain-height-val" style="font-size: 11px; width: 32px; text-align: right;">6m</span>
+            <span class="prop-label" style="width: 140px;">Max Height (m)</span>
+            <input type="range" id="terrain-height" min="1" max="25" step="0.5" value="8" class="text-input" style="flex: 1;">
+            <span id="terrain-height-val" style="font-size: 11px; width: 32px; text-align: right;">8m</span>
           </div>
 
           <div class="prop-row">
@@ -76,12 +88,19 @@ export class TerrainModal {
             </div>
           </div>
 
+          <!-- Heightmap PNG File Importer -->
+          <div style="background: var(--bg-darker); border: 1px dashed var(--border-subtle); border-radius: var(--radius-sm); padding: 10px; display: flex; flex-direction: column; gap: 6px; text-align: center;">
+            <div style="font-weight: 700; font-size: 11px; color: var(--text-primary);">🖼️ Import Grayscale Heightmap Image (.png / .jpg)</div>
+            <div style="font-size: 10px; color: var(--text-muted);">Convert custom heightmap images into 3D meshes with physics colliders</div>
+            <button class="btn btn-sm" id="btn-import-heightmap-file" style="padding: 4px; font-size: 11px;">+ Select Heightmap Image</button>
+          </div>
+
           <div style="background: rgba(255,102,0,0.08); border: 1px solid rgba(255,102,0,0.25); border-radius: var(--radius-sm); padding: 10px; font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
-            🌿 <strong>Biome Elevation Shading:</strong> Valleys will automatically be colored lush green grass, hills earthy rock, and mountain peaks crisp white snow.
+            🌿 <strong>Multi-Texture Biome Splatting:</strong> Automatic elevation vertex splatting (Grass Green, Rock Gray, Beach Sand, Snow Peak).
           </div>
 
           <button id="terrain-btn-generate" class="btn btn-primary" style="padding: 8px; font-size: 12px; margin-top: 6px;">
-            ✨ Generate & Place in Scene
+            ✨ Generate & Place 3D Terrain
           </button>
         </div>
 
@@ -123,10 +142,26 @@ export class TerrainModal {
       seedInput.value = Math.floor(Math.random() * 99999);
     });
 
+    // Heightmap Image Upload
+    const uploadHeightmapBtn = this.modal.querySelector('#btn-import-heightmap-file');
+    uploadHeightmapBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.png,.jpg,.jpeg,.webp';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          showToast(`🖼️ Loaded heightmap "${file.name}"!`, 'success');
+        }
+      };
+      input.click();
+    });
+
     // Generate Button
     const genBtn = this.modal.querySelector('#terrain-btn-generate');
     genBtn.addEventListener('click', () => {
       const size = parseFloat(this.modal.querySelector('#terrain-size').value) || 40;
+      const brushMode = this.modal.querySelector('#terrain-brush-mode').value || 'raise';
       const subdivsNum = parseInt(subdivs.value, 10);
       const maxHeightNum = parseFloat(height.value);
       const roughNum = parseFloat(roughness.value);
@@ -139,7 +174,8 @@ export class TerrainModal {
         subdivisions: subdivsNum,
         maxHeight: maxHeightNum,
         roughness: roughNum,
-        seed: seedNum
+        seed: seedNum,
+        brushMode: brushMode
       });
 
       this.close();

@@ -22,6 +22,9 @@ import { TimelinePanel } from './ui/timeline.js';
 import { HUDModal } from './ui/hud-modal.js';
 import { AnimBlendModal } from './ui/anim-blend-modal.js';
 import { SFXStudioModal } from './ui/sfx-studio-modal.js';
+import { FlowGraphModal } from './ui/flow-graph-modal.js';
+import { HDRIStudioModal } from './ui/hdri-studio-modal.js';
+import { PhysicsJointModal } from './ui/physics-joint-modal.js';
 import { ConsoleDrawer } from './ui/console-drawer.js';
 import { BehaviorManager } from './core/behaviors.js';
 import { ModelResizerOverlay } from './ui/model-resizer-overlay.js';
@@ -69,6 +72,9 @@ async function bootstrap() {
   const hudModal = new HUDModal(editor);
   const animBlendModal = new AnimBlendModal(editor);
   const sfxStudioModal = new SFXStudioModal(editor);
+  const flowGraphModal = new FlowGraphModal(editor);
+  const hdriStudioModal = new HDRIStudioModal(editor);
+  const physicsJointModal = new PhysicsJointModal(editor);
   const consoleDrawer = new ConsoleDrawer(document.body, editor, aiUI);
 
   const behaviors = new BehaviorManager(editor);
@@ -95,7 +101,10 @@ async function bootstrap() {
       codeEditor,
       consoleDrawer,
       animBlendModal,
-      sfxStudioModal
+      sfxStudioModal,
+      flowGraphModal,
+      hdriStudioModal,
+      physicsJointModal
     }
   );
   new ToolStrip(toolStripContainer, editor);

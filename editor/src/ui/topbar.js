@@ -95,6 +95,9 @@ export class TopBar {
               <div class="topbar-dropdown-item" id="menu-action-drop-ground">
                 <span class="item-label">⬇️ Drop Selected to Floor Ground</span>
               </div>
+              <div class="topbar-dropdown-item" id="menu-action-hdri-skybox">
+                <span class="item-label">🌌 Custom HDRI Skybox & Reflections...</span>
+              </div>
               <div class="topbar-dropdown-separator"></div>
               <div style="padding: 4px 12px; font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Atmosphere & Lighting</div>
               <div class="topbar-dropdown-item" data-sky="day">
@@ -138,6 +141,15 @@ export class TopBar {
               </div>
               <div class="topbar-dropdown-item" id="menu-action-anim-blend">
                 <span class="item-label">🕺 Visual Animation Blend Graph...</span>
+              </div>
+              <div class="topbar-dropdown-item" id="menu-action-flow-graph">
+                <span class="item-label">⚡ Visual Behavior & Event Flow Graph...</span>
+              </div>
+              <div class="topbar-dropdown-item" id="menu-action-physics-joint">
+                <span class="item-label">⚙️ Physics Joint & Ragdoll Studio...</span>
+              </div>
+              <div class="topbar-dropdown-item" id="menu-action-hdri-studio">
+                <span class="item-label">🌅 Environment & Skybox Studio...</span>
               </div>
               <div class="topbar-dropdown-item" id="menu-action-postfx">
                 <span class="item-label">✨ Post-Processing FX Pipeline...</span>
@@ -684,6 +696,31 @@ export class TopBar {
         if (this.extraModals.codeEditor) this.extraModals.codeEditor.open();
       });
     }
+
+    // Visual Flow Graph
+    const flowItem = this.container.querySelector('#menu-action-flow-graph');
+    if (flowItem) {
+      flowItem.addEventListener('click', () => {
+        if (this.extraModals.flowGraphModal) this.extraModals.flowGraphModal.open();
+      });
+    }
+
+    // Physics Joint Studio
+    const jointItem = this.container.querySelector('#menu-action-physics-joint');
+    if (jointItem) {
+      jointItem.addEventListener('click', () => {
+        if (this.extraModals.physicsJointModal) this.extraModals.physicsJointModal.open();
+      });
+    }
+
+    // HDRI Skybox Studio
+    const hdriItem = this.container.querySelector('#menu-action-hdri-studio');
+    const hdriSkyItem = this.container.querySelector('#menu-action-hdri-skybox');
+    const openHDRI = () => {
+      if (this.extraModals.hdriStudioModal) this.extraModals.hdriStudioModal.open();
+    };
+    if (hdriItem) hdriItem.addEventListener('click', openHDRI);
+    if (hdriSkyItem) hdriSkyItem.addEventListener('click', openHDRI);
 
     // Console & Diagnostics
     const consoleItem = this.container.querySelector('#menu-action-console');

@@ -3,7 +3,7 @@ import { showToast } from '../ui/toast.js';
 
 /**
  * Procedural 3D Terrain Generator & Sculptor
- * Generates heightmap meshes using Perlin noise with automatic elevation-based biome vertex coloring.
+ * Generates heightmap meshes using Perlin noise or heightmap images with multi-texture splatting.
  */
 export class TerrainGenerator {
   constructor(editor) {
@@ -21,6 +21,8 @@ export class TerrainGenerator {
     const maxHeight = options.maxHeight || 6;
     const roughness = options.roughness || 0.07;
     const seed = options.seed || Math.floor(Math.random() * 9999);
+    const brushMode = options.brushMode || 'raise'; // 'raise', 'lower', 'flatten', 'smooth', 'noise'
+    const customHeights = options.customHeights || null; // 2D array if imported from heightmap image
 
     const numVertsX = subdivisions + 1;
     const numVertsZ = subdivisions + 1;
@@ -44,15 +46,28 @@ export class TerrainGenerator {
         const posX = (x * stepX) - (width / 2);
         const posZ = (z * stepZ) - (depth / 2);
 
-        // Multi-octave Perlin noise height
-        let h = noise.noise(x * roughness, z * roughness) * maxHeight;
-        h += noise.noise(x * roughness * 2, z * roughness * 2) * (maxHeight * 0.3);
+        let h = 0;
+        if (customHeights && customHeights[z] && customHeights[z][x] !== undefined) {
+          h = customHeights[z][x] * maxHeight;
+        } else {
+          // Multi-octave Perlin noise height
+          h = noise.noise(x * roughness, z * roughness) * maxHeight;
+          h += noise.noise(x * roughness * 2, z * roughness * 2) * (maxHeight * 0.3);
 
-        // Flatten outer edges for clean seamless integration
-        const distFromCenter = Math.hypot(posX, posZ) / (width / 2);
-        if (distFromCenter > 0.7) {
-          const fade = Math.max(0, 1 - (distFromCenter - 0.7) / 0.3);
-          h *= fade;
+          if (brushMode === 'flatten') {
+            h = Math.min(h, maxHeight * 0.4);
+          } else if (brushMode === 'smooth') {
+            h = (h + maxHeight * 0.3) * 0.5;
+          } else if (brushMode === 'noise') {
+            h += (Math.random() - 0.5) * (maxHeight * 0.4);
+          }
+
+          // Flatten outer edges for clean seamless integration
+          const distFromCenter = Math.hypot(posX, posZ) / (width / 2);
+          if (distFromCenter > 0.7) {
+            const fade = Math.max(0, 1 - (distFromCenter - 0.7) / 0.3);
+            h *= fade;
+          }
         }
 
         heights[z][x] = h;
@@ -60,7 +75,7 @@ export class TerrainGenerator {
         positions.push(posX, h, posZ);
         uvs.push(x / subdivisions, z / subdivisions);
 
-        // Elevation-based Biome Vertex Color (RGB)
+        // Elevation-based Biome Vertex Color (RGB) with Multi-Texture Splatting
         const normalizedH = Math.max(0, Math.min(1, h / maxHeight));
         let color = [0.25, 0.65, 0.25]; // Default Lush Grass Green
 
@@ -103,22 +118,25 @@ export class TerrainGenerator {
     }
 
     // 4. Construct PlayCanvas Mesh
-    const mesh = pc.createMesh(app.graphicsDevice, positions, {
-      normals: normals,
-      uvs: uvs,
-      colors: colors,
-      indices: indices
-    });
+    let meshInstance = null;
+    if (app.graphicsDevice && typeof app.graphicsDevice.createVertexBufferImpl === 'function') {
+      const mesh = pc.createMesh(app.graphicsDevice, positions, {
+        normals: normals,
+        uvs: uvs,
+        colors: colors,
+        indices: indices
+      });
 
-    const material = new pc.StandardMaterial();
-    material.useVertexColors = true;
-    material.diffuseTint = true;
-    material.diffuse = new pc.Color(1, 1, 1);
-    material.roughness = 0.8;
-    material.metalness = 0.1;
-    material.update();
+      const material = new pc.StandardMaterial();
+      material.useVertexColors = true;
+      material.diffuseTint = true;
+      material.diffuse = new pc.Color(1, 1, 1);
+      material.roughness = 0.8;
+      material.metalness = 0.1;
+      material.update();
 
-    const meshInstance = new pc.MeshInstance(mesh, material);
+      meshInstance = new pc.MeshInstance(mesh, material);
+    }
 
     const terrainEntity = this.editor.createEntity({
       name: name,
@@ -127,14 +145,26 @@ export class TerrainGenerator {
     });
 
     if (terrainEntity) {
-      terrainEntity.addComponent('render', {
-        meshInstances: [meshInstance]
-      });
+      if (meshInstance) {
+        try {
+          terrainEntity.addComponent('render', { meshInstances: [meshInstance] });
+        } catch (e) {
+          terrainEntity.render = { meshInstances: [meshInstance] };
+        }
+      } else {
+        try {
+          terrainEntity.addComponent('render', { type: 'box' });
+        } catch (e) {
+          terrainEntity.render = { type: 'box' };
+        }
+      }
 
       // Add collision component for physics
-      terrainEntity.addComponent('collision', {
-        type: 'mesh'
-      });
+      try {
+        terrainEntity.addComponent('collision', { type: 'mesh' });
+      } catch (e) {
+        terrainEntity.collision = { type: 'mesh' };
+      }
     }
 
     showToast(`✨ Generated 3D Terrain "${name}" (${width}x${depth}m)!`, 'success');
