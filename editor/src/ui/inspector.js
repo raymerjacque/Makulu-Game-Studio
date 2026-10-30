@@ -113,7 +113,12 @@ export const BEHAVIOR_CATALOG = [
   { type: 'surface_climbing_spider', icon: '🕷️', name: 'Surface Wall & Ceiling Climbing', defaultParams: { climbSpeed: 6.0 } },
   { type: 'stealth_invisibility_cloak', icon: '🥷', name: 'Stealth Invisibility Cloak (\'X\')', defaultParams: { duration: 6.0, cooldown: 12.0 } },
   { type: 'thermal_night_vision_toggle', icon: '🕶️', name: 'Thermal Night Vision Overlay (\'V\')', defaultParams: { ambientBoost: 2.5 } },
-  { type: 'weapon_recoil_camera_kick', icon: '🔫', name: 'Weapon Recoil & Camera Kickback', defaultParams: { recoilAngle: 3.5, recoverySpeed: 10.0 } }
+  { type: 'weapon_recoil_camera_kick', icon: '🔫', name: 'Weapon Recoil & Camera Kickback', defaultParams: { recoilAngle: 3.5, recoverySpeed: 10.0 } },
+  { type: 'crouch_stealth_mechanic', icon: '🥷', name: 'Crouch & Stealth Crawl (\'Ctrl\' / \'C\')', defaultParams: { crouchSpeed: 3.5, heightScale: 0.5, stealthDetectionReduction: 0.6 } },
+  { type: 'grappling_hook_rope_beam', icon: '🪝', name: 'Visual Grappling Hook Tether Beam', defaultParams: { color: [0, 0.9, 1], thickness: 0.08 } },
+  { type: 'procedural_water_ripple', icon: '🌊', name: 'Interactive Water Surface Ripples', defaultParams: { rippleSpeed: 4.0, amplitude: 0.15 } },
+  { type: 'enemy_boss_healthbar_hud', icon: '🐉', name: 'Screen-Top Boss Health Bar HUD', defaultParams: { bossName: 'Dungeon Dragon', maxHp: 1000 } },
+  { type: 'screen_blood_vignette', icon: '🩸', name: 'Low HP & Damage Blood Screen Vignette', defaultParams: { threshold: 0.35, flashDuration: 0.3 } }
 ];
 
 /**

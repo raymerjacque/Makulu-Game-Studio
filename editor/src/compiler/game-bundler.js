@@ -70,6 +70,36 @@ export class GameBundler {
       z-index: 20;
     }
 
+    #hud-blood-vignette {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: radial-gradient(circle, transparent 40%, rgba(220, 38, 38, 0.75) 100%);
+      display: none;
+      z-index: 15;
+    }
+
+    #hud-boss-bar-wrap {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 420px;
+      max-width: 90vw;
+      background: rgba(15, 0, 0, 0.85);
+      border: 1px solid rgba(239, 68, 68, 0.6);
+      border-radius: 8px;
+      padding: 6px 12px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+    }
+
     #hud-health-bar-wrap {
       position: absolute;
       top: 16px;
@@ -288,6 +318,17 @@ export class GameBundler {
 
   <!-- 2D HUD Screen UI -->
   <div id="hud-container">
+    <div id="hud-blood-vignette"></div>
+
+    <div id="hud-boss-bar-wrap" style="display: none;">
+      <div style="display: flex; justify-content: space-between; color: #ef4444; font-size: 11px; font-weight: 800;">
+        <span id="hud-boss-title">🐉 BOSS HP</span>
+      </div>
+      <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden;">
+        <div id="hud-boss-fill" style="height: 100%; width: 100%; background: #ef4444; transition: width 0.15s ease-out;"></div>
+      </div>
+    </div>
+
     <div id="hud-health-bar-wrap" style="display: none;">
       <div id="hud-health-label-wrap">
         <span id="hud-health-title">HP</span>
