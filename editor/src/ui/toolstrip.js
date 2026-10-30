@@ -102,16 +102,20 @@ export class ToolStrip {
 
     snapBtn.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      const val = prompt('Enter grid position snap increment (e.g. 0.1, 0.25, 0.5, 1.0, 2.0):', this.posSnapIncrement);
-      if (val && !isNaN(parseFloat(val))) {
-        this.posSnapIncrement = parseFloat(val);
-        this.snapEnabled = true;
-        snapBtn.classList.add('active');
-        if (this.editor.runtime && this.editor.runtime.gizmoManager) {
-          this.editor.runtime.gizmoManager.setSnap(true, this.posSnapIncrement);
-        }
-        showToast(`🧲 Snapping step set to ${this.posSnapIncrement}m!`, 'success');
+      const posVal = prompt('Enter position snap increment (0.1, 0.25, 0.5, 1.0, 2.0):', this.posSnapIncrement);
+      const rotVal = prompt('Enter rotation snap angle (15, 30, 45, 90):', this.rotSnapIncrement);
+      if (posVal && !isNaN(parseFloat(posVal))) {
+        this.posSnapIncrement = parseFloat(posVal);
       }
+      if (rotVal && !isNaN(parseFloat(rotVal))) {
+        this.rotSnapIncrement = parseFloat(rotVal);
+      }
+      this.snapEnabled = true;
+      snapBtn.classList.add('active');
+      if (this.editor.runtime && this.editor.runtime.gizmoManager) {
+        this.editor.runtime.gizmoManager.setSnap(true, this.posSnapIncrement);
+      }
+      showToast(`🧲 Snapping set to ${this.posSnapIncrement}m / ${this.rotSnapIncrement}°!`, 'success');
     });
 
     // Physics Wireframe Debugger Toggle

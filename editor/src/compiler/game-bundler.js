@@ -2210,6 +2210,154 @@ export class GameBundler {
               };
               app.on('update', updateBullet);
             }
+          } else if (b.type === 'navmesh_agent') {
+            if (playerEntity) {
+              const speed = b.properties?.speed || 4.0;
+              const stopDist = b.properties?.stoppingDistance || 1.2;
+              const pos = node.getPosition();
+              const targetPos = playerEntity.getPosition();
+              const dist = pos.distance(targetPos);
+              if (dist > stopDist && dist < 30.0) {
+                const lookTarget = new pc.Vec3(targetPos.x, pos.y, targetPos.z);
+                node.lookAt(lookTarget);
+                node.translateLocal(0, 0, -speed * dt);
+                updateLocomotion(node, speed, true, dt);
+              } else {
+                updateLocomotion(node, speed, false, dt);
+              }
+            }
+          } else if (b.type === 'telekinesis_gravity_lift') {
+            const liftKey = keys['f'] || keys['keyf'];
+            if (liftKey) {
+              const pos = node.getPosition();
+              const range = b.properties?.range || 15;
+              const liftForce = b.properties?.liftForce || 25.0;
+              app.root.forEach(other => {
+                if (other !== node && other.enabled && other.parent) {
+                  if (pos.distance(other.getPosition()) <= range) {
+                    if (other.rigidbody) {
+                      other.rigidbody.applyForce(0, liftForce * dt * 60, 0);
+                    } else if (other.translate) {
+                      other.translate(0, liftForce * dt * 0.1, 0);
+                    }
+                  }
+                }
+              });
+              if (window.playProceduralSFX) window.playProceduralSFX('powerup', 0.1);
+            }
+          } else if (b.type === 'procedural_ik_footing') {
+            const pos = node.getPosition();
+            const rayLen = b.properties?.rayLength || 1.5;
+            if (app.systems && app.systems.rigidbody) {
+              const rayEnd = pos.clone().sub(new pc.Vec3(0, rayLen, 0));
+              const res = app.systems.rigidbody.raycastFirst(pos, rayEnd);
+              if (res) {
+                const targetY = res.point.y + 0.1;
+                node.setPosition(pos.x, Math.max(pos.y, targetY), pos.z);
+              }
+            }
+          } else if (b.type === 'time_rewind_effect') {
+            if (!b._history) b._history = [];
+            const isRewinding = keys['r'] || keys['keyr'];
+            if (isRewinding) {
+              if (b._history.length > 0) {
+                const prev = b._history.pop();
+                if (node.rigidbody) {
+                  node.rigidbody.teleport(prev.pos);
+                  node.rigidbody.linearVelocity = pc.Vec3.ZERO;
+                } else {
+                  node.setPosition(prev.pos);
+                }
+                node.setEulerAngles(prev.rot);
+                if (window.playProceduralSFX) window.playProceduralSFX('teleport', 0.15);
+              }
+            } else {
+              const maxFrames = Math.round((b.properties?.recordSeconds || 5.0) * 60);
+              b._history.push({
+                pos: node.getPosition().clone(),
+                rot: node.getEulerAngles().clone()
+              });
+              if (b._history.length > maxFrames) b._history.shift();
+            }
+          } else if (b.type === 'procedural_dungeon_room_spawner') {
+            if (!b._state) b._state = { spawned: false };
+            if (!b._state.spawned) {
+              b._state.spawned = true;
+              const w = b.properties?.roomWidth || 12;
+              const l = b.properties?.roomLength || 12;
+              const pos = node.getPosition();
+              const floor = new pc.Entity('Dungeon_Floor');
+              floor.setPosition(pos);
+              floor.setLocalScale(w, 0.2, l);
+              const mat = new pc.StandardMaterial();
+              mat.diffuse = new pc.Color(0.2, 0.2, 0.25);
+              mat.update();
+              floor.addComponent('render', { type: 'box', material: mat });
+              floor.addComponent('collision', { type: 'box' });
+              floor.addComponent('rigidbody', { type: 'static' });
+              app.root.addChild(floor);
+            }
+          } else if (b.type === 'magnetic_grapple_tether') {
+            if (playerEntity) {
+              const pos = node.getPosition();
+              const plyPos = playerEntity.getPosition();
+              const dist = pos.distance(plyPos);
+              if (dist <= (b.properties?.radius || 10.0) && dist > 1.0) {
+                const pullSpeed = b.properties?.pullSpeed || 18.0;
+                const dir = pos.clone().sub(plyPos).normalize().mulScalar(pullSpeed * dt);
+                if (playerEntity.rigidbody) {
+                  playerEntity.rigidbody.applyForce(dir.x * 60, dir.y * 60, dir.z * 60);
+                } else {
+                  playerEntity.translate(dir);
+                }
+              }
+            }
+          } else if (b.type === 'surface_climbing_spider') {
+            const isClimbing = keys['w'] || keys['s'] || keys['a'] || keys['d'];
+            if (isClimbing) {
+              const speed = b.properties?.climbSpeed || 6.0;
+              if (keys['w']) node.translateLocal(0, speed * dt, 0);
+              if (keys['s']) node.translateLocal(0, -speed * dt, 0);
+              if (node.rigidbody) node.rigidbody.linearVelocity = pc.Vec3.ZERO;
+            }
+          } else if (b.type === 'stealth_invisibility_cloak') {
+            const cloakKey = keys['x'] || keys['keyx'];
+            if (!b._cooldown) b._cooldown = 0;
+            if (b._cooldown > 0) b._cooldown -= dt;
+            if (cloakKey && b._cooldown <= 0) {
+              b._cooldown = b.properties?.cooldown || 12.0;
+              b._duration = b.properties?.duration || 6.0;
+              if (node.render && node.render.material) {
+                node.render.material.opacity = 0.25;
+                node.render.material.blendType = pc.BLEND_NORMAL;
+                node.render.material.update();
+              }
+              if (window.playProceduralSFX) window.playProceduralSFX('powerup');
+            }
+            if (b._duration && b._duration > 0) {
+              b._duration -= dt;
+              if (b._duration <= 0 && node.render && node.render.material) {
+                node.render.material.opacity = 1.0;
+                node.render.material.update();
+              }
+            }
+          } else if (b.type === 'thermal_night_vision_toggle') {
+            const nvKey = keys['v'] || keys['keyv'];
+            if (!b._keyWasDown) b._keyWasDown = false;
+            if (nvKey && !b._keyWasDown) {
+              b._nvActive = !b._nvActive;
+              app.scene.ambientLight = b._nvActive ? new pc.Color(0.1, 0.9, 0.2) : new pc.Color(0.25, 0.25, 0.28);
+              if (window.playProceduralSFX) window.playProceduralSFX('coin');
+            }
+            b._keyWasDown = nvKey;
+          } else if (b.type === 'weapon_recoil_camera_kick') {
+            if (!b._recoilTimer) b._recoilTimer = 0;
+            if (b._recoilTimer > 0) {
+              b._recoilTimer -= dt;
+              if (gameCamera) {
+                gameCamera.rotateLocal(-(b.properties?.recoilAngle || 3.5) * dt * 10, 0, 0);
+              }
+            }
           }
         });
       });

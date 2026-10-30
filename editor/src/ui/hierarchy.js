@@ -314,6 +314,7 @@ export class HierarchyPanel {
           <span class="tree-icon">${icon}</span>
           <span class="tree-label" style="flex: 1; ${node.enabled === false ? 'opacity: 0.5; text-decoration: line-through;' : ''}">${node.name}</span>
           <div class="tree-actions" style="display: flex; align-items: center; gap: 4px;">
+            <span class="tree-action-lock" title="${node.locked ? 'Unlock Transform' : 'Lock Transform (Freeze)'}" style="cursor: pointer; font-size: 10px; opacity: 0.8;">${node.locked ? '🔒' : '🔓'}</span>
             <span class="tree-action-vis" title="${node.enabled !== false ? 'Hide' : 'Show'}" style="cursor: pointer; font-size: 11px; opacity: 0.7;">${node.enabled !== false ? '👁️' : '🙈'}</span>
             <span class="tree-action-del" title="Delete" style="color: #ef4444; font-size: 10px; cursor: pointer;">✕</span>
           </div>
@@ -322,6 +323,13 @@ export class HierarchyPanel {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           this.editor.selection.set(node);
+        });
+
+        item.querySelector('.tree-action-lock').addEventListener('click', (e) => {
+          e.stopPropagation();
+          node.locked = !node.locked;
+          this.rebuildTree();
+          this.editor.events.emit('scene:changed');
         });
 
         item.querySelector('.tree-action-vis').addEventListener('click', (e) => {

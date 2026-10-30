@@ -79,6 +79,25 @@ export class ProjectSettingsModal {
           </div>
 
           <div style="border-top: 1px solid var(--border-subtle); padding-top: 10px; margin-top: 4px;">
+            <div style="font-weight: 700; font-size: 11px; color: var(--accent-orange); margin-bottom: 8px;">🔊 Global Audio Mixer Bus Volumes</div>
+
+            <div class="prop-row" style="margin-bottom: 6px;">
+              <span class="prop-label" style="width: 140px;">Master Volume</span>
+              <input type="range" min="0" max="1" step="0.05" id="proj-audio-master" value="${this.editor.audioVolumes?.master !== undefined ? this.editor.audioVolumes.master : 1.0}" style="flex: 1; accent-color: var(--accent-orange);">
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 6px;">
+              <span class="prop-label" style="width: 140px;">Music Volume</span>
+              <input type="range" min="0" max="1" step="0.05" id="proj-audio-music" value="${this.editor.audioVolumes?.music !== undefined ? this.editor.audioVolumes.music : 0.8}" style="flex: 1; accent-color: var(--accent-orange);">
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 6px;">
+              <span class="prop-label" style="width: 140px;">SFX Volume</span>
+              <input type="range" min="0" max="1" step="0.05" id="proj-audio-sfx" value="${this.editor.audioVolumes?.sfx !== undefined ? this.editor.audioVolumes.sfx : 1.0}" style="flex: 1; accent-color: var(--accent-orange);">
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 10px; margin-top: 4px;">
             <div style="font-weight: 700; font-size: 11px; color: var(--accent-orange); margin-bottom: 8px;">🖼️ Basis Universal & KTX2 Texture Compression Pipeline</div>
 
             <div class="prop-row" style="margin-bottom: 8px;">
@@ -157,9 +176,14 @@ export class ProjectSettingsModal {
         const texAniso = parseInt(this.modal.querySelector('#proj-texture-aniso').value, 10);
         const texMipmaps = this.modal.querySelector('#proj-texture-mipmaps').checked;
 
+        const masterVol = parseFloat(this.modal.querySelector('#proj-audio-master').value) || 1.0;
+        const musicVol = parseFloat(this.modal.querySelector('#proj-audio-music').value) || 0.8;
+        const sfxVol = parseFloat(this.modal.querySelector('#proj-audio-sfx').value) || 1.0;
+
         if (title) this.editor.projectName = title;
 
         this.editor.shadowResolution = shadowRes;
+        this.editor.audioVolumes = { master: masterVol, music: musicVol, sfx: sfxVol };
         this.editor.textureCompressionSettings = {
           targetFormat: texTarget,
           qualityLevel: texQuality,
