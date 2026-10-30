@@ -115,7 +115,7 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **100 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Behavior Injection:** Attach any of the **110 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `navmesh_agent`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
 * **Atmosphere, Weather & PostFX:** Switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
 * **Physics, Constraints & Ragdolls:** Dynamically attach Rigidbody, Collision, 6-DOF / Hinge / Ball Physics Joint constraints, and ragdoll defeat collapses.
@@ -414,6 +414,26 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Autonomous companion drone that maintains continuous rotational orbit around the player and auto-targets nearby hostiles.
 100. **🎯 HUD Directional Damage Markers:**
     Screen-edge visual hit indicator showing the precise direction of incoming enemy fire or hazard damage with animated alpha decay.
+101. **🤖 NavMesh Pathfinding AI Agent:**
+    Autonomous target pursuit controller with stopping distance thresholds, orientation alignment, and skeletal locomotion blending.
+102. **🌀 Telekinesis Gravity Lift:**
+    Hot-key triggered (`F`) telekinetic lift force field that levitates and suspends nearby rigidbodies and props into the air.
+103. **🦶 Procedural IK Footing & Slope Alignment:**
+    Dynamic terrain raycasting system that detects slopes, steps, and uneven floor surfaces to adjust entity altitude and prevent feet clipping.
+104. **⏳ Braid Temporal Time Rewind:**
+    Hot-key triggered (`R`) chronological time-reversal engine that rewinds entity position and rotation trajectories over a buffered 5-second window.
+105. **🏰 Procedural Dungeon Room Spawner:**
+    Algorithmic environment spawner that instantiates modular dungeon floor rooms with collision geometry and static rigidbodies on scene initialization.
+106. **🧲 Magnetic Grapple Tether Anchor:**
+    High-velocity grappling anchor volume that propels approaching players towards its center upon entering proximity radius.
+107. **🕷️ Surface Wall & Ceiling Climbing:**
+    Multi-surface locomotion handler enabling characters and creatures to climb perpendicular walls and inverted ceilings with surface normal alignment.
+108. **🥷 Stealth Invisibility Cloak:**
+    Hot-key triggered (`X`) optical camouflage that renders player materials transparent and drops hostile NPC targeting aggro.
+109. **🕶️ Thermal Night Vision Overlay:**
+    Hot-key triggered (`V`) military FLIR thermal imaging mode that boosts ambient illumination and overlays high-contrast visibility filters.
+110. **🔫 Weapon Recoil & Camera Kickback:**
+    Physical weapon kickback and dynamic camera pitch displacement with realistic exponential recovery dampening.
 
 ---
 
@@ -487,6 +507,7 @@ Create reactive game mechanics through modular trigger volumes:
   * **Physics Gravity Y:** Freely tune gravity between Earth (`-9.8 m/s²`), Moon (`-1.6 m/s²`), Zero-G (`0`), or high-gravity worlds.
   * **Tone Mapping Selection:** Choose between ACES Filmic, Linear Standard, and High Contrast Filmic.
   * **Shadow Map Resolution:** Toggle between Medium (1024×1024), High Crisp (2048×2048), and Low Mobile (512×512).
+  * **🔊 Global Audio Mixer Bus Volumes:** Independent volume channel sliders for **Master Volume**, **Music Volume**, and **SFX Volume** persisted in project configuration.
 * **✨ Post-Processing & Render Pipeline FX (`✨ FX`):**
   * **High-Dynamic Range Bloom:** Adjustable bloom intensity and luminance threshold.
   * **Tone Mapping & Exposure:** Fine-tune exposure multiplier and HDR curve algorithms (ACES, Filmic, Linear, None).
@@ -494,6 +515,8 @@ Create reactive game mechanics through modular trigger volumes:
   * **🌑 Cinematic Vignette:** Radial lens border shading with intensity and curvature controls.
   * **📷 Depth of Field (DoF):** Camera focal plane distance and background blur amount sliders.
   * **🌈 Chromatic Aberration:** Optical lens fringe dispersion and RGB offset.
+  * **🌑 Screen-Space Ambient Occlusion (SSAO):** Realistic contact shadow depth with customizable occlusion radius.
+  * **💨 Cinematic Motion Blur:** Camera and velocity motion blur intensity slider.
   * **Exponential Atmospheric Fog:** Custom fog color picker, fog density slider, and distance falloff.
 * **🖼️ Basis Universal & KTX2 Texture Compression Pipeline (`Settings ▾ -> ⚙️ Project Settings`):**
   * **GPU Transcode Targets:** Auto (Hardware Best Fit), ASTC (Mobile / High Fidelity), DXT / BC1 / BC3 (Desktop PCs), ETC2 (Android Standard), BC7 (AAA High Detail), and RGBA Uncompressed.
@@ -530,12 +553,14 @@ Create reactive game mechanics through modular trigger volumes:
   * **📸 1-Click High-Res Viewport Snapshot Tool:** Dedicated TopBar button (`📸 Snapshot`) and autonomous AI action (`capture_screenshot`) that captures PNG screenshots of the 3D scene, prompts instant download, and saves them to the project's Asset Browser.
   * **⬇️ Drop to Floor Ground Helper:** 1-click Scene menu action (`⬇️ Drop Selected to Floor Ground`) that automatically positions any elevated or floating entity flush onto the ground plane based on its bounding height.
   * **🟢 Real-Time Physics Collider Wireframe Debugger:** 1-click ToolStrip toggle (`🟢`) that dynamically projects live green wireframe bounding hulls (boxes, spheres, capsules, cylinders) for all scene colliders simultaneously.
-  * **🧲 Custom Grid Snapping Steps:** Right-click the snap button (`🧲`) to configure custom translation snapping increments (`0.1m`, `0.25m`, `0.5m`, `1.0m`, `2.0m`) with active status feedback.
+  * **🧲 Dual Position & Rotation Angle Snapping Steps:** Right-click the snap button (`🧲`) to configure custom translation snapping increments (`0.1m`, `0.25m`, `0.5m`, `1.0m`, `2.0m`) and rotation angle snap steps (`15°`, `30°`, `45°`, `90°`) with active status feedback.
   * **Light Range Gizmo:** Wireframe sphere matching point/spot light radius and color.
   * **Spatial Audio Gizmo:** Cyan wireframe sphere displaying audio maximum attenuation range.
   * **Physics Collision Gizmo:** Real-time green wireframe outlines displaying box, sphere, capsule, and cylinder collision bounds.
   * **Physics Joint Constraint Gizmo:** Gold wireframe cylinder/sphere gizmos at joint pivot locations for visual anchor alignment.
 * **🧩 Advanced ECS Component Inspector & Power Tools:**
+  * **🔒 Entity Transform Locking & 🏷️ Tagging System:** Freeze entities in place (`locked: true`) with 1-click lock icons in the hierarchy tree and inspector toggle to prevent accidental transform modifications during complex scene composition; assign comma-separated tags (`tags: ['player', 'enemy', 'solid']`) for entity filtering and behavior queries.
+  * **🎯 Physics Collision Filtering & Layer Bitmasks:** Configure layer groups (`group: 1-16`) and collision interaction masks (`mask: 0-65535`) on Collision and Rigidbody components for selective physics filtering (e.g. allowing bullets to pass through team members or items to only trigger player collection).
   * **📋 Component Copy & Paste:** 1-click copy button (`📋`) on Render, Light, and Rigidbody cards allows copying entire component configurations and pasting them across different entities with a single click.
   * **🎨 Expanded PBR Material Pipeline:** Comprehensive PBR pipeline supporting Diffuse, Emissive, Metalness, Roughness, Opacity, and **Normal (Bump) Texture Maps** with automatic base64 embedding in standalone exports.
   * **🎥 Camera:** FOV, Near Clip, and Far Clip.
