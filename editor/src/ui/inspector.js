@@ -118,7 +118,12 @@ export const BEHAVIOR_CATALOG = [
   { type: 'grappling_hook_rope_beam', icon: '🪝', name: 'Visual Grappling Hook Tether Beam', defaultParams: { color: [0, 0.9, 1], thickness: 0.08 } },
   { type: 'procedural_water_ripple', icon: '🌊', name: 'Interactive Water Surface Ripples', defaultParams: { rippleSpeed: 4.0, amplitude: 0.15 } },
   { type: 'enemy_boss_healthbar_hud', icon: '🐉', name: 'Screen-Top Boss Health Bar HUD', defaultParams: { bossName: 'Dungeon Dragon', maxHp: 1000 } },
-  { type: 'screen_blood_vignette', icon: '🩸', name: 'Low HP & Damage Blood Screen Vignette', defaultParams: { threshold: 0.35, flashDuration: 0.3 } }
+  { type: 'screen_blood_vignette', icon: '🩸', name: 'Low HP & Damage Blood Screen Vignette', defaultParams: { threshold: 0.35, flashDuration: 0.3 } },
+  { type: 'grappling_hook_physics_swing', icon: '🪢', name: 'Grappling Hook Cable Pendulum Physics Swing', defaultParams: { swingForce: 25, cableLength: 20 } },
+  { type: 'enemy_boss_phase_transition', icon: '🐉', name: 'Boss Phase Transition Shield & Earthquake Blast', defaultParams: { phaseThreshold: 0.5, shieldHp: 200, blastDamage: 40 } },
+  { type: 'procedural_spline_mesh_deformer', icon: '🛤️', name: 'Procedural Spline Mesh Rail & Cable Deformer', defaultParams: { curveRadius: 5.0, segmentLength: 1.0 } },
+  { type: 'screen_space_impact_vfx', icon: '💥', name: 'High-Octane Combat Impact & Hitstop VFX', defaultParams: { hitstopMs: 80, shakeIntensity: 0.6 } },
+  { type: 'interactive_inventory_chest', icon: '🎁', name: 'Interactive Treasure Chest with Gold Particle Burst', defaultParams: { radius: 2.5, goldAmount: 100 } }
 ];
 
 /**

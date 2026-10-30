@@ -152,6 +152,9 @@ export class TopBar {
               <div class="topbar-dropdown-item" id="menu-action-material">
                 <span class="item-label">🎨 PBR Material Studio...</span>
               </div>
+              <div class="topbar-dropdown-item" id="menu-action-shader-graph">
+                <span class="item-label">🎨 Visual Shader Graph Editor...</span>
+              </div>
               <div class="topbar-dropdown-item" id="menu-action-code">
                 <span class="item-label">📜 Script Code Studio...</span>
               </div>
@@ -663,6 +666,14 @@ export class TopBar {
     if (matItem) {
       matItem.addEventListener('click', () => {
         if (this.extraModals.materialModal) this.extraModals.materialModal.open();
+      });
+    }
+
+    // Shader Graph Editor
+    const shaderGraphItem = this.container.querySelector('#menu-action-shader-graph');
+    if (shaderGraphItem) {
+      shaderGraphItem.addEventListener('click', () => {
+        if (this.extraModals.shaderGraphModal) this.extraModals.shaderGraphModal.open();
       });
     }
 
