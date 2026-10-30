@@ -198,6 +198,26 @@ export class PostProcessingModal {
             </div>
           </div>
 
+          <!-- Screen Space Ambient Occlusion (SSAO) & Motion Blur -->
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+              <span>🌑 Ambient Occlusion (SSAO) & Motion Blur</span>
+              <input type="checkbox" id="fx-ssao-toggle" style="cursor: pointer;">
+            </div>
+
+            <div class="prop-row" style="margin-bottom: 8px;">
+              <span class="prop-label" style="width: 150px;">SSAO Radius</span>
+              <input type="range" min="1" max="10" step="0.5" id="fx-ssao-radius" value="4.0" class="text-input" style="flex: 1;">
+              <span id="fx-ssao-radius-val" style="font-size: 11px; width: 40px;">4.0</span>
+            </div>
+
+            <div class="prop-row">
+              <span class="prop-label" style="width: 150px;">Motion Blur Strength</span>
+              <input type="range" min="0" max="1" step="0.05" id="fx-motionblur-strength" value="0.3" class="text-input" style="flex: 1;">
+              <span id="fx-motionblur-val" style="font-size: 11px; width: 40px;">0.30</span>
+            </div>
+          </div>
+
         </div>
 
         <!-- Footer -->

@@ -6,8 +6,8 @@ import { BEHAVIOR_CATALOG } from '../src/ui/inspector.js';
 import { generateWAVDataURL, proceduralSFX } from '../src/engine/procedural-sfx.js';
 import { GameBundler } from '../src/compiler/game-bundler.js';
 
-test('AAA Expansion: BEHAVIOR_CATALOG contains 100 total behaviors', () => {
-  assert.equal(BEHAVIOR_CATALOG.length, 100);
+test('AAA Expansion: BEHAVIOR_CATALOG contains at least 100 total behaviors', () => {
+  assert.ok(BEHAVIOR_CATALOG.length >= 100);
 
   const aaaTypes = [
     'grappling_rope_physics',

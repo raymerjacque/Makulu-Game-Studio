@@ -87,6 +87,9 @@ export class Editor {
     const parent = options.parent || (app ? app.root : this.root);
     const entity = new pc.Entity(name);
 
+    entity.locked = Boolean(options.locked);
+    entity.tags = options.tags || [];
+
     // Apply transform if provided
     if (options.transform) {
       if (options.transform.position) {
@@ -496,6 +499,8 @@ export class Editor {
       const data = {
         name: node.name,
         enabled: node.enabled,
+        locked: Boolean(node.locked),
+        tags: Array.from(node.tags || []),
         position: [node.getPosition().x, node.getPosition().y, node.getPosition().z],
         rotation: [node.getEulerAngles().x, node.getEulerAngles().y, node.getEulerAngles().z],
         scale: [node.getLocalScale().x, node.getLocalScale().y, node.getLocalScale().z],
@@ -546,7 +551,9 @@ export class Editor {
         data.components.collision = {
           type: node.collision.type || 'box',
           radius: node.collision.radius || 0.5,
-          height: node.collision.height || 2
+          height: node.collision.height || 2,
+          group: node.collision.group !== undefined ? node.collision.group : 1,
+          mask: node.collision.mask !== undefined ? node.collision.mask : 65535
         };
       }
       if (node.rigidbody) {
@@ -555,6 +562,8 @@ export class Editor {
           mass: node.rigidbody.mass || 1,
           restitution: node.rigidbody.restitution !== undefined ? node.rigidbody.restitution : 0.5,
           friction: node.rigidbody.friction !== undefined ? node.rigidbody.friction : 0.5,
+          group: node.rigidbody.group !== undefined ? node.rigidbody.group : 1,
+          mask: node.rigidbody.mask !== undefined ? node.rigidbody.mask : 65535,
           linearFactor: node.rigidbody.linearFactor ? [node.rigidbody.linearFactor.x, node.rigidbody.linearFactor.y, node.rigidbody.linearFactor.z] : [1, 1, 1],
           angularFactor: node.rigidbody.angularFactor ? [node.rigidbody.angularFactor.x, node.rigidbody.angularFactor.y, node.rigidbody.angularFactor.z] : [1, 1, 1]
         };
@@ -678,6 +687,8 @@ export class Editor {
 
       const buildNode = (nodeData, parent) => {
         const ent = new pc.Entity(nodeData.name);
+        ent.locked = Boolean(nodeData.locked);
+        ent.tags = nodeData.tags || [];
         if (nodeData.position) ent.setPosition(...nodeData.position);
         if (nodeData.rotation) ent.setEulerAngles(...nodeData.rotation);
         if (nodeData.scale) ent.setLocalScale(...nodeData.scale);
@@ -757,6 +768,8 @@ export class Editor {
               radius: col.radius || 0.5,
               height: col.height || 2
             });
+            if (col.group !== undefined) ent.collision.group = col.group;
+            if (col.mask !== undefined) ent.collision.mask = col.mask;
           }
           if (nodeData.components.rigidbody) {
             const rb = nodeData.components.rigidbody;
@@ -768,6 +781,8 @@ export class Editor {
               linearFactor: rb.linearFactor ? new pc.Vec3(...rb.linearFactor) : new pc.Vec3(1, 1, 1),
               angularFactor: rb.angularFactor ? new pc.Vec3(...rb.angularFactor) : new pc.Vec3(1, 1, 1)
             });
+            if (rb.group !== undefined) ent.rigidbody.group = rb.group;
+            if (rb.mask !== undefined) ent.rigidbody.mask = rb.mask;
           }
           if (nodeData.animGraph) {
             ent.animGraph = nodeData.animGraph;

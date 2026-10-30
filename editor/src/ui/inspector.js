@@ -103,7 +103,17 @@ export const BEHAVIOR_CATALOG = [
   { type: 'combo_hit_counter_hud', icon: '💥', name: 'Combat Combo Multiplier HUD', defaultParams: { timeout: 2.5, multiplierStep: 0.5 } },
   { type: 'climbable_ledge_parkour', icon: '🧗', name: 'Vertical Ledge Parkour Grab', defaultParams: { climbSpeed: 4.0, reachRadius: 1.5 } },
   { type: 'orbiting_drone_companion', icon: '🛸', name: 'Orbiting Tactical Defense Drone', defaultParams: { orbitRadius: 3.0, fireRate: 2.0, damage: 20 } },
-  { type: 'directional_damage_indicator', icon: '🎯', name: 'HUD Directional Damage Markers', defaultParams: { fadeDuration: 1.0 } }
+  { type: 'directional_damage_indicator', icon: '🎯', name: 'HUD Directional Damage Markers', defaultParams: { fadeDuration: 1.0 } },
+  { type: 'navmesh_agent', icon: '🤖', name: 'NavMesh Pathfinding AI Agent', defaultParams: { speed: 4.0, stoppingDistance: 1.2 } },
+  { type: 'telekinesis_gravity_lift', icon: '🌀', name: 'Telekinesis Gravity Lift (\'F\')', defaultParams: { range: 15, liftForce: 25.0 } },
+  { type: 'procedural_ik_footing', icon: '🦶', name: 'Procedural IK Footing & Slope Align', defaultParams: { maxStepHeight: 0.6, rayLength: 1.5 } },
+  { type: 'time_rewind_effect', icon: '⏳', name: 'Braid Temporal Time Rewind (\'R\')', defaultParams: { recordSeconds: 5.0 } },
+  { type: 'procedural_dungeon_room_spawner', icon: '🏰', name: 'Procedural Dungeon Room Spawner', defaultParams: { roomWidth: 12, roomLength: 12 } },
+  { type: 'magnetic_grapple_tether', icon: '🧲', name: 'Magnetic Grapple Tether Anchor', defaultParams: { radius: 10.0, pullSpeed: 18.0 } },
+  { type: 'surface_climbing_spider', icon: '🕷️', name: 'Surface Wall & Ceiling Climbing', defaultParams: { climbSpeed: 6.0 } },
+  { type: 'stealth_invisibility_cloak', icon: '🥷', name: 'Stealth Invisibility Cloak (\'X\')', defaultParams: { duration: 6.0, cooldown: 12.0 } },
+  { type: 'thermal_night_vision_toggle', icon: '🕶️', name: 'Thermal Night Vision Overlay (\'V\')', defaultParams: { ambientBoost: 2.5 } },
+  { type: 'weapon_recoil_camera_kick', icon: '🔫', name: 'Weapon Recoil & Camera Kickback', defaultParams: { recoilAngle: 3.5, recoverySpeed: 10.0 } }
 ];
 
 /**
@@ -980,12 +990,25 @@ export class InspectorPanel {
           <span>Entity Info</span>
           <button id="btn-save-as-prefab" class="btn" style="padding: 1px 8px; font-size: 10px; color: var(--accent-orange); border-color: var(--accent-orange);" title="Save entity hierarchy as a reusable Prefab asset">📦 Save Prefab</button>
         </div>
-        <div class="inspector-section-content">
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
           <div class="prop-row">
             <span class="prop-label">Name</span>
             <div class="prop-control">
               <input type="text" id="entity-name-input" class="text-input" value="${ent.name}">
             </div>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Tags</span>
+            <div class="prop-control">
+              <input type="text" id="entity-tags-input" class="text-input" value="${(ent.tags || []).join(', ')}" placeholder="player, enemy, solid">
+            </div>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Lock Transform</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="entity-lock-toggle" ${ent.locked ? 'checked' : ''}>
+              <span class="toggle-slider"></span>
+            </label>
           </div>
         </div>
       </div>
@@ -1089,6 +1112,25 @@ export class InspectorPanel {
     if (nameInput) {
       nameInput.addEventListener('change', () => {
         ent.name = nameInput.value;
+        this.editor.events.emit('scene:changed');
+      });
+    }
+
+    // Tags input
+    const tagsInput = this.container.querySelector('#entity-tags-input');
+    if (tagsInput) {
+      tagsInput.addEventListener('change', () => {
+        const raw = tagsInput.value;
+        ent.tags = raw.split(',').map(s => s.trim()).filter(Boolean);
+        this.editor.events.emit('scene:changed');
+      });
+    }
+
+    // Lock toggle
+    const lockToggle = this.container.querySelector('#entity-lock-toggle');
+    if (lockToggle) {
+      lockToggle.addEventListener('change', () => {
+        ent.locked = lockToggle.checked;
         this.editor.events.emit('scene:changed');
       });
     }
@@ -1544,10 +1586,10 @@ export class InspectorPanel {
       card.className = 'inspector-section';
       card.innerHTML = `
         <div class="inspector-section-header">
-          <span>🎯 Collision</span>
+          <span>🎯 Collision Shape & Layers</span>
           <button class="btn btn-remove-comp" data-comp="collision" style="padding: 1px 6px; font-size: 10px; color: #ef4444;">✕</button>
         </div>
-        <div class="inspector-section-content">
+        <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 6px;">
           <div class="prop-row">
             <span class="prop-label">Shape</span>
             <select class="select-input" id="collision-type-select">
@@ -1558,10 +1600,24 @@ export class InspectorPanel {
               <option value="mesh" ${ent.collision.type === 'mesh' ? 'selected' : ''}>Mesh</option>
             </select>
           </div>
+          <div class="prop-row">
+            <span class="prop-label">Layer Group (1-16)</span>
+            <input type="number" min="1" max="16" class="text-input" id="collision-group-input" value="${ent.collision.group !== undefined ? ent.collision.group : 1}">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">Collision Mask</span>
+            <input type="number" min="0" max="65535" class="text-input" id="collision-mask-input" value="${ent.collision.mask !== undefined ? ent.collision.mask : 65535}">
+          </div>
         </div>
       `;
       card.querySelector('#collision-type-select').addEventListener('change', (e) => {
         ent.collision.type = e.target.value;
+      });
+      card.querySelector('#collision-group-input').addEventListener('change', (e) => {
+        ent.collision.group = parseInt(e.target.value, 10) || 1;
+      });
+      card.querySelector('#collision-mask-input').addEventListener('change', (e) => {
+        ent.collision.mask = parseInt(e.target.value, 10) || 65535;
       });
       card.querySelector('.btn-remove-comp').addEventListener('click', () => {
         this.editor.removeComponent(ent, 'collision');
