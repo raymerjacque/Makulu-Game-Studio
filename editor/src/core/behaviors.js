@@ -9,6 +9,7 @@ import { proceduralSFX } from '../engine/procedural-sfx.js';
 export class BehaviorManager {
   constructor(editor) {
     this.editor = editor;
+    this.editor.behaviors = this;
     this.isPlaying = false;
     this.activeBehaviors = new Map(); // entity -> Array<{ type, params }>
     this.keys = {};
@@ -1666,6 +1667,94 @@ export class BehaviorManager {
               const cam = app.root.find(c => c.camera);
               if (cam) {
                 cam.rotateLocal(-(b.params.recoilAngle || 3.5) * dt * 10, 0, 0);
+              }
+            }
+          } else if (b.type === 'crouch_stealth_mechanic') {
+            const isCrouching = this.isKeyDown('control') || this.isKeyDown('c') || this.isKeyDown('keyc');
+            if (!b._origScaleY) b._origScaleY = entity.getLocalScale().y;
+            if (isCrouching) {
+              if (!b._isCrouched) {
+                b._isCrouched = true;
+                const scale = entity.getLocalScale().clone();
+                entity.setLocalScale(scale.x, b._origScaleY * (b.params.heightScale || 0.5), scale.z);
+                proceduralSFX.play('footstep', 0.15);
+                if (typeof showToast === 'function') showToast(`🥷 Crouch & Stealth Crawl Active!`, 'info');
+              }
+              b._stealthFactor = b.params.stealthDetectionReduction !== undefined ? b.params.stealthDetectionReduction : 0.6;
+            } else {
+              if (b._isCrouched) {
+                b._isCrouched = false;
+                const scale = entity.getLocalScale().clone();
+                entity.setLocalScale(scale.x, b._origScaleY, scale.z);
+              }
+              b._stealthFactor = 0.0;
+            }
+          } else if (b.type === 'grappling_hook_rope_beam') {
+            const isGrappling = Boolean(this.getBehaviors(entity).some(gb => gb.type === 'grappling_hook' && gb._state && gb._state.active));
+            if (isGrappling) {
+              if (!b._beamEntity) {
+                b._beamEntity = new pc.Entity(`RopeBeam_${Date.now()}`);
+                const mat = new pc.StandardMaterial();
+                const c = b.params.color || [0, 0.9, 1];
+                mat.diffuse = new pc.Color(c[0], c[1], c[2]);
+                mat.emissive = new pc.Color(c[0], c[1], c[2]);
+                mat.update();
+                b._beamEntity.addComponent('render', { type: 'cylinder', material: mat });
+                const app = this.editor.getApp();
+                if (app) app.root.addChild(b._beamEntity);
+              }
+              const gh = this.getBehaviors(entity).find(gb => gb.type === 'grappling_hook');
+              if (gh && gh._state && gh._state.targetPos) {
+                const start = entity.getPosition();
+                const end = gh._state.targetPos;
+                const mid = start.clone().add(end).mulScalar(0.5);
+                const dist = start.distance(end);
+                b._beamEntity.setPosition(mid);
+                b._beamEntity.setLocalScale(b.params.thickness || 0.08, dist / 2, b.params.thickness || 0.08);
+                b._beamEntity.lookAt(end);
+                b._beamEntity.rotateLocal(90, 0, 0);
+              }
+            } else if (b._beamEntity) {
+              try { b._beamEntity.destroy(); } catch(e) {}
+              b._beamEntity = null;
+            }
+          } else if (b.type === 'procedural_water_ripple') {
+            if (!b._time) b._time = 0;
+            if (b._origY === undefined) b._origY = entity.getPosition().y;
+            b._time += dt * (b.params.rippleSpeed || 4.0);
+            const amp = b.params.amplitude || 0.15;
+            const offset = Math.sin(b._time) * amp;
+            if (entity.render) {
+              const pos = entity.getPosition();
+              entity.setPosition(pos.x, b._origY + offset, pos.z);
+            }
+          } else if (b.type === 'enemy_boss_healthbar_hud') {
+            if (b.params.currentHp === undefined) b.params.currentHp = b.params.maxHp || 1000;
+            const wrap = typeof document !== 'undefined' ? document.getElementById('hud-boss-bar-wrap') : null;
+            const fill = typeof document !== 'undefined' ? document.getElementById('hud-boss-fill') : null;
+            if (wrap) wrap.style.display = 'flex';
+            if (fill) {
+              const pct = Math.max(0, Math.min(100, (b.params.currentHp / (b.params.maxHp || 1000)) * 100));
+              fill.style.width = `${pct}%`;
+            }
+          } else if (b.type === 'screen_blood_vignette') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const healthB = this.getBehaviors(player).find(hb => hb.type === 'health' || hb.type === 'target_health');
+              if (healthB) {
+                const maxHp = healthB.params.maxHp || 100;
+                const curHp = healthB.params.currentHp !== undefined ? healthB.params.currentHp : maxHp;
+                const pct = curHp / maxHp;
+                const thresh = b.params.threshold || 0.35;
+                const vignette = typeof document !== 'undefined' ? document.getElementById('hud-blood-vignette') : null;
+                if (vignette) {
+                  if (pct <= thresh) {
+                    vignette.style.display = 'block';
+                    vignette.style.opacity = Math.min(1.0, (thresh - pct) / thresh + 0.2);
+                  } else {
+                    vignette.style.display = 'none';
+                  }
+                }
               }
             }
           }

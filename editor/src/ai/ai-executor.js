@@ -205,12 +205,62 @@ export class AIExecutor {
             break;
           }
 
-          case 'configure_hud': {
+          case 'configure_hud':
+          case 'set_hud_config': {
             if (act.config) {
               this.editor.hudConfig = { ...this.editor.hudConfig, ...act.config };
               this.editor.events.emit('hud:config:changed', this.editor.hudConfig);
               executed.push({ action: act.action, target: '2D HUD Config' });
             }
+            break;
+          }
+
+          case 'create_particle_preset': {
+            const preset = (act.preset || 'fire').toLowerCase();
+            const pos = act.position || [0, 1, 0];
+            const target = this.editor.createEntity({
+              name: act.name || `Particle_${preset}`,
+              transform: { position: pos }
+            });
+            let pProps = { numParticles: 80, lifetime: 1.2, colorTint: [1, 0.4, 0], particleScale: 0.6 };
+            if (preset === 'smoke') pProps = { numParticles: 40, lifetime: 2.5, colorTint: [0.4, 0.4, 0.4], particleScale: 1.2 };
+            else if (preset === 'sparks') pProps = { numParticles: 120, lifetime: 0.6, colorTint: [1, 0.9, 0.2], particleScale: 0.2 };
+            else if (preset === 'magic') pProps = { numParticles: 100, lifetime: 1.8, colorTint: [0.7, 0.2, 1], particleScale: 0.4 };
+            else if (preset === 'rain') pProps = { numParticles: 200, lifetime: 2.0, colorTint: [0.2, 0.6, 1], particleScale: 0.15 };
+            else if (preset === 'explosion') pProps = { numParticles: 150, lifetime: 0.8, colorTint: [1, 0.2, 0], particleScale: 0.8 };
+
+            this.editor.addComponent(target, 'particlesystem', pProps);
+            executed.push({ action: act.action, target: target.name });
+            break;
+          }
+
+          case 'create_light_fixture': {
+            const type = (act.type || 'point').toLowerCase();
+            const pos = act.position || [0, 3, 0];
+            const col = act.color || [1, 0.8, 0.4];
+            const lightEnt = this.editor.createEntity({
+              name: act.name || `LightFixture_${type}`,
+              transform: { position: pos, rotation: type === 'spot' ? [-90, 0, 0] : [0, 0, 0] },
+              components: [
+                {
+                  type: 'light',
+                  properties: {
+                    type: type,
+                    color: new pc.Color(col[0], col[1], col[2]),
+                    intensity: act.intensity || 3,
+                    range: act.range || 12,
+                    castShadows: true
+                  }
+                },
+                {
+                  type: 'render',
+                  properties: { type: type === 'spot' ? 'cone' : 'sphere' }
+                }
+              ]
+            });
+            if (type === 'spot') lightEnt.setLocalScale(0.4, 0.6, 0.4);
+            else lightEnt.setLocalScale(0.35, 0.35, 0.35);
+            executed.push({ action: act.action, target: lightEnt.name });
             break;
           }
 
