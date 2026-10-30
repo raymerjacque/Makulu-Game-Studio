@@ -115,8 +115,9 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **120 interactive No-Code gameplay behaviors** (`grappling_hook_physics_swing`, `enemy_boss_phase_transition`, `procedural_spline_mesh_deformer`, `screen_space_impact_vfx`, `interactive_inventory_chest`, `wall_run_controller`, `third_person_controller`, `navmesh_agent`, `crouch_stealth_mechanic`, `grappling_hook_rope_beam`, `procedural_water_ripple`, `enemy_boss_healthbar_hud`, `screen_blood_vignette`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
-* **Visual Shader Node Graphing:** Create and apply procedural node-based materials via `create_shader_graph`.
+* **Behavior Injection:** Attach any of the **135 interactive No-Code gameplay behaviors** (`visual_flow_graph`, `reflection_probe_cubemap`, `vehicle_suspension_physics`, `procedural_chain_rope_physics`, `cinematic_camera_rail`, `interactive_switch_toggle`, `weapon_overheat_system`, `quest_journal_tracker`, `inventory_quick_slot_bar`, `grappling_hook_physics_swing`, `enemy_boss_phase_transition`, `procedural_spline_mesh_deformer`, `screen_space_impact_vfx`, `interactive_inventory_chest`, `wall_run_controller`, `third_person_controller`, `navmesh_agent`, `crouch_stealth_mechanic`, `grappling_hook_rope_beam`, `procedural_water_ripple`, `enemy_boss_healthbar_hud`, `screen_blood_vignette`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Visual Shader & Flow Node Graphing:** Create and apply procedural node-based materials via `create_shader_graph`, or author event logic flow graphs via `create_flow_graph`.
+* **HDRI, Terrain Sculpting & Joint Rigging:** Configure 360° environment lighting via `set_hdri_skybox`, sculpt heightmaps via `sculpt_terrain_heightmap`, configure physics joint linkages via `configure_joint`, or launch any studio editor modal via `open_tool_modal`.
 * **HUD & Atmosphere Control:** Configure 2D HUD screens via `set_hud_config`, switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Instant Particle & Light Generation:** Procedurally generate pre-tuned particle systems (`create_particle_preset`) or styled physical light fixtures (`create_light_fixture`).
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
@@ -456,6 +457,36 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Fighting game-style frame freeze (hitstop), radial impact blur, and directional trauma shake for heavy combat impacts.
 120. **🎁 Interactive Treasure Chest with Gold Particle Burst:**
     Action-RPG loot container with lid-opening animation, celebratory gold sparkle burst, procedural chime audio, and automatic inventory deposit.
+121. **⚡ Visual Behavior & Logic Flow Graph:**
+    Blueprint-style visual event and logic flow graph routing inputs, triggers, and custom actions.
+122. **🌅 Environment Reflection Probe Cubemap:**
+    Real-time spatial specular reflection probe capturing dynamic surrounding geometry for metallic and glossy materials.
+123. **🏎️ 4-Wheel Vehicle Suspension Physics:**
+    Raycast vehicle suspension physics with independent spring stiffness, rebound damping, and steering traction.
+124. **🪢 Chain & Rope Physics Tether:**
+    Multi-segment linked chain physics responding dynamically to gravity, wind, and rigid body collisions.
+125. **🎬 Cinematic Camera Motion Spline Rail:**
+    Smooth multi-waypoint camera dolly rail for cinematic cutscenes, fly-bys, and scripted sequence transitions.
+126. **🔘 Interactive Lever / Button Switch:**
+    Proximity mechanical switch that toggles doors, elevators, lights, and power systems.
+127. **🔥 Weapon Heat Capacity & Overheat Lock:**
+    Thermal accumulation system with automatic fire lockout, cooldown dissipation rate, and HUD thermal warning.
+128. **📜 Multi-Quest Objective Journal Log:**
+    In-game quest log managing multi-step objective tracking, completion flags, and narrative rewards.
+129. **🎒 Quick Slot Action Bar:**
+    RPG hotbar supporting number key activation (1–9) for consumable potions, weapons, and tools.
+130. **🦶 Terrain Surface Footstep FX:**
+    Material-aware ground raycaster that triggers stone, grass, wood, or water footsteps and particle debris.
+131. **🎬 Cinematic Camera Lens Vignette:**
+    Screen-space dynamic vignette modulating edge darkness based on camera focal length and player health.
+132. **🌿 Harmonic Foliage Wind Bending:**
+    Procedural vertex oscillation system driving natural ambient breeze deflection on grass, branches, and trees.
+133. **💥 Cluster Explosive Shattering:**
+    Multi-fragment explosive detonation spawning fractured physics chunks with radial impulse dispersion.
+134. **🐉 Boss Phase 2 Enrage & Seismic Surge:**
+    Boss enrage trigger activating combat speed multipliers, visual aura glows, and earthquake shockwaves.
+135. **🗺️ HUD Floating Minimap Surveillance:**
+    Screen HUD radar scanner tracking player location, enemy blips, and collectible markers.
 
 ---
 
@@ -477,6 +508,15 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
   * **🛡️ Shield Hit:** Resonant high-to-low ping for shield deflection and armor hits.
   * **🔫 Weapon Reload:** Dual-click mechanical reload latching effect.
   * **✨ Magic Spell:** Shimmering harmonic triple-oscillator chord for arcane spells.
+  * **💥 Laser Cannon:** Heavy energy artillery blast with deep pitch drop.
+  * **⚡ Plasma Blaster:** High-intensity modulated futuristic plasma discharge.
+  * **🔨 Heavy Impact:** Concussive low-frequency shock impact.
+  * **🎁 Loot Chest Open:** Creaking chest lid opening followed by celebratory arpeggio.
+  * **🦁 Boss Roar:** Guttural sub-bass predator roar with seismic rumble.
+  * **💨 Ambient Wind:** Filtered atmospheric aerodynamic breeze.
+  * **🌊 Water Splash:** Resonant fluid impact and bubbling droplet decay.
+  * **🔘 Mechanical Click:** Crisp tactile switch feedback for levers and buttons.
+* **📈 Real-Time Audio Waveform Visualizer:** Live canvas oscilloscope rendering frequency harmonics and audio waveforms during sound playback and synthesis.
 * **🎛️ Custom ADSR Envelope & Waveform Synthesizer:** Full sound design suite with selectable waveforms (**Sine**, **Square**, **Sawtooth**, **Triangle**, and **White Noise**), start/end frequency sweep sliders, and four-stage **ADSR Envelope** (Attack, Decay, Sustain, Release) shaping.
 * **1-Click 16-Bit PCM WAV Exporting:** Generates authentic 16-bit PCM WAV Base64 Data URLs and exports them directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
 * **Universal Compilation:** Inlined directly into compiled standalone `.html` games for instant zero-dependency audio on any device.
