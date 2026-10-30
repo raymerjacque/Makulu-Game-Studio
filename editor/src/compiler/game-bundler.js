@@ -2088,6 +2088,135 @@ export class GameBundler {
                 b._state.killStreak = 0;
               }
             }
+          } else if (b.type === 'combo_hit_counter_hud') {
+            if (!b._comboTimer) b._comboTimer = 0;
+            if (b._comboTimer > 0) b._comboTimer -= dt;
+          } else if (b.type === 'directional_damage_indicator') {
+            if (!b._fadeTimer) b._fadeTimer = 0;
+            if (b._fadeTimer > 0) b._fadeTimer -= dt;
+          } else if (b.type === 'crouch_stealth_mechanic') {
+            const isCrouching = keys['control'] || keys['c'] || keys['keyc'];
+            if (!b._origScaleY) b._origScaleY = node.getLocalScale().y;
+            if (isCrouching) {
+              if (!b._isCrouched) {
+                b._isCrouched = true;
+                const scale = node.getLocalScale().clone();
+                node.setLocalScale(scale.x, b._origScaleY * (b.properties?.heightScale || 0.5), scale.z);
+              }
+              b._stealthFactor = b.properties?.stealthDetectionReduction !== undefined ? b.properties.stealthDetectionReduction : 0.6;
+            } else {
+              if (b._isCrouched) {
+                b._isCrouched = false;
+                const scale = node.getLocalScale().clone();
+                node.setLocalScale(scale.x, b._origScaleY, scale.z);
+              }
+              b._stealthFactor = 0.0;
+            }
+          } else if (b.type === 'grappling_hook_rope_beam') {
+            const isGrappling = Boolean((node._behaviors || []).some(gb => gb.type === 'grappling_hook' && gb._state && gb._state.active));
+            if (isGrappling) {
+              if (!b._beamEntity) {
+                b._beamEntity = new pc.Entity('RopeBeam_' + Date.now());
+                const mat = new pc.StandardMaterial();
+                const c = b.properties?.color || [0, 0.9, 1];
+                mat.diffuse = new pc.Color(c[0], c[1], c[2]);
+                mat.emissive = new pc.Color(c[0], c[1], c[2]);
+                mat.update();
+                b._beamEntity.addComponent('render', { type: 'cylinder', material: mat });
+                app.root.addChild(b._beamEntity);
+              }
+              const gh = (node._behaviors || []).find(gb => gb.type === 'grappling_hook');
+              if (gh && gh._state && gh._state.targetPos) {
+                const start = node.getPosition();
+                const end = gh._state.targetPos;
+                const mid = start.clone().add(end).mulScalar(0.5);
+                const dist = start.distance(end);
+                b._beamEntity.setPosition(mid);
+                b._beamEntity.setLocalScale(b.properties?.thickness || 0.08, dist / 2, b.properties?.thickness || 0.08);
+                b._beamEntity.lookAt(end);
+                b._beamEntity.rotateLocal(90, 0, 0);
+              }
+            } else if (b._beamEntity) {
+              try { b._beamEntity.destroy(); } catch(e) {}
+              b._beamEntity = null;
+            }
+          } else if (b.type === 'procedural_water_ripple') {
+            if (!b._time) b._time = 0;
+            if (b._origY === undefined) b._origY = node.getPosition().y;
+            b._time += dt * (b.properties?.rippleSpeed || 4.0);
+            const amp = b.properties?.amplitude || 0.15;
+            const offset = Math.sin(b._time) * amp;
+            if (node.render) {
+              const pos = node.getPosition();
+              node.setPosition(pos.x, b._origY + offset, pos.z);
+            }
+          } else if (b.type === 'enemy_boss_healthbar_hud') {
+            if (b.properties.currentHp === undefined) b.properties.currentHp = b.properties.maxHp || 1000;
+            const wrap = document.getElementById('hud-boss-bar-wrap');
+            const fill = document.getElementById('hud-boss-fill');
+            if (wrap) wrap.style.display = 'flex';
+            if (fill) {
+              const pct = Math.max(0, Math.min(100, (b.properties.currentHp / (b.properties.maxHp || 1000)) * 100));
+              fill.style.width = pct + '%';
+            }
+          } else if (b.type === 'screen_blood_vignette') {
+            if (playerEntity) {
+              const playerB = playerEntity._behaviors || [];
+              const healthB = playerB.find(hb => hb.type === 'health' || hb.type === 'target_health');
+              if (healthB) {
+                const maxHp = healthB.properties?.maxHp || 100;
+                const curHp = healthB.properties?.currentHp !== undefined ? healthB.properties.currentHp : maxHp;
+                const pct = curHp / maxHp;
+                const thresh = b.properties?.threshold || 0.35;
+                const vignette = document.getElementById('hud-blood-vignette');
+                if (vignette) {
+                  if (pct <= thresh) {
+                    vignette.style.display = 'block';
+                    vignette.style.opacity = Math.min(1.0, (thresh - pct) / thresh + 0.2);
+                  } else {
+                    vignette.style.display = 'none';
+                  }
+                }
+              }
+            }
+          } else if (b.type === 'grappling_hook_physics_swing') {
+            const isSwinging = Boolean(keys['g'] || keys['keyg'] || (b._state && b._state.active));
+            if (isSwinging) {
+              const swingForce = b.properties?.swingForce || 25;
+              const fwd = node.forward.clone().normalize().mulScalar(swingForce * dt);
+              if (node.rigidbody) {
+                node.rigidbody.applyForce(fwd.x * 60, fwd.y * 60, fwd.z * 60);
+              } else {
+                node.translate(fwd);
+              }
+            }
+          } else if (b.type === 'enemy_boss_phase_transition') {
+            if (b.properties.currentHp === undefined) b.properties.currentHp = b.properties.maxHp || 1000;
+            const thresh = b.properties?.phaseThreshold || 0.5;
+            if (!b._phased && (b.properties.currentHp / (b.properties.maxHp || 1000)) <= thresh) {
+              b._phased = true;
+              window.triggerScreenShake(0.8, 0.4);
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+            }
+          } else if (b.type === 'procedural_spline_mesh_deformer') {
+            if (!b._time) b._time = 0;
+            b._time += dt * 2.0;
+            const radius = b.properties?.curveRadius || 5.0;
+            node.rotate(0, Math.sin(b._time) * radius * dt, 0);
+          } else if (b.type === 'screen_space_impact_vfx') {
+            if (b._impactTimer && b._impactTimer > 0) {
+              b._impactTimer -= dt;
+            }
+          } else if (b.type === 'interactive_inventory_chest') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.5;
+              if (!b._opened && dist <= radius && (keys['e'] || keys['keye'])) {
+                b._opened = true;
+                if (window.playProceduralSFX) window.playProceduralSFX('victory');
+                window.triggerScreenShake(0.3, 0.2);
+              }
+            }
           } else if (b.type === 'grappling_rope_physics') {
             if (playerEntity) {
               const maxDist = b.properties?.maxDistance || 25;

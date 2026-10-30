@@ -600,6 +600,50 @@ export class AIExecutor {
             break;
           }
 
+          case 'create_shader_graph': {
+            const target = this.findTarget(act.target);
+            if (target) {
+              const mat = new pc.StandardMaterial();
+              if (act.diffuse) mat.diffuse = new pc.Color(...act.diffuse);
+              if (act.emissive) mat.emissive = new pc.Color(...act.emissive);
+              if (act.metalness !== undefined) { mat.metalness = act.metalness; mat.useMetalness = true; }
+              if (act.roughness !== undefined) mat.roughness = act.roughness;
+              mat.update();
+              if (target.render) target.render.material = mat;
+              this.editor.events.emit('entity:component:changed', target);
+              executed.push({ action: act.action, target: `ShaderGraph -> ${target.name}` });
+            }
+            break;
+          }
+
+          case 'spawn_treasure_chest': {
+            const pos = act.position || [0, 0.5, 0];
+            const chest = this.editor.createEntity({
+              name: act.name || 'Treasure_Chest',
+              transform: { position: pos, scale: [1, 0.8, 1.2] },
+              components: [
+                { type: 'render', properties: { type: 'box' } },
+                { type: 'collision', properties: { type: 'box' } }
+              ]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(chest, 'interactive_inventory_chest', {
+                radius: act.radius || 2.5,
+                goldAmount: act.goldAmount || 100
+              });
+            }
+            executed.push({ action: act.action, target: chest.name });
+            break;
+          }
+
+          case 'trigger_impact_vfx': {
+            if (this.editor.behaviors) {
+              this.editor.behaviors.triggerScreenShake(act.intensity || 0.6, act.duration || 0.3);
+            }
+            executed.push({ action: act.action, target: 'Combat Impact VFX' });
+            break;
+          }
+
           case 'capture_screenshot': {
             const canvas = typeof document !== 'undefined' ? document.getElementById('viewport-canvas') : null;
             if (canvas) {

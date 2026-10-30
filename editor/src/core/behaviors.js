@@ -1757,6 +1757,47 @@ export class BehaviorManager {
                 }
               }
             }
+          } else if (b.type === 'grappling_hook_physics_swing') {
+            const isSwinging = Boolean(this.isKeyDown('g') || this.isKeyDown('keyg') || (b._state && b._state.active));
+            if (isSwinging) {
+              const swingForce = b.params.swingForce || 25;
+              const fwd = entity.forward.clone().normalize().mulScalar(swingForce * dt);
+              if (entity.rigidbody) {
+                entity.rigidbody.applyForce(fwd.x * 60, fwd.y * 60, fwd.z * 60);
+              } else {
+                entity.translate(fwd);
+              }
+            }
+          } else if (b.type === 'enemy_boss_phase_transition') {
+            if (b.params.currentHp === undefined) b.params.currentHp = b.params.maxHp || 1000;
+            const thresh = b.params.phaseThreshold || 0.5;
+            if (!b._phased && (b.params.currentHp / (b.params.maxHp || 1000)) <= thresh) {
+              b._phased = true;
+              this.triggerScreenShake(0.8, 0.4);
+              proceduralSFX.play('explosion');
+              if (typeof showToast === 'function') showToast(`🐉 BOSS ENRAGED PHASE 2! Earthquake Blast Unleashed!`, 'warn');
+            }
+          } else if (b.type === 'procedural_spline_mesh_deformer') {
+            if (!b._time) b._time = 0;
+            b._time += dt * 2.0;
+            const radius = b.params.curveRadius || 5.0;
+            entity.rotate(0, Math.sin(b._time) * radius * dt, 0);
+          } else if (b.type === 'screen_space_impact_vfx') {
+            if (b._impactTimer && b._impactTimer > 0) {
+              b._impactTimer -= dt;
+            }
+          } else if (b.type === 'interactive_inventory_chest') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.5;
+              if (!b._opened && dist <= radius && (this.isKeyDown('e') || this.isKeyDown('keye'))) {
+                b._opened = true;
+                proceduralSFX.play('victory');
+                this.triggerScreenShake(0.3, 0.2);
+                if (typeof showToast === 'function') showToast(`🎁 Opened Treasure Chest! Found +${b.params.goldAmount || 100} Gold!`, 'success');
+              }
+            }
           }
         }
       }

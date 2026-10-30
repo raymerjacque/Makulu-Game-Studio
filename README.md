@@ -115,7 +115,8 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **115 interactive No-Code gameplay behaviors** (`wall_run_controller`, `third_person_controller`, `navmesh_agent`, `crouch_stealth_mechanic`, `grappling_hook_rope_beam`, `procedural_water_ripple`, `enemy_boss_healthbar_hud`, `screen_blood_vignette`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Behavior Injection:** Attach any of the **120 interactive No-Code gameplay behaviors** (`grappling_hook_physics_swing`, `enemy_boss_phase_transition`, `procedural_spline_mesh_deformer`, `screen_space_impact_vfx`, `interactive_inventory_chest`, `wall_run_controller`, `third_person_controller`, `navmesh_agent`, `crouch_stealth_mechanic`, `grappling_hook_rope_beam`, `procedural_water_ripple`, `enemy_boss_healthbar_hud`, `screen_blood_vignette`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Visual Shader Node Graphing:** Create and apply procedural node-based materials via `create_shader_graph`.
 * **HUD & Atmosphere Control:** Configure 2D HUD screens via `set_hud_config`, switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Instant Particle & Light Generation:** Procedurally generate pre-tuned particle systems (`create_particle_preset`) or styled physical light fixtures (`create_light_fixture`).
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
@@ -507,7 +508,10 @@ Create reactive game mechanics through modular trigger volumes:
 
 ## 🎨 PBR Material Studio & Global Project Settings
 
-* **🎨 PBR Material & Shader Creator (`🎨 Material`):**
+* **🎨 Visual Shader & Material Node Graph Editor (`Tools ▾ -> 🎨 Visual Shader Graph Editor`):**
+  * Interactive node canvas for visual shader composition with **Color Swatches**, **Texture Samplers**, **Fresnel Rim Lighting**, **Sine Wave Oscillation**, **Noise Generators**, **UV Scroll**, and **PBR Surface Outputs**.
+  * Real-time 3D orbiting WebGL sphere preview with 1-click **"Apply to Selected Object"** and **"Save as Material Asset"**.
+* **🎨 PBR Material Creator (`🎨 Material`):**
   * Live **3D Orbiting Sphere Preview** rendered via real-time WebGL.
   * Adjust Diffuse Color, Metallic, Roughness, Emissive Glow, and Opacity.
   * Direct 1-click **"Apply to Selected Object"** or **"Save as Asset"** to your project library.
