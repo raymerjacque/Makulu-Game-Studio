@@ -1,3 +1,4 @@
+import { ProjectPersistence } from './project/project-persistence.js';
 import { Editor } from './core/editor.js';
 import { EngineRuntime } from './engine/pc-app.js';
 import { TopBar } from './ui/topbar.js';
@@ -115,6 +116,19 @@ async function bootstrap() {
   // Initialize PlayCanvas 3D Engine Runtime
   const runtime = new EngineRuntime(canvasElement, editor);
   editor.setRuntime(runtime);
+
+  // Local recovery is initialized only after the default scene and asset browser exist.
+  const persistence = new ProjectPersistence(editor);
+  await persistence.initialize();
+  window.addEventListener('beforeunload', event => {
+    if (!editor.isPlaying) {
+      try { persistence.check(); } catch { persistence.state.dirty = true; }
+    }
+    if (persistence.state.dirty) { event.preventDefault(); event.returnValue = ''; }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') void persistence.checkpoint();
+  });
 
   // Initialize On-Canvas 3D Model Resizer Overlay
   const viewportContainer = document.getElementById('viewport-container');

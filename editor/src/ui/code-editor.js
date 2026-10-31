@@ -117,6 +117,7 @@ export class CodeEditorModal {
       const code = textarea.value;
       if (this.currentScriptName) {
         this.editor.scripts.set(this.currentScriptName, code);
+        this.editor.events.emit('project:content:changed');
         statusMsg.textContent = `✓ Compiled & saved at ${new Date().toLocaleTimeString()}`;
         statusMsg.style.color = 'var(--accent-green)';
         setTimeout(() => {

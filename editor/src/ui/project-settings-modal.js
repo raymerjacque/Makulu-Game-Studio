@@ -219,6 +219,7 @@ export class ProjectSettingsModal {
           shadowAtlasResolution: atlasSize,
           maxLights: maxLights
         };
+        this.editor.events.emit('project:content:changed');
         this.editor.audioVolumes = { master: masterVol, music: musicVol, sfx: sfxVol };
         this.editor.textureCompressionSettings = {
           targetFormat: texTarget,

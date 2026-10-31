@@ -1,3 +1,4 @@
+import { showRecoverySnapshots } from './recovery-modal.js';
 import { showToast } from './toast.js';
 import { GameBundler } from '../compiler/game-bundler.js';
 
@@ -39,6 +40,7 @@ export class TopBar {
     this.render();
     this.bindEvents();
     this.bindResourceStatus();
+    this.bindSaveState();
   }
 
   render() {
@@ -63,6 +65,9 @@ export class TopBar {
               </div>
               <div class="topbar-dropdown-item" id="menu-action-export">
                 <span class="item-label">💾 Save Project (JSON)...</span>
+              </div>
+              <div class="topbar-dropdown-item" id="menu-action-recovery">
+                <span class="item-label">🕘 Local Recovery Snapshots...</span>
               </div>
               <div class="topbar-dropdown-item" id="menu-action-export-html">
                 <span class="item-label">🌐 Export Standalone HTML5 Game...</span>
@@ -219,6 +224,7 @@ export class TopBar {
         <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); white-space: nowrap;">
           <span id="scene-resource-status" role="status" aria-live="polite" style="font-size: 10px; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">Resources ready</span>
           <button id="retry-scene-resources" class="btn" style="display: none; font-size: 10px;" title="Reload the active scene’s models and textures">Retry assets</button>
+          <span id="project-save-state" role="status" aria-live="polite" style="font-size:10px;max-width:145px;overflow:hidden;text-overflow:ellipsis" title="Recovery is separate from saving a project file">New project</span>
           <span>Scene:</span>
           <select id="top-scene-select" class="select-input" style="width: 105px; padding: 2px 6px; height: 26px; font-size: 11px;">
             <option value="Main Scene">Main Scene</option>
@@ -347,6 +353,22 @@ export class TopBar {
     });
   }
 
+  bindSaveState() {
+    const status = this.container.querySelector('#project-save-state');
+    this.editor.events.on('project:save-state', state => {
+      if (!status) return;
+      const label = state.dirty ? (state.source === 'recovered' ? 'Recovered · save a file' : 'Unsaved changes') :
+        state.source === 'downloaded' ? 'No changes since download' : state.source === 'opened' ? 'No changes since open' : 'New project';
+      const recovery = state.recovery === 'error' ? 'Recovery failed' : state.recovery === 'saving' ? 'Recovery saving…' :
+        state.recoveredAt ? `Recovery saved ${new Date(state.recoveredAt).toLocaleTimeString()}` : 'No recovery snapshot yet';
+      status.textContent = state.recovery === 'error' ? `${recovery} · ${label}` : `${label} · ${recovery}`;
+      status.title = state.message || `${label}. ${recovery}. Recovery is local and does not replace a downloaded project file.`;
+    });
+    this.editor.events.on('project:recovery:available', count => {
+      if (count) showToast('Local recovery snapshots are available in File → Local Recovery Snapshots.', 'info', 6000);
+    });
+  }
+
   bindResourceStatus() {
     const status = this.container.querySelector('#scene-resource-status');
     const retry = this.container.querySelector('#retry-scene-resources');
@@ -372,6 +394,7 @@ export class TopBar {
    * File Menu Actions
    */
   setupFileActions() {
+    this.container.querySelector('#menu-action-recovery')?.addEventListener('click', () => { void showRecoverySnapshots(this.editor); });
     // Import project
     const importItem = this.container.querySelector('#menu-action-import');
     if (importItem) {
@@ -386,6 +409,11 @@ export class TopBar {
           if (file) {
             const reader = new FileReader();
             reader.onload = async (event) => {
+              if (this._projectOpenRequest !== openRequest) return;
+              if (this.editor.persistence && !await this.editor.persistence.protectBeforeReplace()) {
+                showToast('Could not protect current work. Stop play/loading or download the project before opening another file.', 'warn', 6000);
+                return;
+              }
               if (this._projectOpenRequest !== openRequest) return;
               showToast('Opening project and loading scene resources…', 'info');
               const report = await this.editor.openProjectJSON(event.target.result);
@@ -420,6 +448,7 @@ export class TopBar {
           a.href = url;
           a.download = `${this.editor.projectName.replace(/\s+/g, '_')}_project.json`;
           a.click();
+          this.editor.persistence?.markDownloaded(json);
           URL.revokeObjectURL(url);
           showToast('💾 Project downloaded with all scenes and script source', 'success');
         } catch (err) {

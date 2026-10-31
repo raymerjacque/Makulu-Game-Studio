@@ -823,7 +823,7 @@ work. Run the editor regression suite with `cd editor && npm test`.
 See the [completion roadmap](roadmap.html#progress) for current progress and the
 [capability register](docs/capabilities/README.md) for source-based support
 findings, known limitations and the certification backlog. The baseline covers
-150 behaviors, 52 AI actions, 30 UI modules, 450 literal control templates and
+150 behaviors, 52 AI actions, 31 UI modules, 450 literal control templates and
 28 reviewed feature areas. Presence in a catalog or source branch does not mean
 a feature is verified across save/open, preview and export.
 
@@ -869,3 +869,22 @@ Diffuse, normal, roughness and emissive texture references now restore in editor
 and exported scene builders. This does not establish complete asset packaging,
 audio readiness, inactive-scene preloading or gameplay correctness. See the
 [resource-readiness contract](docs/project-format.md#active-scene-resource-readiness-update).
+
+
+## Local recovery and unsaved changes
+
+The studio now tracks changes since opening/downloading a project and samples
+editable state into local IndexedDB recovery history every 15 seconds outside
+play/loading. Recovery does not mark a project file as saved. The File menu’s
+Local Recovery Snapshots picker lets you review, restore or delete snapshots.
+Current unsaved work must be checkpointed before File-menu replacement; storage
+failures remain visible. Browser/Electron close guards protect unsaved changes.
+
+History is limited to five snapshots per project and twenty overall. It remains
+local to this app/browser profile and origin, and inherits the current project
+format’s resource limits. It is not cloud backup, atomic native file saving or a
+guarantee that the last edit survives a crash. See the [recovery contract and
+limitations](docs/project-format.md#local-recovery-and-file-state-tracking-update).
+
+Run `npm run test:recovery-browser` from `editor/` for the isolated real-browser
+IndexedDB checks (Chromium or `CHROME_BIN` required), in addition to `npm test`.

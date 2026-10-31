@@ -37,7 +37,7 @@
       "editor": "Versioned full-project Save/Open is wired; File open awaits active-scene model and material-texture loads.",
       "persistence": "All scenes, shared script source, IDs, selected settings, asset/prefab records and supported scene data round-trip.",
       "export": "Editable JSON document; not yet a complete offline dependency archive.",
-      "next": "Complete remaining component/resource fields, dependency packaging and durable recovery.",
+      "next": "Complete component/resource fields, dependency packaging and atomic native file saving; local recovery foundation now exists.",
       "evidence": [
         "editor/src/core/editor.js",
         "editor/src/ui/topbar.js"
@@ -47,16 +47,19 @@
     {
       "id": "recovery",
       "name": "Autosave and crash recovery",
-      "status": "absent",
-      "editor": "No durable project recovery workflow found in inspected project/file paths.",
-      "persistence": "No rolling project checkpoint store.",
+      "status": "partial",
+      "editor": "Local IndexedDB autosnapshots, recovery picker, dirty/download state and unsaved-close guards are implemented.",
+      "persistence": "Up to five snapshots per project and twenty overall; writes/pruning are transactional. Recovery inherits version 1 serialization limits.",
       "export": "Not applicable.",
-      "next": "Atomic saves, recovery snapshots, quota and interruption handling.",
+      "next": "Atomic native file writes, pre-AI checkpoints, complete resource coverage and packaged crash/large-project verification.",
       "evidence": [
-        "editor/src/core/editor.js",
-        "editor/src/ui/topbar.js"
+        "editor/src/project/project-persistence.js",
+        "editor/src/project/recovery-store.js",
+        "editor/src/ui/recovery-modal.js",
+        "editor/tests/project-recovery.test.js",
+        "editor/scripts/test-recovery-browser.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Controller regression tests and real Chromium IndexedDB tests cover persistence, retention, aborted-write preservation, restore and failure states."
     },
     {
       "id": "multiscene",
@@ -369,7 +372,7 @@
       "name": "Desktop distribution",
       "status": "partial",
       "editor": "Electron shell and Linux build configuration exist.",
-      "persistence": "Browser project-file download/open exists; atomic desktop saves and recovery remain pending.",
+      "persistence": "Project download/open and origin-local IndexedDB recovery exist; atomic native project saves and packaged crash verification remain pending.",
       "export": "Release artifacts are ignored generated output.",
       "next": "Clean install and packaged workflow support matrix.",
       "evidence": [
@@ -497,11 +500,15 @@
     },
     "topbar": {
       "status": "partial",
-      "notes": "Full-project file opening awaits restored model/material requests; scene progress, missing assets, retry and play guards exist. Isolation and recovery remain pending."
+      "notes": "Full-project open, resource status/retry and local recovery/file-state UI exist. Dirty replacement is checkpoint-protected through the File menu; native atomic saves and play isolation remain pending."
     },
     "assets": {
       "status": "partial",
       "notes": "Asset records and completed local-import bytes persist; imported labels render as text. Complete dependency packaging remains pending."
+    },
+    "recovery-modal": {
+      "status": "partial",
+      "notes": "Text-rendered snapshot metadata with explicit restore/delete and focus handling; whole-project resource completeness and packaged crash recovery remain pending."
     }
   }
 }

@@ -34,4 +34,15 @@ function packagedEntryUrl(filename) {
   return pathToFileURL(filename).href;
 }
 
-module.exports = { isTrustedDocument, isTrustedAuthSender, isSafeExternalUrl, packagedEntryUrl };
+/** Electron otherwise keeps a dirty window open without offering an explicit close choice. */
+function confirmUnsavedClose(event, window, dialog) {
+  const choice = dialog.showMessageBoxSync(window, {
+    type: 'question', buttons: ['Keep editing', 'Close without saving a project file'],
+    defaultId: 0, cancelId: 0, title: 'Unsaved project changes',
+    message: 'This project has changes since its last open or download.',
+    detail: 'Download a project file to save it explicitly. A local recovery copy may exist, but it is not a saved project file.'
+  });
+  if (choice === 1) event.preventDefault();
+}
+
+module.exports = { confirmUnsavedClose, isTrustedDocument, isTrustedAuthSender, isSafeExternalUrl, packagedEntryUrl };

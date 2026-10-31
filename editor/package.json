@@ -18,7 +18,8 @@
     "dist:dir": "vite build && electron-builder --dir",
     "dist:linux": "vite build && electron-builder --linux AppImage deb",
     "audit:capabilities": "node scripts/capability-audit.js",
-    "audit:capabilities:check": "node scripts/capability-audit.js --check"
+    "audit:capabilities:check": "node scripts/capability-audit.js --check",
+    "test:recovery-browser": "node scripts/test-recovery-browser.js"
   },
   "dependencies": {
     "playcanvas": "^2.23.3"

@@ -136,3 +136,66 @@ Regression checks live in `editor/tests/resource-readiness.test.js`: deferred an
 cached completion, progress, failure, timeout, cancellation, stale callbacks,
 retry preservation, UI/play guards, and real engine texture slots plus their
 exported scene-builder bindings.
+
+## Local recovery and file-state tracking update
+
+The editor now initializes an origin-local IndexedDB recovery store after the
+runtime and asset browser exist. It samples the editable project every 15 seconds
+while the app is running, and requests a checkpoint when the document becomes
+hidden. Common editor changes mark the file state dirty immediately. Sampling
+also catches older tools that mutate serialized project data without events.
+This is periodic recovery, not a guarantee that the final keystroke survives a
+crash, forced quit or power loss.
+
+The top bar distinguishes **Unsaved changes**, **No changes since open**,
+**No changes since download**, and **Recovered · save a file**, alongside local
+recovery status. Download means the browser download was requested; the browser
+does not confirm that the user completed writing the file. A recovery snapshot
+never clears unsaved state. Undoing back to the tracked document baseline clears
+dirty state on the next comparison. Only data covered by version 1 serialization
+participates in comparison/recovery; unsupported terrain/timeline/resource state
+is not made recoverable by this feature.
+
+History retains up to five snapshots per project and twenty overall. Writing a
+snapshot and pruning older records use one IndexedDB transaction; an aborted
+write leaves the previous records intact. Captured data is the editable project,
+not AI provider settings or the credential store. Storage access, quota or
+serialization failure is visible and does not report a successful recovery write.
+Recovery history is device/profile/origin-local. Clearing browser/app data removes
+it, and switching origin or development port can make another history visible.
+
+On startup, existing snapshots are announced without replacing the current scene.
+Use **File → Local Recovery Snapshots** to review, restore or delete a snapshot.
+Restoring uses the validated project loader and resource-readiness checks. Current
+unsaved work must first be checkpointed successfully; otherwise restoration/file
+replacement is blocked until the user protects it with a project download or fixes
+storage. A restored project remains dirty until explicitly downloaded.
+
+The File-menu open path uses the same checkpoint protection before replacement.
+Low-level import APIs used by tests/integrations do not automatically protect an
+existing document: callers must use the persistence guard before intentional
+replacement. Concurrent snapshot completion cannot mark a newer opened project
+as recovered or clean. Snapshot writes are serialized, and edits made while a
+write is pending remain eligible for the next checkpoint.
+
+Active play sessions and in-flight scene restoration are excluded from recovery.
+Full play/stop isolation is still pending; edits or mutations left in the canonical
+scene after stopping are not automatically distinguished from authoring changes.
+Before leaving, the browser requests its normal unsaved-changes warning. Electron
+provides an explicit keep-editing/close-without-saving choice instead of trapping
+a dirty window. Unload is not used as a promise of a completed asynchronous save.
+
+**Verification:** `editor/tests/project-recovery.test.js` exercises dirty/download
+state, direct edits, undo, restart/restore, protected replacement, corruption,
+storage failures, play/loading exclusions, pending writes and close policy. Run
+`cd editor && npm run test:recovery-browser` for real Chromium IndexedDB checks of
+persistence across connections, bounded retention, deletion and atomic rollback
+on an uncloneable write. The browser check uses synthetic data, a disposable
+profile and a loopback-only test server; set `CHROME_BIN` if needed. Actual quota
+exhaustion, packaged Electron crash recovery and a complete interactive restart
+remain separate verification work.
+
+Still pending: atomic native project-file writes, complete resource coverage,
+pre-AI transaction checkpoints, explicit revision management, exportable backups,
+and full performance/retention testing with large real projects. Local recovery
+is not cloud backup and does not complete the P1 release gate.

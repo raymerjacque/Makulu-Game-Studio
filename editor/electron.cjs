@@ -1,8 +1,8 @@
-const { app, BrowserWindow, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const { isTrustedDocument, isTrustedAuthSender, isSafeExternalUrl, packagedEntryUrl } = require('./desktop-security.cjs');
+const { confirmUnsavedClose, isTrustedDocument, isTrustedAuthSender, isSafeExternalUrl, packagedEntryUrl } = require('./desktop-security.cjs');
 
 let studioWindow = null;
 let trustedEntryUrl = null;
@@ -69,6 +69,8 @@ function createWindow() {
       trustedEntryUrl = null;
     }
   });
+
+  mainWindow.webContents.on('will-prevent-unload', event => confirmUnsavedClose(event, mainWindow, dialog));
 
   // Remove default menu bar for modern editor feel
   mainWindow.setMenuBarVisibility(false);

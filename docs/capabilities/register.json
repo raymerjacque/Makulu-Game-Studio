@@ -23,7 +23,7 @@
     "behaviorUnion": 150,
     "aiActions": 52,
     "advertisedActions": 29,
-    "uiModules": 30,
+    "uiModules": 31,
     "literalControlTemplates": 450
   },
   "gaps": {
@@ -95,7 +95,7 @@
       "editor": "Versioned full-project Save/Open is wired; File open awaits active-scene model and material-texture loads.",
       "persistence": "All scenes, shared script source, IDs, selected settings, asset/prefab records and supported scene data round-trip.",
       "export": "Editable JSON document; not yet a complete offline dependency archive.",
-      "next": "Complete remaining component/resource fields, dependency packaging and durable recovery.",
+      "next": "Complete component/resource fields, dependency packaging and atomic native file saving; local recovery foundation now exists.",
       "evidence": [
         "editor/src/core/editor.js",
         "editor/src/ui/topbar.js"
@@ -105,16 +105,19 @@
     {
       "id": "recovery",
       "name": "Autosave and crash recovery",
-      "status": "absent",
-      "editor": "No durable project recovery workflow found in inspected project/file paths.",
-      "persistence": "No rolling project checkpoint store.",
+      "status": "partial",
+      "editor": "Local IndexedDB autosnapshots, recovery picker, dirty/download state and unsaved-close guards are implemented.",
+      "persistence": "Up to five snapshots per project and twenty overall; writes/pruning are transactional. Recovery inherits version 1 serialization limits.",
       "export": "Not applicable.",
-      "next": "Atomic saves, recovery snapshots, quota and interruption handling.",
+      "next": "Atomic native file writes, pre-AI checkpoints, complete resource coverage and packaged crash/large-project verification.",
       "evidence": [
-        "editor/src/core/editor.js",
-        "editor/src/ui/topbar.js"
+        "editor/src/project/project-persistence.js",
+        "editor/src/project/recovery-store.js",
+        "editor/src/ui/recovery-modal.js",
+        "editor/tests/project-recovery.test.js",
+        "editor/scripts/test-recovery-browser.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Controller regression tests and real Chromium IndexedDB tests cover persistence, retention, aborted-write preservation, restore and failure states."
     },
     {
       "id": "multiscene",
@@ -427,7 +430,7 @@
       "name": "Desktop distribution",
       "status": "partial",
       "editor": "Electron shell and Linux build configuration exist.",
-      "persistence": "Browser project-file download/open exists; atomic desktop saves and recovery remain pending.",
+      "persistence": "Project download/open and origin-local IndexedDB recovery exist; atomic native project saves and packaged crash verification remain pending.",
       "export": "Release artifacts are ignored generated output.",
       "next": "Clean install and packaged workflow support matrix.",
       "evidence": [
@@ -9894,6 +9897,14 @@
       "verification": "source-inventory-only"
     },
     {
+      "id": "recovery-modal",
+      "source": "editor/src/ui/recovery-modal.js",
+      "controls": [],
+      "status": "partial",
+      "notes": "Text-rendered snapshot metadata with explicit restore/delete and focus handling; whole-project resource completeness and packaged crash recovery remain pending.",
+      "verification": "source-inventory-only"
+    },
+    {
       "id": "sfx-studio-modal",
       "source": "editor/src/ui/sfx-studio-modal.js",
       "controls": [
@@ -11134,7 +11145,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 59
+            "line": 61
           },
           "verification": "template-declaration-only"
         },
@@ -11150,7 +11161,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 82
+            "line": 87
           },
           "verification": "template-declaration-only"
         },
@@ -11166,7 +11177,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 132
+            "line": 137
           },
           "verification": "template-declaration-only"
         },
@@ -11182,7 +11193,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 183
+            "line": 188
           },
           "verification": "template-declaration-only"
         },
@@ -11198,7 +11209,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 196
+            "line": 201
           },
           "verification": "template-declaration-only"
         },
@@ -11209,7 +11220,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 221
+            "line": 226
           },
           "verification": "template-declaration-only"
         },
@@ -11220,7 +11231,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 223
+            "line": 229
           },
           "verification": "template-declaration-only"
         },
@@ -11236,7 +11247,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 231
+            "line": 237
           },
           "verification": "template-declaration-only"
         },
@@ -11252,7 +11263,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 232
+            "line": 238
           },
           "verification": "template-declaration-only"
         },
@@ -11263,7 +11274,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 238
+            "line": 244
           },
           "verification": "template-declaration-only"
         },
@@ -11274,7 +11285,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 239
+            "line": 245
           },
           "verification": "template-declaration-only"
         },
@@ -11285,7 +11296,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 246
+            "line": 252
           },
           "verification": "template-declaration-only"
         },
@@ -11296,7 +11307,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 255
+            "line": 261
           },
           "verification": "template-declaration-only"
         },
@@ -11307,7 +11318,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 258
+            "line": 264
           },
           "verification": "template-declaration-only"
         },
@@ -11318,7 +11329,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 262
+            "line": 268
           },
           "verification": "template-declaration-only"
         },
@@ -11329,7 +11340,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 263
+            "line": 269
           },
           "verification": "template-declaration-only"
         },
@@ -11340,7 +11351,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 267
+            "line": 273
           },
           "verification": "template-declaration-only"
         },
@@ -11351,13 +11362,13 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 272
+            "line": 278
           },
           "verification": "template-declaration-only"
         }
       ],
       "status": "partial",
-      "notes": "Full-project file opening awaits restored model/material requests; scene progress, missing assets, retry and play guards exist. Isolation and recovery remain pending.",
+      "notes": "Full-project open, resource status/retry and local recovery/file-state UI exist. Dirty replacement is checkpoint-protected through the File menu; native atomic saves and play isolation remain pending.",
       "verification": "source-inventory-only"
     }
   ]
