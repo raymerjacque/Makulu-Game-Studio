@@ -856,7 +856,28 @@ export class GameBundler {
       app.root.forEach(node => {
         if (!node.enabled || !node._behaviors) return;
         node._behaviors.forEach(b => {
-          if (b.type === 'spin') {
+          if (b.type === 'wasd') {
+            const speed = b.properties?.speed || 8;
+            const move = new pc.Vec3();
+            const forward = new pc.Vec3(node.forward.x, 0, node.forward.z);
+            if (forward.lengthSq() > 0.0001) forward.normalize();
+            else forward.set(0, 0, -1);
+            const right = new pc.Vec3(node.right.x, 0, node.right.z);
+            if (right.lengthSq() > 0.0001) right.normalize();
+            else right.set(1, 0, 0);
+
+            if (keys['w'] || keys['arrowup'] || keys['keyw']) move.add(forward);
+            if (keys['s'] || keys['arrowdown'] || keys['keys']) move.sub(forward);
+            if (keys['a'] || keys['arrowleft'] || keys['keya']) move.sub(right);
+            if (keys['d'] || keys['arrowright'] || keys['keyd']) move.add(right);
+
+            const isMoving = move.lengthSq() > 0.0001;
+            if (isMoving) {
+              move.normalize().mulScalar(speed * dt);
+              node.translate(move);
+            }
+            updateLocomotion(node, speed, isMoving, dt);
+          } else if (b.type === 'spin') {
             const speed = b.properties?.speed || 45;
             const axis = b.properties?.axis || 'y';
             const s = speed * dt;
@@ -2216,6 +2237,149 @@ export class GameBundler {
                 if (window.playProceduralSFX) window.playProceduralSFX('victory');
                 window.triggerScreenShake(0.3, 0.2);
               }
+            }
+          } else if (b.type === 'visual_flow_graph') {
+            if (!b._timer) b._timer = 0;
+            b._timer += dt;
+            if (b._timer >= 1.0) {
+              b._timer = 0;
+            }
+          } else if (b.type === 'reflection_probe_cubemap') {
+            if (!b._initProbe && node.render && node.render.material) {
+              b._initProbe = true;
+              node.render.material.metalness = Math.min(1.0, (node.render.material.metalness || 0.5) + 0.2);
+              node.render.material.roughness = Math.max(0.05, (node.render.material.roughness || 0.5) - 0.2);
+              node.render.material.update();
+            }
+          } else if (b.type === 'vehicle_suspension_physics') {
+            const stiffness = b.properties?.stiffness || 20;
+            if (!b._suspensionTime) b._suspensionTime = 0;
+            b._suspensionTime += dt * 5.0;
+            const bounce = Math.sin(b._suspensionTime) * (1.0 / stiffness) * 0.1;
+            node.translate(0, bounce, 0);
+          } else if (b.type === 'procedural_chain_rope_physics') {
+            const tension = b.properties?.tension || 15.0;
+            if (!b._chainTime) b._chainTime = 0;
+            b._chainTime += dt * 3.0;
+            const sway = Math.sin(b._chainTime) * (1.0 / tension) * 0.5;
+            node.rotate(0, 0, sway * 0.5);
+          } else if (b.type === 'cinematic_camera_rail') {
+            const dur = b.properties?.duration || 5.0;
+            if (b._railProgress === undefined) b._railProgress = 0;
+            b._railProgress = (b._railProgress + (dt / dur)) % 1.0;
+            const angle = b._railProgress * Math.PI * 2;
+            const radius = b.properties?.radius || 8.0;
+            node.setPosition(Math.cos(angle) * radius, node.getPosition().y, Math.sin(angle) * radius);
+            node.lookAt(0, node.getPosition().y, 0);
+          } else if (b.type === 'interactive_switch_toggle') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.0;
+              const toggleKey = keys['e'] || keys['keye'] || keys['f'] || keys['keyf'];
+              if (!b._keyWasDown) b._keyWasDown = false;
+              if (toggleKey && !b._keyWasDown && dist <= radius) {
+                b.properties.state = !b.properties.state;
+                if (window.playProceduralSFX) window.playProceduralSFX('mechanical_click');
+                const targetName = b.properties?.targetEntity || 'Door';
+                const target = app.root.findByName(targetName);
+                if (target) {
+                  target.enabled = !target.enabled;
+                }
+              }
+              b._keyWasDown = toggleKey;
+            }
+          } else if (b.type === 'weapon_overheat_system') {
+            const maxHeat = b.properties?.maxHeat || 100;
+            const coolRate = b.properties?.coolRate || 20;
+            if (b.properties.currentHeat === undefined) b.properties.currentHeat = 0;
+            const firing = keys['f'] || keys['keyf'] || keys[' '];
+            if (firing && !b.properties.isOverheated) {
+              b.properties.currentHeat = Math.min(maxHeat, b.properties.currentHeat + dt * 45);
+              if (b.properties.currentHeat >= maxHeat) {
+                b.properties.isOverheated = true;
+                if (window.playProceduralSFX) window.playProceduralSFX('hurt');
+              }
+            } else {
+              b.properties.currentHeat = Math.max(0, b.properties.currentHeat - dt * coolRate);
+              if (b.properties.currentHeat <= 10 && b.properties.isOverheated) {
+                b.properties.isOverheated = false;
+                if (window.playProceduralSFX) window.playProceduralSFX('door');
+              }
+            }
+          } else if (b.type === 'quest_journal_tracker') {
+            if (!b.properties.completedObjectives) b.properties.completedObjectives = 0;
+            if (!b.properties.totalObjectives) b.properties.totalObjectives = 3;
+            if (b._stateChanged) {
+              b._stateChanged = false;
+              if (b.properties.completedObjectives >= b.properties.totalObjectives && !b._rewarded) {
+                b._rewarded = true;
+                if (window.playProceduralSFX) window.playProceduralSFX('victory');
+              }
+            }
+          } else if (b.type === 'inventory_quick_slot_bar') {
+            for (let i = 1; i <= (b.properties?.slotCount || 9); i++) {
+              if (keys[String(i)] || keys['digit' + i]) {
+                if (b.properties.activeSlot !== i) {
+                  b.properties.activeSlot = i;
+                  if (window.playProceduralSFX) window.playProceduralSFX('coin');
+                }
+              }
+            }
+          } else if (b.type === 'procedural_footstep_surface_detector') {
+            if (playerEntity) {
+              if (!b._stepTimer) b._stepTimer = 0;
+              const isMoving = keys['w'] || keys['s'] || keys['a'] || keys['d'] ||
+                               keys['arrowup'] || keys['arrowdown'] || keys['arrowleft'] || keys['arrowright'];
+              if (isMoving) {
+                b._stepTimer -= dt;
+                if (b._stepTimer <= 0) {
+                  b._stepTimer = 0.38;
+                  if (window.playProceduralSFX) window.playProceduralSFX('footstep');
+                }
+              }
+            }
+          } else if (b.type === 'screen_space_vignette') {
+            const vignette = document.getElementById('camera-lens-vignette');
+            if (vignette) {
+              vignette.style.display = 'block';
+              vignette.style.opacity = String(b.properties?.intensity !== undefined ? b.properties.intensity : 0.5);
+            }
+          } else if (b.type === 'dynamic_foliage_wind') {
+            const windSpeed = b.properties?.windSpeed || 2.0;
+            const flex = b.properties?.flexAmount || 0.1;
+            if (!b._windPhase) b._windPhase = Math.random() * Math.PI;
+            b._windPhase += dt * windSpeed;
+            const swayAngle = Math.sin(b._windPhase) * flex * 15;
+            node.setLocalEulerAngles(swayAngle, node.getLocalEulerAngles().y, swayAngle * 0.5);
+          } else if (b.type === 'destruction_cluster_explosion') {
+            if (b.properties?.triggerExplode && !b._exploded) {
+              b._exploded = true;
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+              window.triggerScreenShake(0.8, 0.4);
+              const chunkCount = b.properties?.chunks || 12;
+              for (let c = 0; c < chunkCount; c++) {
+                const chunk = new pc.Entity('Chunk_' + c + '_' + Date.now());
+                chunk.setPosition(node.getPosition().clone().add(new pc.Vec3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5)));
+                chunk.setLocalScale(0.25, 0.25, 0.25);
+                chunk.addComponent('render', { type: 'box' });
+                app.root.addChild(chunk);
+              }
+              node.enabled = false;
+            }
+          } else if (b.type === 'enemy_boss_rage_phase') {
+            const thresh = b.properties?.healthThreshold || 0.4;
+            const currentHp = b.properties?.currentHp !== undefined ? b.properties.currentHp : 1000;
+            const maxHp = b.properties?.maxHp || 1000;
+            if (!b._enraged && (currentHp / maxHp) <= thresh) {
+              b._enraged = true;
+              if (window.playProceduralSFX) window.playProceduralSFX('boss_roar');
+              window.triggerScreenShake(1.0, 0.5);
+              node.setLocalScale(node.getLocalScale().clone().mulScalar(1.3));
+            }
+          } else if (b.type === 'hud_floating_minimap') {
+            const minimap = document.getElementById('hud-floating-minimap-container');
+            if (minimap) {
+              minimap.style.display = 'block';
             }
           } else if (b.type === 'grappling_rope_physics') {
             if (playerEntity) {

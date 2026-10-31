@@ -92,6 +92,12 @@ export class SFXStudioModal {
               <button class="btn sfx-type-btn" data-type="thunder_bolt" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">⚡ Thunder Strike</button>
               <button class="btn sfx-type-btn" data-type="teleport" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🌀 Teleport Warp</button>
               <button class="btn sfx-type-btn" data-type="magic_spell" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">✨ Arcane Spell</button>
+              <button class="btn sfx-type-btn" data-type="whoosh" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">💨 Air Whoosh</button>
+              <button class="btn sfx-type-btn" data-type="laser_heavy" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">💥 Heavy Laser</button>
+              <button class="btn sfx-type-btn" data-type="magic_portal" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🌌 Magic Portal</button>
+              <button class="btn sfx-type-btn" data-type="equip_item" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🎒 Equip Item</button>
+              <button class="btn sfx-type-btn" data-type="heartbeat_low_hp" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">❤️ Low HP Heartbeat</button>
+              <button class="btn sfx-type-btn" data-type="ui_click" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🔘 Tactile Click</button>
             </div>
           </div>
 
