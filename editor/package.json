@@ -16,7 +16,9 @@
     "electron": "electron electron.cjs",
     "studio": "electron electron.cjs",
     "dist:dir": "vite build && electron-builder --dir",
-    "dist:linux": "vite build && electron-builder --linux AppImage deb"
+    "dist:linux": "vite build && electron-builder --linux AppImage deb",
+    "audit:capabilities": "node scripts/capability-audit.js",
+    "audit:capabilities:check": "node scripts/capability-audit.js --check"
   },
   "dependencies": {
     "playcanvas": "^2.23.3"

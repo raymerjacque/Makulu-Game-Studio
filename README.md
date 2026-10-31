@@ -816,3 +816,25 @@ document, and external links accept only HTTP/HTTPS URLs. These changes do not
 complete generated-script isolation, import validation or the full P0 security
 phase; see [the roadmap](roadmap.html#progress) for verified progress and remaining
 work. Run the editor regression suite with `cd editor && npm test`.
+
+
+## Capability baseline and implementation status
+
+See the [completion roadmap](roadmap.html#progress) for current progress and the
+[capability register](docs/capabilities/README.md) for source-based support
+findings, known limitations and the certification backlog. The baseline covers
+150 behaviors, 52 AI actions, 30 UI modules, 449 literal control templates and
+27 reviewed feature areas. Presence in a catalog or source branch does not mean
+a feature is verified across save/open, preview and export.
+
+To refresh the report after changing editor capabilities:
+
+```bash
+cd editor
+npm run audit:capabilities
+npm run audit:capabilities:check
+```
+
+Reviewed findings live in `docs/capabilities/reviews.json`. The generated
+`register.json` is an inventory, not an executable AI tool schema. The regression
+suite checks that generated artifacts remain synchronized with source and reviews.

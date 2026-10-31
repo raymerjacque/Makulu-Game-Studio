@@ -1,0 +1,487 @@
+{
+  "features": [
+    {
+      "id": "editing",
+      "name": "Scene hierarchy and transforms",
+      "status": "partial",
+      "editor": "Selection, creation, parenting, transforms and gizmos exist.",
+      "persistence": "World/local reconstruction and field completeness need repair.",
+      "export": "Separate generated loader; parity unverified.",
+      "next": "Round-trip nested transforms; validate parenting and undo.",
+      "evidence": [
+        "editor/src/core/editor.js",
+        "editor/src/engine/pc-app.js",
+        "editor/src/ui/hierarchy.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "modes",
+      "name": "Simple and Pro modes",
+      "status": "partial",
+      "editor": "Inspector/mode controls exist; both still use the dense editor.",
+      "persistence": "No project conversion is necessary; UI preference is separate.",
+      "export": "Editor-only capability.",
+      "next": "Build chat-and-preview Simple layout against the same project.",
+      "evidence": [
+        "editor/src/core/editor.js",
+        "editor/src/ui/inspector.js",
+        "editor/src/ui/topbar.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "project-save",
+      "name": "Complete project save/open",
+      "status": "broken",
+      "editor": "Active-scene JSON export/import is wired.",
+      "persistence": "Scene collection omitted; script registry exported but not restored.",
+      "export": "Not an editable project package.",
+      "next": "Versioned full-project format with round-trip fixtures.",
+      "evidence": [
+        "editor/src/core/editor.js",
+        "editor/src/ui/topbar.js"
+      ],
+      "proof": "Previous targeted check reproduced one saved script becoming zero restored scripts; source still lacks script restoration."
+    },
+    {
+      "id": "recovery",
+      "name": "Autosave and crash recovery",
+      "status": "absent",
+      "editor": "No durable project recovery workflow found in inspected project/file paths.",
+      "persistence": "No rolling project checkpoint store.",
+      "export": "Not applicable.",
+      "next": "Atomic saves, recovery snapshots, quota and interruption handling.",
+      "evidence": [
+        "editor/src/core/editor.js",
+        "editor/src/ui/topbar.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "multiscene",
+      "name": "Multiple scenes",
+      "status": "partial",
+      "editor": "In-memory create/switch/rename/duplicate/delete exists.",
+      "persistence": "All scenes are not packaged by active-scene export.",
+      "export": "Exporter reads active scene; full scene delivery unresolved.",
+      "next": "Persist scene collection and verify transitions after restart/export.",
+      "evidence": [
+        "editor/src/core/editor.js",
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "undo",
+      "name": "Universal undo/redo",
+      "status": "partial",
+      "editor": "Create/delete and some component edits use command history.",
+      "persistence": "History is not a durable task journal.",
+      "export": "Editor-only.",
+      "next": "Awaited mixed-operation transactions and whole-prompt rollback.",
+      "evidence": [
+        "editor/src/core/command-bus.js",
+        "editor/src/ai/ai-executor.js"
+      ],
+      "proof": "Source shows modify_entity mutating transforms directly; prior targeted check confirmed no added undo entry."
+    },
+    {
+      "id": "play",
+      "name": "Isolated play sessions",
+      "status": "partial",
+      "editor": "Play toggles behavior execution and UI.",
+      "persistence": "No complete snapshot restoration in play/stop path.",
+      "export": "Separate runtime implementation.",
+      "next": "Clone/isolate runtime and restore editing state exactly.",
+      "evidence": [
+        "editor/src/ui/topbar.js",
+        "editor/src/core/behaviors.js",
+        "editor/src/engine/pc-app.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "models",
+      "name": "GLB models and animation",
+      "status": "partial",
+      "editor": "Bundled model catalog and GLB loading/animation setup exist.",
+      "persistence": "Model URL reload and generated children need ownership/duplication tests.",
+      "export": "Referenced paths and model resources need portable collection.",
+      "next": "Reopen and export animated model with all textures offline.",
+      "evidence": [
+        "editor/src/store/model-store.js",
+        "editor/src/core/editor.js",
+        "editor/src/ui/assets.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "materials",
+      "name": "PBR materials and texture maps",
+      "status": "partial",
+      "editor": "Material editing and preview exist.",
+      "persistence": "Selected fields/URLs serialize; full texture restoration incomplete.",
+      "export": "Parity and resource packaging unverified.",
+      "next": "Complete material/texture schema and dependency collection.",
+      "evidence": [
+        "editor/src/ui/material-editor-modal.js",
+        "editor/src/core/editor.js",
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "terrain",
+      "name": "Procedural terrain",
+      "status": "partial",
+      "editor": "Procedural mesh generator and terrain UI exist.",
+      "persistence": "Generated mesh/generator state is not covered by complete project format.",
+      "export": "Terrain survival needs actual exported runtime check.",
+      "next": "Persist deterministic terrain data and test round-trip.",
+      "evidence": [
+        "editor/src/engine/terrain-generator.js",
+        "editor/src/ui/terrain-modal.js",
+        "editor/src/core/editor.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "prefabs",
+      "name": "Reusable prefabs",
+      "status": "partial",
+      "editor": "Prefab creation and instantiation exist.",
+      "persistence": "Prefab map is not part of scene document; tree/reference completeness unverified.",
+      "export": "Not a portable prefab project library.",
+      "next": "Recursive instances, stable references and project persistence.",
+      "evidence": [
+        "editor/src/core/prefabs.js",
+        "editor/src/core/editor.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "physics",
+      "name": "Physics and joints",
+      "status": "partial",
+      "editor": "Component/constraint interfaces and custom helpers exist.",
+      "persistence": "Box extents omitted; some joint data treated as virtual component.",
+      "export": "Exporter loads Ammo externally; editor setup differs.",
+      "next": "Explicit shared physics initialization and constraint scenarios.",
+      "evidence": [
+        "editor/src/ui/physics-joint-modal.js",
+        "editor/src/core/editor.js",
+        "editor/src/engine/pc-app.js",
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "audio",
+      "name": "Procedural SFX and spatial sound",
+      "status": "partial",
+      "editor": "WAV generation, presets and sound tools exist.",
+      "persistence": "Sound source/slot restoration not fully represented in scene schema.",
+      "export": "Procedural runtime exists; imported sound portability needs verification.",
+      "next": "Verify sound slots, browser audio unlock and asset persistence.",
+      "evidence": [
+        "editor/src/engine/procedural-sfx.js",
+        "editor/src/ui/sfx-studio-modal.js",
+        "editor/src/core/editor.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "scripts",
+      "name": "Custom script lifecycle",
+      "status": "partial",
+      "editor": "Code editor, registry and attributes exist.",
+      "persistence": "Saved scripts are not restored by current loader; bindings incomplete.",
+      "export": "Runtime injects registered script code; isolation/parity not certified.",
+      "next": "Restore scripts/bindings and isolate lifecycle execution.",
+      "evidence": [
+        "editor/src/ui/code-editor.js",
+        "editor/src/core/script-attributes.js",
+        "editor/src/core/editor.js",
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "timeline",
+      "name": "Keyframe timeline",
+      "status": "partial",
+      "editor": "Track recording/interpolation is held by timeline panel.",
+      "persistence": "Panel tracks are not part of current scene document.",
+      "export": "Timeline tracks are not a documented shared export contract.",
+      "next": "Persist tracks and execute through shared runtime.",
+      "evidence": [
+        "editor/src/ui/timeline.js",
+        "editor/src/core/editor.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "graphs",
+      "name": "Visual flow graphs",
+      "status": "broken",
+      "editor": "Node UI attaches graphData, but the inspected visual_flow_graph runtime branch only advances a timer.",
+      "persistence": "Generic behavior properties can hold configuration, but it does not establish functioning graph logic.",
+      "export": "Export branch also advances a timer; no node/edge event interpreter in this path.",
+      "next": "Implement node/event execution or hide the blueprint claim; then certify save/open/export.",
+      "evidence": [
+        "editor/src/ui/flow-graph-modal.js",
+        "editor/src/core/behaviors.js",
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Reviewed visual_flow_graph branches in editor and exporter; neither evaluates graphData nodes or edges."
+    },
+    {
+      "id": "shaders",
+      "name": "Shader graph authoring",
+      "status": "partial",
+      "editor": "Graph UI applies StandardMaterial from sidebar inputs.",
+      "persistence": "No complete graph compilation/persistence contract.",
+      "export": "No certified node-to-shader pipeline.",
+      "next": "Compile node/edge semantics or relabel as material tool.",
+      "evidence": [
+        "editor/src/ui/shader-graph-modal.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "hud",
+      "name": "HUD and trigger systems",
+      "status": "partial",
+      "editor": "HUD configuration and trigger registration exist.",
+      "persistence": "Configuration serializes; stable-ID references and outcomes unverified.",
+      "export": "Generated runtime has HUD/trigger paths.",
+      "next": "Test objective, win/fail, restart and scene transitions.",
+      "evidence": [
+        "editor/src/core/triggers.js",
+        "editor/src/ui/hud-modal.js",
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "ai-chat",
+      "name": "AI scene copilot",
+      "status": "partial",
+      "editor": "Provider client and real scene-action execution exist.",
+      "persistence": "Chat history is not durable project/task memory.",
+      "export": "Build results use the same unverified export path.",
+      "next": "Scene context, typed validation, transactions and task runner.",
+      "evidence": [
+        "editor/src/ai/ai-client.js",
+        "editor/src/ai/ai-executor.js",
+        "editor/src/ui/ai-assistant.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "ai-team",
+      "name": "Autonomous team workflow",
+      "status": "partial",
+      "editor": "Keyword task decomposition, role display and structural inspection exist.",
+      "persistence": "No durable finite complete-game task graph.",
+      "export": "No required exported-game validation gate.",
+      "next": "Persist planned tasks and verify/repair actual game outcomes.",
+      "evidence": [
+        "editor/src/ai/swarm/agent-team.js",
+        "editor/src/ai/swarm/scene-inspector.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "skills",
+      "name": "AI skill consultation",
+      "status": "broken",
+      "editor": "consult_skill appends a success-shaped result without reading content.",
+      "persistence": "Static catalog exists separately.",
+      "export": "Not a game runtime feature.",
+      "next": "Return versioned skill text to the model through a real loader.",
+      "evidence": [
+        "editor/src/ai/ai-executor.js",
+        "editor/src/skills/skills-catalog.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "export",
+      "name": "Portable game export",
+      "status": "partial",
+      "editor": "HTML bundler exists.",
+      "persistence": "Not an editable full-project format.",
+      "export": "External engine/Ammo URLs; relative assets may remain.",
+      "next": "Pinned shared runtime, complete dependency package and clean-target tests.",
+      "evidence": [
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "publish",
+      "name": "Public cloud publishing",
+      "status": "broken",
+      "editor": "Creates a local blob and a public-looking URL.",
+      "persistence": "No publishing ownership/revision store.",
+      "export": "No upload request or real hosted artifact verification.",
+      "next": "Implement hosting or present only local preview/download.",
+      "evidence": [
+        "editor/src/cloud/publisher.js",
+        "editor/src/ui/publish-modal.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "credential-security",
+      "name": "Desktop-only OS credential access",
+      "status": "working",
+      "editor": "Owning main frame and exact entry URL required; local HTTP endpoint removed.",
+      "persistence": "Provider credential architecture remains separate future work.",
+      "export": "OS credentials are not an export dependency.",
+      "next": "Packaged Electron smoke test; complete P0.3 isolation work.",
+      "evidence": [
+        "editor/electron.cjs",
+        "editor/desktop-security.cjs",
+        "editor/vite.config.js",
+        "editor/tests/security-foundation.test.js"
+      ],
+      "proof": "Scoped security regression tests passed; working applies only to the completed access-control slice."
+    },
+    {
+      "id": "message-security",
+      "name": "AI message rendering",
+      "status": "working",
+      "editor": "Response/action/team/audit/error text escaped before insertion.",
+      "persistence": "Not a persistence feature.",
+      "export": "Generated-game code isolation remains open.",
+      "next": "Broader untrusted import/code isolation and CSP.",
+      "evidence": [
+        "editor/src/ui/ai-assistant.js",
+        "editor/tests/security-foundation.test.js"
+      ],
+      "proof": "Hostile strings exercised in actual rendering methods by regression tests; scope is text rendering only."
+    },
+    {
+      "id": "packaging",
+      "name": "Desktop distribution",
+      "status": "partial",
+      "editor": "Electron shell and Linux build configuration exist.",
+      "persistence": "Desktop file adapter and recovery still need implementation.",
+      "export": "Release artifacts are ignored generated output.",
+      "next": "Clean install and packaged workflow support matrix.",
+      "evidence": [
+        "editor/electron.cjs",
+        "editor/package.json"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "complete-game-runner",
+      "name": "Verified prompt-to-finished-game workflow",
+      "status": "absent",
+      "editor": "No persisted completion contract/task runner with real playtest loop.",
+      "persistence": "No restart/resume journal.",
+      "export": "No mandatory clean exported-game test.",
+      "next": "Implement P4\u2013P6 after project/transaction/runtime foundations.",
+      "evidence": [
+        "editor/src/ai/swarm/agent-team.js",
+        "editor/src/ai/ai-client.js",
+        "editor/src/compiler/game-bundler.js"
+      ],
+      "proof": "Source review; end-to-end certification pending."
+    }
+  ],
+  "behaviors": {
+    "portal_gun_spatial_pair": {
+      "status": "partial",
+      "notes": "Pressing F plays sound and reports a link; no paired portal construction/transport in this branch."
+    },
+    "magnetic_boots_surface_walker": {
+      "status": "partial",
+      "notes": "Applies downward force; arbitrary-surface orientation and walking are not implemented in this branch."
+    },
+    "slow_motion_dodge_roll": {
+      "status": "partial",
+      "notes": "Timed forward movement exists; no slow-motion time-control implementation in this branch."
+    },
+    "visual_flow_graph": {
+      "status": "broken",
+      "notes": "Runtime branch only advances/resets a timer; graphData nodes and edges are not executed."
+    },
+    "reflection_probe_cubemap": {
+      "status": "partial",
+      "notes": "Adjusts metalness/roughness once; this branch does not capture a cubemap reflection probe."
+    },
+    "vehicle_suspension_physics": {
+      "status": "partial",
+      "notes": "Applies sinusoidal position bounce; wheel suspension/ground physics are not implemented in this branch."
+    },
+    "procedural_chain_rope_physics": {
+      "status": "partial",
+      "notes": "Rotates the entity sinusoidally; this branch does not simulate linked rope/chain bodies."
+    }
+  },
+  "actions": {
+    "consult_skill": {
+      "status": "broken",
+      "notes": "Reports a consultation without retrieving skill content or returning it to the model."
+    },
+    "modify_entity": {
+      "status": "partial",
+      "notes": "Direct transform mutation bypasses command history and whole-prompt undo."
+    },
+    "generate_script": {
+      "status": "partial",
+      "notes": "Registers code in memory; current scene loader does not restore the saved script registry."
+    },
+    "create_shader_graph": {
+      "status": "partial",
+      "notes": "Creates StandardMaterial properties; does not compile a node graph."
+    },
+    "create_flow_graph": {
+      "status": "broken",
+      "notes": "Attaches graphData to a behavior whose runtime branch does not execute nodes or edges."
+    },
+    "open_tool_modal": {
+      "status": "broken",
+      "notes": "Adds an executed result without opening a modal."
+    },
+    "generate_sfx_preset": {
+      "status": "partial",
+      "notes": "Adds audio asset metadata without generated WAV data or an audio source."
+    },
+    "set_hdri_skybox": {
+      "status": "partial",
+      "notes": "Selects an atmosphere preset; does not load or apply an HDR environment map."
+    }
+  },
+  "ui": {
+    "publish-modal": {
+      "status": "partial",
+      "notes": "Uses local preview and a publisher that generates a public-looking URL without uploading."
+    },
+    "shader-graph-modal": {
+      "status": "partial",
+      "notes": "Graph canvas exists; applying uses sidebar material inputs rather than compiling graph semantics."
+    },
+    "timeline": {
+      "status": "partial",
+      "notes": "Panel-local keyframe tracks are not included in current scene persistence."
+    },
+    "ai-assistant": {
+      "status": "partial",
+      "notes": "Escaped chat and real actions exist; reliable complete-game workflow and transactional changes remain open."
+    },
+    "flow-graph-modal": {
+      "status": "partial",
+      "notes": "Node/graph-data UI exists; attached runtime branch only advances a timer rather than executing graph logic."
+    },
+    "topbar": {
+      "status": "partial",
+      "notes": "File/mode/play controls are wired; active-scene export and non-isolated play are known foundation gaps."
+    }
+  }
+}
