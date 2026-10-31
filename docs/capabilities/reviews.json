@@ -13,7 +13,7 @@
         "editor/src/engine/pc-app.js",
         "editor/src/ui/hierarchy.js"
       ],
-      "proof": "Project round-trip tests exercise nested transformed entities and generated-game scene reconstruction."
+      "proof": "Nested transforms and generated-game reconstruction pass; native tag handling and resource duplication are tested without blank-entity fallback."
     },
     {
       "id": "modes",
@@ -138,16 +138,18 @@
       "id": "terrain",
       "name": "Procedural terrain",
       "status": "partial",
-      "editor": "Procedural mesh generator and terrain UI exist.",
-      "persistence": "Generated mesh/generator state is not covered by complete project format.",
-      "export": "Terrain survival needs actual exported runtime check.",
-      "next": "Persist deterministic terrain data and test round-trip.",
+      "editor": "Final-grid terrain generation, real image heightmap decoding, undoable creation and independent duplication exist.",
+      "persistence": "Versioned final height samples reconstruct the mesh, collision source and static body; malformed grids are rejected.",
+      "export": "The shared mesh builder reconstructs saved terrain in delivered scenes; full Ammo/play/visual certification remains pending.",
+      "next": "Verify Ammo contacts, traversal, large terrains and full prefab/resource workflows.",
       "evidence": [
+        "editor/src/engine/terrain-data.js",
         "editor/src/engine/terrain-generator.js",
-        "editor/src/ui/terrain-modal.js",
-        "editor/src/core/editor.js"
+        "editor/src/engine/heightmap-reader.js",
+        "editor/tests/terrain-and-sound-persistence.test.js",
+        "editor/scripts/test-recovery-browser.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Real engine mesh/position/collision-source and exported-builder tests pass; three real-browser PNG decode/error checks pass."
     },
     {
       "id": "prefabs",
@@ -183,16 +185,17 @@
       "id": "audio",
       "name": "Procedural SFX and spatial sound",
       "status": "partial",
-      "editor": "WAV generation, presets and sound tools exist.",
-      "persistence": "Sound source/slot restoration not fully represented in scene schema.",
-      "export": "Procedural runtime exists; imported sound portability needs verification.",
-      "next": "Verify sound slots, browser audio unlock and asset persistence.",
+      "editor": "Procedural SFX plus real source/slot configuration via inspector and AI exist; editor restoration stays silent until Play.",
+      "persistence": "Declared source URLs, per-slot settings and positional component settings persist and join active-scene readiness.",
+      "export": "Delivered scene builder binds declared slots and supplies a camera listener; audible/browser unlock testing and full dependency packaging remain pending.",
+      "next": "Interactive playback/device tests, complete asset ownership and prefab/inactive-scene certification.",
       "evidence": [
-        "editor/src/engine/procedural-sfx.js",
-        "editor/src/ui/sfx-studio-modal.js",
-        "editor/src/core/editor.js"
+        "editor/src/engine/sound-data.js",
+        "editor/src/core/editor.js",
+        "editor/src/compiler/game-bundler.js",
+        "editor/tests/terrain-and-sound-persistence.test.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Real engine slot/asset, readiness, failure, AI configuration, duplication and delivered-builder checks pass."
     },
     {
       "id": "scripts",
@@ -316,7 +319,7 @@
       "status": "partial",
       "editor": "HTML bundler exists.",
       "persistence": "Not an editable full-project format.",
-      "export": "External engine/Ammo URLs; relative assets may remain.",
+      "export": "Shared terrain/audio reconstruction and completed local-import aliases work; external engine/Ammo and relative/remote dependencies still remain.",
       "next": "Pinned shared runtime, complete dependency package and clean-target tests.",
       "evidence": [
         "editor/src/compiler/game-bundler.js"
@@ -398,12 +401,12 @@
     },
     {
       "id": "resource-readiness",
-      "name": "Active-scene model and material readiness",
+      "name": "Active-scene model, material and declared audio readiness",
       "status": "partial",
-      "editor": "Awaited open, live progress, timeout/failure/cancellation reporting and explicit retry are implemented.",
+      "editor": "Awaited open, progress, timeout/failure/cancellation and retry include declared audio slots.",
       "persistence": "Retry retains current scene data, IDs and scripts; four material map references restore.",
       "export": "Map bindings are tested in exported scene builder; no exported-runtime readiness UI or offline certification.",
-      "next": "Extend to audio, imported-file workflows, inactive scenes and complete resource ownership/rollback.",
+      "next": "Complete imported-file workflows, inactive-scene preload and resource ownership/rollback.",
       "evidence": [
         "editor/src/project/resource-load-session.js",
         "editor/src/core/editor.js",
@@ -475,6 +478,18 @@
     "set_hdri_skybox": {
       "status": "partial",
       "notes": "Selects an atmosphere preset; does not load or apply an HDR environment map."
+    },
+    "add_sound": {
+      "status": "partial",
+      "notes": "Loads a real audio slot and awaits its resource report; full transactional rollback and acoustic/gameplay certification remain pending."
+    },
+    "create_terrain": {
+      "status": "partial",
+      "notes": "Creates real undoable terrain with persistent final samples; requires graphics/physics systems rather than reporting a fallback box."
+    },
+    "sculpt_terrain_heightmap": {
+      "status": "partial",
+      "notes": "Generates a new persistable terrain; this action is not an interactive brush edit of an existing terrain."
     }
   },
   "ui": {
@@ -509,6 +524,10 @@
     "recovery-modal": {
       "status": "partial",
       "notes": "Text-rendered snapshot metadata with explicit restore/delete and focus handling; whole-project resource completeness and packaged crash recovery remain pending."
+    },
+    "terrain-modal": {
+      "status": "partial",
+      "notes": "Real heightmap decoding feeds saved final samples; invalid dimensions/imports are reported. Full sculpting and physics/visual certification remain pending."
     }
   }
 }

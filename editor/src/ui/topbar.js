@@ -223,7 +223,7 @@ export class TopBar {
         <!-- Scene Quick Picker -->
         <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); white-space: nowrap;">
           <span id="scene-resource-status" role="status" aria-live="polite" style="font-size: 10px; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">Resources ready</span>
-          <button id="retry-scene-resources" class="btn" style="display: none; font-size: 10px;" title="Reload the active scene’s models and textures">Retry assets</button>
+          <button id="retry-scene-resources" class="btn" style="display: none; font-size: 10px;" title="Reload the active scene’s models, textures and audio">Retry assets</button>
           <span id="project-save-state" role="status" aria-live="polite" style="font-size:10px;max-width:145px;overflow:hidden;text-overflow:ellipsis" title="Recovery is separate from saving a project file">New project</span>
           <span>Scene:</span>
           <select id="top-scene-select" class="select-input" style="width: 105px; padding: 2px 6px; height: 26px; font-size: 11px;">
@@ -378,7 +378,7 @@ export class TopBar {
           report.status === 'failed' ? `${report.failures.length} asset(s) missing` :
           report.status === 'cancelled' ? 'Load cancelled' : 'Resources ready';
         status.title = report.failures.length ? report.failures.map(f => `${f.entityName} (${f.kind}): ${f.reason}`).join('\n') :
-          'Readiness covers the active scene’s registered model and material-texture loads, not gameplay certification.';
+          'Readiness covers the active scene’s registered model, material-texture and audio loads, not gameplay certification.';
       }
       if (retry) retry.style.display = report.status === 'failed' ? '' : 'none';
     };
@@ -421,7 +421,7 @@ export class TopBar {
               if (report.status === 'ready') {
                 showToast(`Project opened; scene resources ready: "${file.name}"`, 'success');
               } else if (report.status === 'failed') {
-                showToast(`Project data opened, but ${report.failures.length} model/texture resource(s) failed. Check the scene status and Retry assets.`, 'warn', 6000);
+                showToast(`Project data opened, but ${report.failures.length} model/texture/audio resource(s) failed. Check the scene status and Retry assets.`, 'warn', 6000);
               } else {
                 showToast(report.message || `Could not open "${file.name}"`, 'error');
               }

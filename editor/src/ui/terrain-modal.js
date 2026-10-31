@@ -1,3 +1,4 @@
+import { readHeightmap } from '../engine/heightmap-reader.js';
 import { TerrainGenerator } from '../engine/terrain-generator.js';
 import { showToast } from './toast.js';
 
@@ -125,7 +126,10 @@ export class TerrainModal {
     // Slider text updates
     const subdivs = this.modal.querySelector('#terrain-subdivs');
     const subdivsVal = this.modal.querySelector('#terrain-subdivs-val');
-    subdivs.addEventListener('input', () => subdivsVal.textContent = subdivs.value);
+    subdivs.addEventListener('input', () => {
+      subdivsVal.textContent = subdivs.value;
+      if (this.customHeights) { this.customHeights = null; showToast('Resolution changed. Reimport the heightmap to use it at this resolution.', 'info'); }
+    });
 
     const height = this.modal.querySelector('#terrain-height');
     const heightVal = this.modal.querySelector('#terrain-height-val');
@@ -148,11 +152,21 @@ export class TerrainModal {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.png,.jpg,.jpeg,.webp';
-      input.onchange = (e) => {
+      input.onchange = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-          showToast(`🖼️ Loaded heightmap "${file.name}"!`, 'success');
-        }
+        if (!file) return;
+        const request = {}; this.heightmapRequest = request;
+        const resolution = parseInt(subdivs.value, 10), generate = this.modal.querySelector('#terrain-btn-generate');
+        generate.disabled = true;
+        try {
+          const heights = await readHeightmap(file, resolution);
+          if (this.heightmapRequest !== request) return;
+          if (parseInt(subdivs.value, 10) !== resolution) throw new Error('Resolution changed during import. Import the heightmap again.');
+          this.customHeights = heights;
+          showToast(`Heightmap "${file.name}" decoded and ready for generation.`, 'success');
+        } catch (error) {
+          if (this.heightmapRequest === request) { this.customHeights = null; showToast(error.message || 'Heightmap could not be decoded.', 'error'); }
+        } finally { if (this.heightmapRequest === request) generate.disabled = false; }
       };
       input.click();
     });
@@ -167,18 +181,21 @@ export class TerrainModal {
       const roughNum = parseFloat(roughness.value);
       const seedNum = parseInt(seedInput.value, 10);
 
-      this.generator.generate({
-        name: 'Procedural Terrain',
-        width: size,
-        depth: size,
-        subdivisions: subdivsNum,
-        maxHeight: maxHeightNum,
-        roughness: roughNum,
-        seed: seedNum,
-        brushMode: brushMode
-      });
+      try {
+        this.generator.generate({
+          name: 'Procedural Terrain',
+          width: size,
+          depth: size,
+          subdivisions: subdivsNum,
+          maxHeight: maxHeightNum,
+          roughness: roughNum,
+          seed: seedNum,
+          brushMode: brushMode,
+          customHeights: this.customHeights || null
+        });
 
-      this.close();
+        this.close();
+      } catch (error) { showToast(error.message || 'Terrain could not be generated.', 'error'); }
     });
   }
 
@@ -188,6 +205,9 @@ export class TerrainModal {
   }
 
   close() {
+    this.customHeights = null;
+    this.heightmapRequest = {};
+    this.modal.querySelector('#terrain-btn-generate').disabled = false;
     this.modal.style.display = 'none';
     this.isOpen = false;
   }

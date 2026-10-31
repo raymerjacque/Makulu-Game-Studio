@@ -1,3 +1,6 @@
+import { validateSoundData } from '../engine/sound-data.js';
+import { validateTerrainData } from '../engine/terrain-data.js';
+
 /** Version 1 is an editable JSON document, not yet a self-contained asset archive. */
 export const PROJECT_FORMAT = 'makulu-game-studio-project';
 export const PROJECT_VERSION = 1;
@@ -39,11 +42,13 @@ export function validateSceneData(scene) {
       requireValue(typeof item.id === 'string' && item.id.length > 0 && !ids.has(item.id), 'Scene contains invalid or duplicate entity IDs.');
       ids.add(item.id);
     }
+    if (item.terrain !== undefined) validateTerrainData(item.terrain);
     if (item.tags !== undefined) requireValue(Array.isArray(item.tags) && item.tags.every(tag => typeof tag === 'string'), 'Invalid entity tags.');
     if (item.modelUrl !== undefined) requireValue(typeof item.modelUrl === 'string', 'Invalid model reference.');
     if (item.scriptData !== undefined) requireValue(record(item.scriptData), 'Invalid script attributes.');
     if (item.components !== undefined) {
       requireValue(record(item.components) && Object.values(item.components).every(record), 'Invalid component document.');
+      if (item.components.sound) validateSoundData(item.components.sound);
       if (item.components.collision?.halfExtents !== undefined) requireValue(vector(item.components.collision.halfExtents), 'Invalid collision extents.');
       for (const field of ['linearFactor', 'angularFactor']) if (item.components.rigidbody?.[field] !== undefined) requireValue(vector(item.components.rigidbody[field]), `Invalid rigidbody ${field}.`);
     }
@@ -113,4 +118,21 @@ export function serializeAssetRegistry(assets) {
     }
     return result;
   });
+}
+
+/** Resolve known local-import aliases without fetching or claiming to package remote dependencies. */
+export function resolvePortableReferences(value, assets = []) {
+  const aliases = new Map(assets.filter(asset => asset.sourceUrl && asset.base64Data).map(asset => [asset.sourceUrl, asset.base64Data]));
+  const fields = new Set(['modelUrl', 'assetUrl', 'diffuseMapUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl', 'url']);
+  const visit = item => {
+    if (!item || typeof item !== 'object') return;
+    for (const [key, child] of Object.entries(item)) {
+      if (fields.has(key) && typeof child === 'string') {
+        if (aliases.has(child)) item[key] = aliases.get(child);
+        else if (child.startsWith('blob:')) throw new Error('A temporary asset reference is not ready to save. Finish importing it first.');
+      } else visit(child);
+    }
+  };
+  visit(value);
+  return value;
 }

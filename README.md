@@ -867,7 +867,7 @@ loads are cancelled logically so late callbacks cannot populate another scene.
 
 Diffuse, normal, roughness and emissive texture references now restore in editor
 and exported scene builders. This does not establish complete asset packaging,
-audio readiness, inactive-scene preloading or gameplay correctness. See the
+unreferenced audio-library readiness, inactive-scene preloading or gameplay correctness. See the
 [resource-readiness contract](docs/project-format.md#active-scene-resource-readiness-update).
 
 
@@ -888,3 +888,22 @@ limitations](docs/project-format.md#local-recovery-and-file-state-tracking-updat
 
 Run `npm run test:recovery-browser` from `editor/` for the isolated real-browser
 IndexedDB checks (Chromium or `CHROME_BIN` required), in addition to `npm test`.
+
+
+## Terrain and declared audio now survive reopening
+
+Generated terrain now stores its final height grid and rebuilds through a shared
+editor/export mesh builder, with mesh collision data and a static rigidbody.
+Heightmap uploads actually decode image samples, and terrain creation/duplication
+preserve the data. Actual physics traversal and large-terrain certification remain
+pending.
+
+Sound sources and slot settings now persist, join resource readiness, and restore
+silently until Play. The AI sound action and inspector configure actual slots;
+missing audio is reported and retains its source for retry. Delivered scenes bind
+the same definitions. Speaker output/device unlock still needs interactive testing.
+
+Completed local-import references are resolved to existing embedded bytes in
+project and HTML exports; unresolved temporary references fail visibly. This is
+not yet full offline dependency packaging. See the [terrain/audio contract and
+remaining limits](docs/project-format.md#terrain-and-declared-audio-persistence-update).

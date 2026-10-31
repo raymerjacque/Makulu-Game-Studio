@@ -7,11 +7,13 @@ import path from 'node:path';
 // Isolated synthetic-data browser check; never uses an existing browser profile.
 const browser = process.env.CHROME_BIN || 'google-chrome';
 const profile = await mkdtemp(path.join(os.tmpdir(), 'studio-recovery-test-'));
+const heightmapSource = await readFile(new URL('../src/engine/heightmap-reader.js', import.meta.url), 'utf8');
 const source = await readFile(new URL('../src/project/recovery-store.js', import.meta.url), 'utf8');
 let resolveReport;
 const reportPromise = new Promise(resolve => { resolveReport = resolve; });
 const page = `<!doctype html><meta charset="utf-8"><title>Recovery storage regression</title><script type="module">
 import { RecoveryStore } from '/recovery-store.js';
+import { readHeightmap } from '/heightmap-reader.js';
 let checks = 0;
 const check = (condition, message) => { if (!condition) throw new Error(message); checks++; };
 const name = 'studio-recovery-regression-' + crypto.randomUUID();
@@ -32,6 +34,16 @@ try {
   check((await store.list()).map(r => r.id).join() === '5,4,3', 'Aborted write lost prior snapshots');
   await store.delete('5');
   check((await store.list()).map(r => r.id).join() === '4,3', 'Snapshot deletion failed');
+  const canvas = document.createElement('canvas'); canvas.width = 2; canvas.height = 2;
+  const context = canvas.getContext('2d');
+  context.putImageData(new ImageData(new Uint8ClampedArray([0,0,0,255, 255,255,255,255, 128,128,128,255, 255,255,255,0]), 2, 2), 0, 0);
+  const png = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  const heights = await readHeightmap(png, 1);
+  check(heights[0][0] === 0 && heights[0][1] === 1 && Math.abs(heights[1][0] - 128/255) < 0.00001 && heights[1][1] === 0, 'Heightmap PNG pixels were not decoded correctly');
+  let imageFailed = false; try { await readHeightmap(new Blob(['invalid image']), 1); } catch { imageFailed = true; }
+  check(imageFailed, 'Invalid heightmap must fail');
+  let resolutionFailed = false; try { await readHeightmap(png, 1000000); } catch { resolutionFailed = true; }
+  check(resolutionFailed, 'Invalid heightmap resolution must fail');
   report = { ok: true, checks };
 } catch (error) { report = { ok: false, checks, error: error.message }; }
 finally {
@@ -41,7 +53,8 @@ finally {
 await fetch('/result', { method: 'POST', body: JSON.stringify(report) });
 </script>`;
 const server = http.createServer((request, response) => {
-  if (request.url === '/recovery-store.js') { response.setHeader('Content-Type', 'text/javascript'); response.end(source); }
+  if (request.url === '/heightmap-reader.js') { response.setHeader('Content-Type', 'text/javascript'); response.end(heightmapSource); }
+  else if (request.url === '/recovery-store.js') { response.setHeader('Content-Type', 'text/javascript'); response.end(source); }
   else if (request.url === '/result' && request.method === 'POST') {
     let body = ''; request.on('data', chunk => { body += chunk; }); request.on('end', () => {
       try { resolveReport(JSON.parse(body)); } catch { resolveReport({ ok: false, error: 'Invalid browser result' }); }
@@ -56,7 +69,7 @@ try {
   child.on('error', () => resolveReport({ ok: false, error: 'Headless browser unavailable; set CHROME_BIN.' }));
   const report = await Promise.race([reportPromise, new Promise(resolve => { timeout = setTimeout(() => resolve({ ok: false, error: 'Browser storage test timed out' }), 20000); })]);
   if (!report.ok) throw new Error(report.error);
-  console.log(`Real-browser recovery storage checks passed: ${report.checks}.`);
+  console.log(`Real-browser storage and heightmap checks passed: ${report.checks}.`);
 } finally {
   clearTimeout(timeout);
   if (child && child.exitCode === null) {

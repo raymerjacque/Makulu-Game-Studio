@@ -71,7 +71,7 @@
         "editor/src/engine/pc-app.js",
         "editor/src/ui/hierarchy.js"
       ],
-      "proof": "Project round-trip tests exercise nested transformed entities and generated-game scene reconstruction."
+      "proof": "Nested transforms and generated-game reconstruction pass; native tag handling and resource duplication are tested without blank-entity fallback."
     },
     {
       "id": "modes",
@@ -196,16 +196,18 @@
       "id": "terrain",
       "name": "Procedural terrain",
       "status": "partial",
-      "editor": "Procedural mesh generator and terrain UI exist.",
-      "persistence": "Generated mesh/generator state is not covered by complete project format.",
-      "export": "Terrain survival needs actual exported runtime check.",
-      "next": "Persist deterministic terrain data and test round-trip.",
+      "editor": "Final-grid terrain generation, real image heightmap decoding, undoable creation and independent duplication exist.",
+      "persistence": "Versioned final height samples reconstruct the mesh, collision source and static body; malformed grids are rejected.",
+      "export": "The shared mesh builder reconstructs saved terrain in delivered scenes; full Ammo/play/visual certification remains pending.",
+      "next": "Verify Ammo contacts, traversal, large terrains and full prefab/resource workflows.",
       "evidence": [
+        "editor/src/engine/terrain-data.js",
         "editor/src/engine/terrain-generator.js",
-        "editor/src/ui/terrain-modal.js",
-        "editor/src/core/editor.js"
+        "editor/src/engine/heightmap-reader.js",
+        "editor/tests/terrain-and-sound-persistence.test.js",
+        "editor/scripts/test-recovery-browser.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Real engine mesh/position/collision-source and exported-builder tests pass; three real-browser PNG decode/error checks pass."
     },
     {
       "id": "prefabs",
@@ -241,16 +243,17 @@
       "id": "audio",
       "name": "Procedural SFX and spatial sound",
       "status": "partial",
-      "editor": "WAV generation, presets and sound tools exist.",
-      "persistence": "Sound source/slot restoration not fully represented in scene schema.",
-      "export": "Procedural runtime exists; imported sound portability needs verification.",
-      "next": "Verify sound slots, browser audio unlock and asset persistence.",
+      "editor": "Procedural SFX plus real source/slot configuration via inspector and AI exist; editor restoration stays silent until Play.",
+      "persistence": "Declared source URLs, per-slot settings and positional component settings persist and join active-scene readiness.",
+      "export": "Delivered scene builder binds declared slots and supplies a camera listener; audible/browser unlock testing and full dependency packaging remain pending.",
+      "next": "Interactive playback/device tests, complete asset ownership and prefab/inactive-scene certification.",
       "evidence": [
-        "editor/src/engine/procedural-sfx.js",
-        "editor/src/ui/sfx-studio-modal.js",
-        "editor/src/core/editor.js"
+        "editor/src/engine/sound-data.js",
+        "editor/src/core/editor.js",
+        "editor/src/compiler/game-bundler.js",
+        "editor/tests/terrain-and-sound-persistence.test.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Real engine slot/asset, readiness, failure, AI configuration, duplication and delivered-builder checks pass."
     },
     {
       "id": "scripts",
@@ -374,7 +377,7 @@
       "status": "partial",
       "editor": "HTML bundler exists.",
       "persistence": "Not an editable full-project format.",
-      "export": "External engine/Ammo URLs; relative assets may remain.",
+      "export": "Shared terrain/audio reconstruction and completed local-import aliases work; external engine/Ammo and relative/remote dependencies still remain.",
       "next": "Pinned shared runtime, complete dependency package and clean-target tests.",
       "evidence": [
         "editor/src/compiler/game-bundler.js"
@@ -456,12 +459,12 @@
     },
     {
       "id": "resource-readiness",
-      "name": "Active-scene model and material readiness",
+      "name": "Active-scene model, material and declared audio readiness",
       "status": "partial",
-      "editor": "Awaited open, live progress, timeout/failure/cancellation reporting and explicit retry are implemented.",
+      "editor": "Awaited open, progress, timeout/failure/cancellation and retry include declared audio slots.",
       "persistence": "Retry retains current scene data, IDs and scripts; four material map references restore.",
       "export": "Map bindings are tested in exported scene builder; no exported-runtime readiness UI or offline certification.",
-      "next": "Extend to audio, imported-file workflows, inactive scenes and complete resource ownership/rollback.",
+      "next": "Complete imported-file workflows, inactive-scene preload and resource ownership/rollback.",
       "evidence": [
         "editor/src/project/resource-load-session.js",
         "editor/src/core/editor.js",
@@ -488,7 +491,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1499
+          "line": 1527
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -516,7 +519,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2015
+          "line": 2043
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -544,7 +547,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1772
+          "line": 1800
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -572,7 +575,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1218
+          "line": 1246
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -597,7 +600,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 976
+          "line": 1004
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -625,11 +628,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1505
+          "line": 1533
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2555
+          "line": 2583
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -658,7 +661,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2614
+          "line": 2642
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -686,7 +689,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2082
+          "line": 2110
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -718,7 +721,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1002
+          "line": 1030
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -743,7 +746,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1680
+          "line": 1708
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -769,7 +772,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2274
+          "line": 2302
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -798,7 +801,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1669
+          "line": 1697
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -824,7 +827,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1948
+          "line": 1976
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -852,7 +855,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2696
+          "line": 2724
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -880,7 +883,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1289
+          "line": 1317
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -913,11 +916,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1012
+          "line": 1040
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2066
+          "line": 2094
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -945,7 +948,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2120
+          "line": 2148
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -972,7 +975,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2112
+          "line": 2140
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1000,7 +1003,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1693
+          "line": 1721
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1031,11 +1034,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1528
+          "line": 1556
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1882
+          "line": 1910
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1062,7 +1065,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2126
+          "line": 2154
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1088,7 +1091,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1038
+          "line": 1066
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1119,7 +1122,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1939
+          "line": 1967
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1147,7 +1150,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2108
+          "line": 2136
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1175,7 +1178,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1330
+          "line": 1358
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1202,7 +1205,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1362
+          "line": 1390
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1228,7 +1231,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1971
+          "line": 1999
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1255,7 +1258,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2011
+          "line": 2039
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1283,7 +1286,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2362
+          "line": 2390
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1311,7 +1314,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1646
+          "line": 1674
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1337,7 +1340,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1861
+          "line": 1889
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1362,7 +1365,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2123
+          "line": 2151
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1390,7 +1393,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2605
+          "line": 2633
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1418,7 +1421,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2355
+          "line": 2383
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1446,7 +1449,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2664
+          "line": 2692
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1475,7 +1478,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1068
+          "line": 1096
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1503,7 +1506,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2182
+          "line": 2210
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1530,7 +1533,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2222
+          "line": 2250
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1557,7 +1560,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2377
+          "line": 2405
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1584,7 +1587,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 953
+          "line": 981
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1612,7 +1615,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1757
+          "line": 1785
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1640,7 +1643,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1104
+          "line": 1132
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1665,7 +1668,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1483
+          "line": 1511
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1693,7 +1696,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1993
+          "line": 2021
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1721,7 +1724,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2033
+          "line": 2061
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1749,7 +1752,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2023
+          "line": 2051
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1785,15 +1788,15 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1787
+          "line": 1815
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2145
+          "line": 2173
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2157
+          "line": 2185
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1819,7 +1822,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2211
+          "line": 2239
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1851,7 +1854,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2144
+          "line": 2172
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1877,7 +1880,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2622
+          "line": 2650
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1905,7 +1908,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1813
+          "line": 1841
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1932,7 +1935,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2502
+          "line": 2530
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1961,7 +1964,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1974
+          "line": 2002
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2025,71 +2028,71 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1019
+          "line": 1047
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1045
+          "line": 1073
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1060
+          "line": 1088
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1092
+          "line": 1120
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1280
+          "line": 1308
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1353
+          "line": 1381
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1415
+          "line": 1443
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1546
+          "line": 1574
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1603
+          "line": 1631
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1765
+          "line": 1793
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2053
+          "line": 2081
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2194
+          "line": 2222
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2432
+          "line": 2460
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2489
+          "line": 2517
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2573
+          "line": 2601
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 3024
+          "line": 3052
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 3032
+          "line": 3060
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2122,11 +2125,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1053
+          "line": 1081
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2066
+          "line": 2094
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2152,7 +2155,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1347
+          "line": 1375
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2181,7 +2184,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2527
+          "line": 2555
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2208,7 +2211,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2387
+          "line": 2415
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2236,7 +2239,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 938
+          "line": 966
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2264,7 +2267,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2239
+          "line": 2267
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2292,7 +2295,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2282
+          "line": 2310
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2320,7 +2323,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2564
+          "line": 2592
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2347,7 +2350,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1853
+          "line": 1881
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2373,7 +2376,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2013
+          "line": 2041
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2400,7 +2403,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2327
+          "line": 2355
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2428,7 +2431,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2058
+          "line": 2086
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2457,7 +2460,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1186
+          "line": 1214
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2485,7 +2488,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2392
+          "line": 2420
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2517,11 +2520,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1146
+          "line": 1174
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2066
+          "line": 2094
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2549,7 +2552,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2413
+          "line": 2441
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2577,7 +2580,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1273
+          "line": 1301
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2606,7 +2609,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1208
+          "line": 1236
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2633,7 +2636,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1297
+          "line": 1325
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2663,7 +2666,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 895
+          "line": 923
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2689,7 +2692,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1164
+          "line": 1192
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2721,7 +2724,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2672
+          "line": 2700
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2748,7 +2751,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2497
+          "line": 2525
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2776,7 +2779,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2872
+          "line": 2900
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2804,7 +2807,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2679
+          "line": 2707
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2832,7 +2835,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2105
+          "line": 2133
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2859,7 +2862,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1880
+          "line": 1908
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2884,7 +2887,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1264
+          "line": 1292
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2913,7 +2916,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 916
+          "line": 944
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2941,7 +2944,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2785
+          "line": 2813
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2969,7 +2972,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 989
+          "line": 1017
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2996,7 +2999,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2705
+          "line": 2733
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3021,7 +3024,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1490
+          "line": 1518
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3049,7 +3052,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 906
+          "line": 934
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3074,7 +3077,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 901
+          "line": 929
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3099,7 +3102,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2583
+          "line": 2611
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3127,7 +3130,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2636
+          "line": 2664
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3155,7 +3158,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1230
+          "line": 1258
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3182,7 +3185,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1427
+          "line": 1455
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3210,7 +3213,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2610
+          "line": 2638
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3238,7 +3241,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2268
+          "line": 2296
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3266,7 +3269,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2854
+          "line": 2882
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3293,7 +3296,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2336
+          "line": 2364
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3321,7 +3324,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2820
+          "line": 2848
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3349,7 +3352,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2230
+          "line": 2258
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3377,7 +3380,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2172
+          "line": 2200
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3404,7 +3407,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2713
+          "line": 2741
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3431,7 +3434,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2317
+          "line": 2345
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3460,7 +3463,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1873
+          "line": 1901
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3489,11 +3492,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1550
+          "line": 1578
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1885
+          "line": 1913
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3518,7 +3521,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2255
+          "line": 2283
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3547,7 +3550,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2040
+          "line": 2068
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3574,7 +3577,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2102
+          "line": 2130
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3602,7 +3605,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2191
+          "line": 2219
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3628,7 +3631,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1749
+          "line": 1777
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3656,7 +3659,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2235
+          "line": 2263
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3683,7 +3686,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2349
+          "line": 2377
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3711,7 +3714,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2439
+          "line": 2467
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3744,15 +3747,15 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1533
+          "line": 1561
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1590
+          "line": 1618
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1732
+          "line": 1760
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3780,7 +3783,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 982
+          "line": 1010
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3807,7 +3810,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2591
+          "line": 2619
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3835,7 +3838,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1963
+          "line": 1991
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3863,7 +3866,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 888
+          "line": 916
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3889,7 +3892,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1746
+          "line": 1774
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3917,7 +3920,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1365
+          "line": 1393
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3951,11 +3954,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1900
+          "line": 1928
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1923
+          "line": 1951
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3984,7 +3987,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1568
+          "line": 1596
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4009,7 +4012,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2467
+          "line": 2495
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4037,7 +4040,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2895
+          "line": 2923
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4064,7 +4067,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2887
+          "line": 2915
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4092,7 +4095,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1740
+          "line": 1768
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4121,7 +4124,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2653
+          "line": 2681
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4166,27 +4169,27 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1139
+          "line": 1167
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1353
+          "line": 1381
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1415
+          "line": 1443
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2194
+          "line": 2222
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2555
+          "line": 2583
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2761
+          "line": 2789
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4213,7 +4216,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1371
+          "line": 1399
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4239,7 +4242,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2801
+          "line": 2829
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4267,7 +4270,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1444
+          "line": 1472
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4294,7 +4297,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2916
+          "line": 2944
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4324,7 +4327,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1887
+          "line": 1915
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4353,7 +4356,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2473
+          "line": 2501
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4380,7 +4383,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2831
+          "line": 2859
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4409,7 +4412,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1379
+          "line": 1407
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4441,7 +4444,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2075
+          "line": 2103
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4470,7 +4473,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1617
+          "line": 1645
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4498,7 +4501,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2262
+          "line": 2290
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4526,7 +4529,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2249
+          "line": 2277
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4555,7 +4558,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1778
+          "line": 1806
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4580,7 +4583,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 867
+          "line": 895
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4613,7 +4616,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1468
+          "line": 1496
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4641,7 +4644,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2001
+          "line": 2029
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4668,7 +4671,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1307
+          "line": 1335
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4701,11 +4704,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 970
+          "line": 998
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2719
+          "line": 2747
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4733,7 +4736,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2299
+          "line": 2327
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4761,7 +4764,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2925
+          "line": 2953
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4789,7 +4792,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1702
+          "line": 1730
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4817,7 +4820,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2009
+          "line": 2037
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4845,7 +4848,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2457
+          "line": 2485
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4879,7 +4882,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 353
+          "line": 355
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -4893,7 +4896,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 321
+          "line": 322
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4909,15 +4912,16 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 337
+          "line": 338
         }
       ],
       "advertisedInSystemPrompt": true,
       "verification": "handler-presence-only",
-      "status": "experimental",
-      "notes": "Handler exists; payload validation, transactional undo, failure reporting and gameplay results are not certified.",
+      "status": "partial",
+      "notes": "Loads a real audio slot and awaits its resource report; full transactional rollback and acoustic/gameplay certification remain pending.",
       "testMentions": [
-        "editor/tests/aaa-behaviors-and-ai.test.js"
+        "editor/tests/aaa-behaviors-and-ai.test.js",
+        "editor/tests/terrain-and-sound-persistence.test.js"
       ]
     },
     {
@@ -4925,7 +4929,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 462
+          "line": 464
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4956,7 +4960,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 586
+          "line": 588
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4970,7 +4974,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 384
+          "line": 386
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4984,7 +4988,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 647
+          "line": 649
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5000,7 +5004,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 367
+          "line": 369
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5014,7 +5018,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 573
+          "line": 575
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5028,7 +5032,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 208
+          "line": 209
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5042,7 +5046,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 794
+          "line": 796
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5058,7 +5062,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 598
+          "line": 600
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5075,7 +5079,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 774
+          "line": 776
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5092,7 +5096,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 516
+          "line": 518
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5106,7 +5110,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 667
+          "line": 669
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5136,7 +5140,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 237
+          "line": 238
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5150,7 +5154,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 267
+          "line": 268
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5166,7 +5170,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 218
+          "line": 219
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5180,7 +5184,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 190
+          "line": 191
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5194,7 +5198,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 538
+          "line": 540
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5208,7 +5212,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 687
+          "line": 689
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5224,7 +5228,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 603
+          "line": 605
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5240,7 +5244,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 706
+          "line": 708
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5261,8 +5265,8 @@
       ],
       "advertisedInSystemPrompt": true,
       "verification": "handler-presence-only",
-      "status": "experimental",
-      "notes": "Handler exists; payload validation, transactional undo, failure reporting and gameplay results are not certified.",
+      "status": "partial",
+      "notes": "Creates real undoable terrain with persistent final samples; requires graphics/physics systems rather than reporting a fallback box.",
       "testMentions": []
     },
     {
@@ -5270,7 +5274,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 745
+          "line": 747
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5286,7 +5290,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 495
+          "line": 497
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5300,7 +5304,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 726
+          "line": 728
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5330,7 +5334,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 285
+          "line": 286
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5346,7 +5350,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 563
+          "line": 565
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5374,7 +5378,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 822
+          "line": 824
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5402,7 +5406,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 837
+          "line": 839
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5418,7 +5422,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 176
+          "line": 177
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5432,7 +5436,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 294
+          "line": 295
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5446,13 +5450,13 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 809
+          "line": 811
         }
       ],
       "advertisedInSystemPrompt": false,
       "verification": "handler-presence-only",
-      "status": "experimental",
-      "notes": "Handler exists; payload validation, transactional undo, failure reporting and gameplay results are not certified.",
+      "status": "partial",
+      "notes": "Generates a new persistable terrain; this action is not an interactive brush edit of an existing terrain.",
       "testMentions": [
         "editor/tests/aaa-expansion-v3.test.js"
       ]
@@ -5462,7 +5466,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 554
+          "line": 556
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5476,7 +5480,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 786
+          "line": 788
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5492,7 +5496,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 209
+          "line": 210
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5506,7 +5510,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 199
+          "line": 200
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5520,7 +5524,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 305
+          "line": 306
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5579,7 +5583,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 619
+          "line": 621
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5595,7 +5599,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 546
+          "line": 548
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5609,7 +5613,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 639
+          "line": 641
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5625,7 +5629,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 766
+          "line": 768
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -6851,7 +6855,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 290
+            "line": 291
           },
           "verification": "template-declaration-only"
         },
@@ -6862,7 +6866,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 299
+            "line": 300
           },
           "verification": "template-declaration-only"
         },
@@ -6878,7 +6882,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 308
+            "line": 309
           },
           "verification": "template-declaration-only"
         },
@@ -6894,7 +6898,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 309
+            "line": 310
           },
           "verification": "template-declaration-only"
         },
@@ -6910,7 +6914,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 310
+            "line": 311
           },
           "verification": "template-declaration-only"
         },
@@ -6926,7 +6930,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 311
+            "line": 312
           },
           "verification": "template-declaration-only"
         },
@@ -6942,7 +6946,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 312
+            "line": 313
           },
           "verification": "template-declaration-only"
         },
@@ -6958,7 +6962,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 313
+            "line": 314
           },
           "verification": "template-declaration-only"
         },
@@ -6974,7 +6978,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 314
+            "line": 315
           },
           "verification": "template-declaration-only"
         },
@@ -6990,7 +6994,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 315
+            "line": 316
           },
           "verification": "template-declaration-only"
         },
@@ -7001,7 +7005,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 329
+            "line": 330
           },
           "verification": "template-declaration-only"
         },
@@ -7012,7 +7016,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 330
+            "line": 331
           },
           "verification": "template-declaration-only"
         },
@@ -7023,7 +7027,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 331
+            "line": 332
           },
           "verification": "template-declaration-only"
         },
@@ -7034,7 +7038,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 332
+            "line": 333
           },
           "verification": "template-declaration-only"
         },
@@ -7045,7 +7049,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 337
+            "line": 338
           },
           "verification": "template-declaration-only"
         },
@@ -7056,7 +7060,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 338
+            "line": 339
           },
           "verification": "template-declaration-only"
         },
@@ -7067,7 +7071,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 339
+            "line": 340
           },
           "verification": "template-declaration-only"
         },
@@ -7078,7 +7082,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 340
+            "line": 341
           },
           "verification": "template-declaration-only"
         },
@@ -7089,7 +7093,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 344
+            "line": 345
           },
           "verification": "template-declaration-only"
         },
@@ -7100,7 +7104,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 360
+            "line": 361
           },
           "verification": "template-declaration-only"
         },
@@ -7111,7 +7115,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 361
+            "line": 362
           },
           "verification": "template-declaration-only"
         },
@@ -7122,7 +7126,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 362
+            "line": 363
           },
           "verification": "template-declaration-only"
         },
@@ -7133,7 +7137,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 363
+            "line": 364
           },
           "verification": "template-declaration-only"
         },
@@ -7144,7 +7148,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 368
+            "line": 369
           },
           "verification": "template-declaration-only"
         },
@@ -7155,7 +7159,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 369
+            "line": 370
           },
           "verification": "template-declaration-only"
         },
@@ -7166,7 +7170,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 370
+            "line": 371
           },
           "verification": "template-declaration-only"
         },
@@ -7177,7 +7181,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 371
+            "line": 372
           },
           "verification": "template-declaration-only"
         },
@@ -7188,7 +7192,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 376
+            "line": 377
           },
           "verification": "template-declaration-only"
         },
@@ -7199,7 +7203,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 377
+            "line": 378
           },
           "verification": "template-declaration-only"
         },
@@ -7210,7 +7214,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 378
+            "line": 379
           },
           "verification": "template-declaration-only"
         },
@@ -7221,7 +7225,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 382
+            "line": 383
           },
           "verification": "template-declaration-only"
         },
@@ -7232,7 +7236,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 394
+            "line": 395
           },
           "verification": "template-declaration-only"
         },
@@ -7243,7 +7247,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 395
+            "line": 396
           },
           "verification": "template-declaration-only"
         },
@@ -7254,7 +7258,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 398
+            "line": 399
           },
           "verification": "template-declaration-only"
         },
@@ -7265,7 +7269,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 399
+            "line": 400
           },
           "verification": "template-declaration-only"
         },
@@ -7276,7 +7280,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 401
+            "line": 402
           },
           "verification": "template-declaration-only"
         },
@@ -7292,7 +7296,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 420
+            "line": 421
           },
           "verification": "template-declaration-only"
         },
@@ -7303,7 +7307,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 430
+            "line": 431
           },
           "verification": "template-declaration-only"
         },
@@ -7314,7 +7318,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 440
+            "line": 441
           },
           "verification": "template-declaration-only"
         },
@@ -7325,7 +7329,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 443
+            "line": 444
           },
           "verification": "template-declaration-only"
         },
@@ -7336,7 +7340,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 451
+            "line": 452
           },
           "verification": "template-declaration-only"
         },
@@ -7347,7 +7351,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 454
+            "line": 455
           },
           "verification": "template-declaration-only"
         },
@@ -7358,7 +7362,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 462
+            "line": 463
           },
           "verification": "template-declaration-only"
         },
@@ -7369,7 +7373,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 465
+            "line": 466
           },
           "verification": "template-declaration-only"
         },
@@ -7380,7 +7384,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 473
+            "line": 474
           },
           "verification": "template-declaration-only"
         },
@@ -7391,7 +7395,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 476
+            "line": 477
           },
           "verification": "template-declaration-only"
         },
@@ -7402,7 +7406,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 484
+            "line": 485
           },
           "verification": "template-declaration-only"
         },
@@ -7413,7 +7417,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 487
+            "line": 488
           },
           "verification": "template-declaration-only"
         },
@@ -7424,7 +7428,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 495
+            "line": 496
           },
           "verification": "template-declaration-only"
         },
@@ -7435,7 +7439,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 498
+            "line": 499
           },
           "verification": "template-declaration-only"
         },
@@ -7446,7 +7450,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 506
+            "line": 507
           },
           "verification": "template-declaration-only"
         },
@@ -7457,7 +7461,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 509
+            "line": 510
           },
           "verification": "template-declaration-only"
         },
@@ -7468,7 +7472,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 517
+            "line": 518
           },
           "verification": "template-declaration-only"
         },
@@ -7479,7 +7483,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 520
+            "line": 521
           },
           "verification": "template-declaration-only"
         },
@@ -7490,7 +7494,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 528
+            "line": 529
           },
           "verification": "template-declaration-only"
         },
@@ -7501,7 +7505,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 531
+            "line": 532
           },
           "verification": "template-declaration-only"
         },
@@ -7512,7 +7516,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 536
+            "line": 537
           },
           "verification": "template-declaration-only"
         },
@@ -7523,7 +7527,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 540
+            "line": 541
           },
           "verification": "template-declaration-only"
         },
@@ -7534,7 +7538,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 544
+            "line": 545
           },
           "verification": "template-declaration-only"
         },
@@ -7545,7 +7549,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1022
+            "line": 1023
           },
           "verification": "template-declaration-only"
         },
@@ -7556,7 +7560,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1031
+            "line": 1032
           },
           "verification": "template-declaration-only"
         },
@@ -7567,7 +7571,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1037
+            "line": 1038
           },
           "verification": "template-declaration-only"
         },
@@ -7578,7 +7582,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1043
+            "line": 1044
           },
           "verification": "template-declaration-only"
         },
@@ -7589,7 +7593,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1049
+            "line": 1050
           },
           "verification": "template-declaration-only"
         },
@@ -7600,7 +7604,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1060
+            "line": 1061
           },
           "verification": "template-declaration-only"
         },
@@ -7611,7 +7615,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1067
+            "line": 1068
           },
           "verification": "template-declaration-only"
         },
@@ -7622,7 +7626,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1068
+            "line": 1069
           },
           "verification": "template-declaration-only"
         },
@@ -7633,7 +7637,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1069
+            "line": 1070
           },
           "verification": "template-declaration-only"
         },
@@ -7644,7 +7648,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1077
+            "line": 1078
           },
           "verification": "template-declaration-only"
         },
@@ -7655,7 +7659,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1078
+            "line": 1079
           },
           "verification": "template-declaration-only"
         },
@@ -7666,7 +7670,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1079
+            "line": 1080
           },
           "verification": "template-declaration-only"
         },
@@ -7677,7 +7681,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1087
+            "line": 1088
           },
           "verification": "template-declaration-only"
         },
@@ -7688,7 +7692,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1088
+            "line": 1089
           },
           "verification": "template-declaration-only"
         },
@@ -7699,7 +7703,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1089
+            "line": 1090
           },
           "verification": "template-declaration-only"
         },
@@ -7710,7 +7714,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1094
+            "line": 1095
           },
           "verification": "template-declaration-only"
         },
@@ -7721,7 +7725,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1107
+            "line": 1108
           },
           "verification": "template-declaration-only"
         },
@@ -7732,7 +7736,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1111
+            "line": 1112
           },
           "verification": "template-declaration-only"
         },
@@ -7748,7 +7752,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1341
+            "line": 1344
           },
           "verification": "template-declaration-only"
         },
@@ -7764,7 +7768,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1342
+            "line": 1345
           },
           "verification": "template-declaration-only"
         },
@@ -7775,7 +7779,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1348
+            "line": 1351
           },
           "verification": "template-declaration-only"
         },
@@ -7786,7 +7790,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1354
+            "line": 1357
           },
           "verification": "template-declaration-only"
         },
@@ -7797,7 +7801,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1369
+            "line": 1372
           },
           "verification": "template-declaration-only"
         },
@@ -7808,7 +7812,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1374
+            "line": 1377
           },
           "verification": "template-declaration-only"
         },
@@ -7819,7 +7823,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1379
+            "line": 1382
           },
           "verification": "template-declaration-only"
         },
@@ -7835,7 +7839,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1460
+            "line": 1463
           },
           "verification": "template-declaration-only"
         },
@@ -7851,7 +7855,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1461
+            "line": 1464
           },
           "verification": "template-declaration-only"
         },
@@ -7862,7 +7866,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1467
+            "line": 1470
           },
           "verification": "template-declaration-only"
         },
@@ -7873,7 +7877,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1475
+            "line": 1478
           },
           "verification": "template-declaration-only"
         },
@@ -7884,7 +7888,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1479
+            "line": 1482
           },
           "verification": "template-declaration-only"
         },
@@ -7895,7 +7899,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1483
+            "line": 1486
           },
           "verification": "template-declaration-only"
         },
@@ -7911,7 +7915,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1526
+            "line": 1529
           },
           "verification": "template-declaration-only"
         },
@@ -7922,7 +7926,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1531
+            "line": 1534
           },
           "verification": "template-declaration-only"
         },
@@ -7933,7 +7937,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1540
+            "line": 1543
           },
           "verification": "template-declaration-only"
         },
@@ -7944,7 +7948,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1545
+            "line": 1548
           },
           "verification": "template-declaration-only"
         },
@@ -7955,7 +7959,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1546
+            "line": 1549
           },
           "verification": "template-declaration-only"
         },
@@ -7966,7 +7970,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1547
+            "line": 1550
           },
           "verification": "template-declaration-only"
         },
@@ -7982,7 +7986,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1591
+            "line": 1594
           },
           "verification": "template-declaration-only"
         },
@@ -7993,7 +7997,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1596
+            "line": 1599
           },
           "verification": "template-declaration-only"
         },
@@ -8004,7 +8008,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1600
+            "line": 1603
           },
           "verification": "template-declaration-only"
         },
@@ -8015,7 +8019,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1604
+            "line": 1607
           },
           "verification": "template-declaration-only"
         },
@@ -8031,7 +8035,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1630
+            "line": 1633
           },
           "verification": "template-declaration-only"
         },
@@ -8042,7 +8046,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1635
+            "line": 1638
           },
           "verification": "template-declaration-only"
         },
@@ -8053,7 +8057,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1645
+            "line": 1648
           },
           "verification": "template-declaration-only"
         },
@@ -8064,7 +8068,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1649
+            "line": 1652
           },
           "verification": "template-declaration-only"
         },
@@ -8080,7 +8084,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1679
+            "line": 1682
           },
           "verification": "template-declaration-only"
         },
@@ -8096,7 +8100,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1680
+            "line": 1683
           },
           "verification": "template-declaration-only"
         },
@@ -8107,7 +8111,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1686
+            "line": 1689
           },
           "verification": "template-declaration-only"
         },
@@ -8118,7 +8122,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1694
+            "line": 1697
           },
           "verification": "template-declaration-only"
         },
@@ -8129,7 +8133,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1698
+            "line": 1701
           },
           "verification": "template-declaration-only"
         },
@@ -8140,7 +8144,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1702
+            "line": 1705
           },
           "verification": "template-declaration-only"
         },
@@ -8151,7 +8155,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1709
+            "line": 1712
           },
           "verification": "template-declaration-only"
         },
@@ -8162,7 +8166,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1710
+            "line": 1713
           },
           "verification": "template-declaration-only"
         },
@@ -8173,7 +8177,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1711
+            "line": 1714
           },
           "verification": "template-declaration-only"
         },
@@ -8184,7 +8188,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1718
+            "line": 1721
           },
           "verification": "template-declaration-only"
         },
@@ -8195,7 +8199,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1719
+            "line": 1722
           },
           "verification": "template-declaration-only"
         },
@@ -8206,7 +8210,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1720
+            "line": 1723
           },
           "verification": "template-declaration-only"
         },
@@ -8222,7 +8226,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1798
+            "line": 1801
           },
           "verification": "template-declaration-only"
         },
@@ -8233,7 +8237,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1807
+            "line": 1810
           },
           "verification": "template-declaration-only"
         },
@@ -8244,7 +8248,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1812
+            "line": 1815
           },
           "verification": "template-declaration-only"
         },
@@ -8255,7 +8259,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1813
+            "line": 1816
           },
           "verification": "template-declaration-only"
         },
@@ -8266,7 +8270,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1815
+            "line": 1818
           },
           "verification": "template-declaration-only"
         },
@@ -8277,7 +8281,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1820
+            "line": 1823
           },
           "verification": "template-declaration-only"
         },
@@ -8293,7 +8297,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1895
+            "line": 1898
           },
           "verification": "template-declaration-only"
         },
@@ -8304,7 +8308,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1900
+            "line": 1903
           },
           "verification": "template-declaration-only"
         },
@@ -8315,7 +8319,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1904
+            "line": 1907
           },
           "verification": "template-declaration-only"
         },
@@ -8326,7 +8330,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1908
+            "line": 1911
           },
           "verification": "template-declaration-only"
         },
@@ -8337,7 +8341,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1912
+            "line": 1915
           },
           "verification": "template-declaration-only"
         },
@@ -8348,7 +8352,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1916
+            "line": 1919
           },
           "verification": "template-declaration-only"
         },
@@ -8359,7 +8363,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1920
+            "line": 1923
           },
           "verification": "template-declaration-only"
         },
@@ -8370,7 +8374,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1924
+            "line": 1927
           },
           "verification": "template-declaration-only"
         },
@@ -8381,7 +8385,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1926
+            "line": 1929
           },
           "verification": "template-declaration-only"
         },
@@ -8397,7 +8401,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1991
+            "line": 2005
           },
           "verification": "template-declaration-only"
         },
@@ -8408,7 +8412,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 1996
+            "line": 2010
           },
           "verification": "template-declaration-only"
         },
@@ -8419,7 +8423,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2007
+            "line": 2021
           },
           "verification": "template-declaration-only"
         },
@@ -8430,7 +8434,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2011
+            "line": 2025
           },
           "verification": "template-declaration-only"
         },
@@ -8441,7 +8445,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2015
+            "line": 2029
           },
           "verification": "template-declaration-only"
         },
@@ -8452,7 +8456,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2019
+            "line": 2033
           },
           "verification": "template-declaration-only"
         },
@@ -8463,7 +8467,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2023
+            "line": 2037
           },
           "verification": "template-declaration-only"
         },
@@ -8487,7 +8491,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2117
+            "line": 2131
           },
           "verification": "template-declaration-only"
         },
@@ -8511,7 +8515,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2124
+            "line": 2138
           },
           "verification": "template-declaration-only"
         },
@@ -8535,7 +8539,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2137
+            "line": 2151
           },
           "verification": "template-declaration-only"
         },
@@ -8559,7 +8563,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2144
+            "line": 2158
           },
           "verification": "template-declaration-only"
         },
@@ -8575,7 +8579,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2157
+            "line": 2171
           },
           "verification": "template-declaration-only"
         },
@@ -8591,7 +8595,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2170
+            "line": 2184
           },
           "verification": "template-declaration-only"
         },
@@ -8602,7 +8606,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2174
+            "line": 2188
           },
           "verification": "template-declaration-only"
         },
@@ -8613,7 +8617,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2234
+            "line": 2248
           },
           "verification": "template-declaration-only"
         },
@@ -8624,7 +8628,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2239
+            "line": 2253
           },
           "verification": "template-declaration-only"
         },
@@ -8635,7 +8639,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2247
+            "line": 2261
           },
           "verification": "template-declaration-only"
         },
@@ -8646,7 +8650,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2261
+            "line": 2275
           },
           "verification": "template-declaration-only"
         },
@@ -8657,7 +8661,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2266
+            "line": 2280
           },
           "verification": "template-declaration-only"
         },
@@ -8668,7 +8672,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2271
+            "line": 2285
           },
           "verification": "template-declaration-only"
         },
@@ -8679,7 +8683,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2277
+            "line": 2291
           },
           "verification": "template-declaration-only"
         },
@@ -8690,7 +8694,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2278
+            "line": 2292
           },
           "verification": "template-declaration-only"
         },
@@ -8701,7 +8705,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2279
+            "line": 2293
           },
           "verification": "template-declaration-only"
         },
@@ -8717,7 +8721,7 @@
           ],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2347
+            "line": 2361
           },
           "verification": "template-declaration-only"
         },
@@ -8728,7 +8732,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/inspector.js",
-            "line": 2354
+            "line": 2368
           },
           "verification": "template-declaration-only"
         }
@@ -10819,7 +10823,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 40
+            "line": 41
           },
           "verification": "template-declaration-only"
         },
@@ -10830,7 +10834,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 48
+            "line": 49
           },
           "verification": "template-declaration-only"
         },
@@ -10841,7 +10845,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 60
+            "line": 61
           },
           "verification": "template-declaration-only"
         },
@@ -10852,7 +10856,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 67
+            "line": 68
           },
           "verification": "template-declaration-only"
         },
@@ -10863,7 +10867,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 73
+            "line": 74
           },
           "verification": "template-declaration-only"
         },
@@ -10874,7 +10878,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 79
+            "line": 80
           },
           "verification": "template-declaration-only"
         },
@@ -10885,7 +10889,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 86
+            "line": 87
           },
           "verification": "template-declaration-only"
         },
@@ -10896,7 +10900,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 87
+            "line": 88
           },
           "verification": "template-declaration-only"
         },
@@ -10907,7 +10911,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 95
+            "line": 96
           },
           "verification": "template-declaration-only"
         },
@@ -10918,13 +10922,13 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/terrain-modal.js",
-            "line": 102
+            "line": 103
           },
           "verification": "template-declaration-only"
         }
       ],
-      "status": "experimental",
-      "notes": "UI source inventoried; interaction, persistence and export are not certified. See related feature findings.",
+      "status": "partial",
+      "notes": "Real heightmap decoding feeds saved final samples; invalid dimensions/imports are reported. Full sculpting and physics/visual certification remain pending.",
       "verification": "source-inventory-only"
     },
     {

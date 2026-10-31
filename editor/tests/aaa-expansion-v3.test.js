@@ -1,3 +1,4 @@
+import { createResourceTestApp } from './fixtures/resource-app.js';
 import { test } from 'node:test';
 import assert from 'node:assert';
 import * as pc from 'playcanvas';
@@ -58,17 +59,15 @@ test('AAA Expansion V3: GameBundler compiles standalone HTML containing new beha
   assert.ok(html.includes('playProceduralSFX'));
 });
 
-test('AAA Expansion V3: AIExecutor executes new actions cleanly', async () => {
+test('AAA Expansion V3: AIExecutor executes new actions cleanly', async (t) => {
+  const app = createResourceTestApp();
+  t.after(() => app.destroy());
   const editor = new Editor();
   const bm = new BehaviorManager(editor);
   editor.behaviors = bm;
 
   editor.setRuntime({
-    app: {
-      graphicsDevice: {},
-      root: editor.root,
-      on: () => {}
-    },
+    app,
     setAtmosphere: (preset) => { editor.atmosphere = preset; }
   });
 

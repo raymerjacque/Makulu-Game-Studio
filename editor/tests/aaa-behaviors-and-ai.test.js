@@ -1,3 +1,4 @@
+import { createResourceTestApp, provideTestAudio } from './fixtures/resource-app.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Editor } from '../src/core/editor.js';
@@ -27,7 +28,11 @@ test('AAA Behaviors: Attach and query all new AAA game behaviors', (t) => {
 });
 
 test('AI Executor: Execute new autonomous AI scene actions', async (t) => {
+  const app = createResourceTestApp();
+  t.after(() => app.destroy());
+  provideTestAudio(app);
   const editor = new Editor();
+  editor.runtime = { app };
   const behaviors = new BehaviorManager(editor);
   editor.behaviors = behaviors;
   const executor = new AIExecutor(editor);

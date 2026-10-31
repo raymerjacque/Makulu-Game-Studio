@@ -1,3 +1,4 @@
+import { serializeSoundComponent } from '../engine/sound-data.js';
 import * as pc from 'playcanvas';
 import { MaterialPreviewRenderer } from './material-preview.js';
 import { showToast } from './toast.js';
@@ -1040,7 +1041,7 @@ export class InspectorPanel {
           <div class="prop-row">
             <span class="prop-label">Tags</span>
             <div class="prop-control">
-              <input type="text" id="entity-tags-input" class="text-input" value="${(ent.tags || []).join(', ')}" placeholder="player, enemy, solid">
+              <input type="text" id="entity-tags-input" class="text-input" value="" placeholder="player, enemy, solid">
             </div>
           </div>
           <div class="prop-row">
@@ -1158,10 +1159,12 @@ export class InspectorPanel {
 
     // Tags input
     const tagsInput = this.container.querySelector('#entity-tags-input');
+    if (tagsInput) tagsInput.value = (ent.tags?.list ? ent.tags.list() : ent.tags || []).join(', ');
     if (tagsInput) {
       tagsInput.addEventListener('change', () => {
         const raw = tagsInput.value;
-        ent.tags = raw.split(',').map(s => s.trim()).filter(Boolean);
+        ent.tags.clear();
+        ent.tags.add(...raw.split(',').map(s => s.trim()).filter(Boolean));
         this.editor.events.emit('scene:changed');
       });
     }
@@ -1897,7 +1900,7 @@ export class InspectorPanel {
         <div class="inspector-section-content" style="display: flex; flex-direction: column; gap: 8px;">
           <div class="prop-row">
             <span class="prop-label">Audio File</span>
-            <input type="text" class="text-input" id="sound-url-input" value="${ent.sound.assetUrl || './models/wind.wav'}" placeholder="./path/to/sound.wav">
+            <input type="text" class="text-input" id="sound-url-input" value="" placeholder="Audio URL or imported data URL">
           </div>
           <div class="prop-row">
             <span class="prop-label">Volume</span>
@@ -1929,8 +1932,16 @@ export class InspectorPanel {
         </div>
       `;
 
-      card.querySelector('#sound-url-input').addEventListener('change', (e) => {
-        ent.sound.assetUrl = e.target.value;
+      card.querySelector('#sound-url-input').value = ent.sound.assetUrl || '';
+      card.querySelector('#sound-url-input').addEventListener('change', async (e) => {
+        try {
+          const data = serializeSoundComponent(ent.sound, this.editor.getApp()?.assets);
+          data.assetUrl = e.target.value.trim();
+          data.slots = data.slots.filter(slot => slot.name !== 'main');
+          if (data.assetUrl) data.slots.push({ name: 'main', url: data.assetUrl, loop: data.loop, autoPlay: data.autoPlay, volume: 1, pitch: 1, startTime: 0, duration: null });
+          const report = await this.editor.configureSound(ent, data);
+          if (report.status !== 'ready') showToast('Audio data retained, but the source did not load. Check scene resource status.', 'warn');
+        } catch (error) { showToast(error.message || 'Sound could not be configured.', 'error'); }
       });
 
       card.querySelector('#sound-volume').addEventListener('input', (e) => {
@@ -1951,17 +1962,20 @@ export class InspectorPanel {
 
       card.querySelector('#sound-loop').addEventListener('change', (e) => {
         ent.sound.loop = e.target.checked;
+        if (ent.sound.slot('main')) ent.sound.slot('main').loop = e.target.checked;
+        this.editor.events.emit('entity:component:changed', ent);
       });
 
       card.querySelector('#sound-autoplay').addEventListener('change', (e) => {
         ent.sound.autoPlay = e.target.checked;
+        this.editor.events.emit('entity:component:changed', ent);
       });
 
       card.querySelector('#btn-preview-audio').addEventListener('click', () => {
         const url = card.querySelector('#sound-url-input').value.trim();
         if (url) {
           const audio = new Audio(url);
-          audio.volume = ent.sound.volume || 1;
+          audio.volume = ent.sound.volume ?? 1;
           audio.playbackRate = ent.sound.pitch || 1;
           audio.play().then(() => {
             showToast(`🔊 Playing preview for ${ent.name}!`, 'info');

@@ -46,7 +46,7 @@ test('Entity tagging and transform lock (freeze) properties persist in JSON expo
     locked: true
   });
 
-  assert.deepEqual(ent.tags, ['loot', 'interactable']);
+  assert.deepEqual(ent.tags.list(), ['loot', 'interactable']);
   assert.equal(ent.locked, true);
 
   const json = editor.exportSceneJSON();
@@ -62,7 +62,7 @@ test('Entity tagging and transform lock (freeze) properties persist in JSON expo
   editor2.loadSceneJSON(json);
   const restored = editor2.root.children.find(c => c.name === 'TaggedChest');
   assert.ok(restored, 'Restored entity should exist');
-  assert.deepEqual(restored.tags, ['loot', 'interactable']);
+  assert.deepEqual(restored.tags.list(), ['loot', 'interactable']);
   assert.equal(restored.locked, true);
 });
 

@@ -64,7 +64,7 @@ construction failure discards staging and keeps the previous hierarchy. Successf
 replacement clears old selection/history and stale behavior entries, and refreshes
 the scene list and asset cards. Old asynchronous model callbacks cannot populate a
 subsequent scene. The synchronous compatibility API still reports data adoption. The asynchronous
-File-menu path now awaits active-scene model/material loads as described below;
+File-menu path now awaits active-scene model/material/declared-audio loads as described below;
 complete asynchronous transaction rollback and gameplay certification remain pending.
 
 ## Assets and portability
@@ -79,8 +79,9 @@ reconstructs them; user-authored children are retained.
 This implementation does **not** fetch and embed every bundled/remote model,
 external glTF dependency, texture, animation or sound. Existing relative/remote URLs
 remain dependencies. Keep access to those resources until full packaging lands.
-Terrain mesh data, timeline tracks, comprehensive sound slots and material fields,
-complete prefab trees, runtime shader state, graph semantics, and all script
+Terrain and declared audio slots are covered by the later update below. Timeline
+tracks, complete material/UV fields, complete prefab trees, runtime shader state,
+graph semantics, and all script
 execution/bindings are not certified by this format. Generated game export remains
 a separate path and still has its documented portability limitations.
 
@@ -125,9 +126,9 @@ its source URL for saving. These changes do not certify every material property,
 UV/channel setting, animation outcome or final rendered appearance.
 
 Readiness currently covers registered model-container and material-texture loads
-for the active scene restoration. It does not preload inactive scenes, certify
-standalone asset-library records or newly imported files, wait for every audio
-slot, test game scripts, validate gameplay or make exported games offline-ready.
+for the active scene restoration. It does not preload inactive scenes, certify standalone asset-library records or
+newly imported files, test game scripts, validate gameplay or make exported games
+offline-ready. Declared audio slots now join the restoration path in the update below.
 Missing resources keep adopted project data available for correction; asynchronous
 failures do not roll the whole open back. Actual transport abort and comprehensive
 GPU/asset ownership cleanup remain separate work.
@@ -153,7 +154,7 @@ recovery status. Download means the browser download was requested; the browser
 does not confirm that the user completed writing the file. A recovery snapshot
 never clears unsaved state. Undoing back to the tracked document baseline clears
 dirty state on the next comparison. Only data covered by version 1 serialization
-participates in comparison/recovery; unsupported terrain/timeline/resource state
+participates in comparison/recovery; unsupported timeline/resource state
 is not made recoverable by this feature.
 
 History retains up to five snapshots per project and twenty overall. Writing a
@@ -199,3 +200,66 @@ Still pending: atomic native project-file writes, complete resource coverage,
 pre-AI transaction checkpoints, explicit revision management, exportable backups,
 and full performance/retention testing with large real projects. Local recovery
 is not cloud backup and does not complete the P1 release gate.
+
+## Terrain and declared audio persistence update
+
+Terrain entities now serialize a versioned `terrain` record with dimensions,
+subdivision count, generator parameters and the **final height grid**. Restoration
+uses those saved samples rather than regenerating random terrain. The same mesh
+builder is embedded into exported games. Generated terrain has a mesh collision
+source bound to that geometry and a static rigidbody. Its creation is one undoable
+operation. Duplicated terrain owns rebuilt mesh/collider resources. These bindings
+are tested with real engine systems, but Ammo contact behavior, traversal, large
+terrain performance and visual quality still need full runtime certification.
+
+Seed zero and zero-height terrain are valid, and the noise brush is repeatable
+for a given seed. Heightmap uploads now decode into normalized grayscale/alpha
+samples at the selected subdivision resolution; they no longer merely report a
+filename as loaded. Changing resolution requires reimporting the map. Generation
+stores the final grid, so the original image is not required to reopen the terrain.
+Bounds reject invalid dimensions, oversized subdivision counts and malformed
+height grids before project replacement. Old files that never stored terrain
+samples cannot recover that missing geometry automatically; regenerate it once
+with the updated editor before saving.
+
+Sound documents now include explicit source/slot definitions: name, URL, volume,
+pitch, loop, desired autoplay, overlap, start time and duration. Component-level
+volume/pitch, positional attenuation and enabled state also persist. Existing
+registered slots derive their source from the asset registry; a slot with an
+asset ID but no recoverable source fails saving rather than losing the reference.
+Legacy `assetUrl` configurations migrate to a main slot. Unsupported slot names,
+duplicates and invalid parameter types are rejected by project validation.
+
+Opening a project queues declared audio sources alongside models and textures.
+Missing audio therefore produces a resource failure with the entity/slot identity,
+retains its URL for correction, and participates in Retry assets. Imported editor
+slots stay silent until Play even when desired autoplay is saved as true; Stop
+stops scene sounds. The AI `add_sound` action and inspector source field now load
+and configure actual slots. Configuring one source does not clear unrelated
+resource failures. Exported scene builders bind the same slot definitions, and
+the game camera has an audio listener. Actual audible playback and browser/device
+unlock behavior remain part of interactive runtime testing, not proven by the
+headless slot tests.
+
+Both editable-project and HTML export paths resolve completed local-import URL
+aliases to existing embedded bytes for model, texture and audio references. An
+unresolved blob reference fails visibly. This does not fetch remote dependencies
+or vendor the engine; full portable packaging is still pending.
+
+Native entity tags are now kept through the engine's tag API while project JSON
+continues to store tag arrays. This corrects an existing duplication failure;
+duplication no longer substitutes an empty entity if engine cloning fails. Audio
+playback metadata and generated model markers also survive duplication.
+
+Checks: `editor/tests/terrain-and-sound-persistence.test.js` exercises terrain
+geometry/collision sources, exported reconstruction, undo/redo, independent terrain
+copies, invalid inactive scenes, audio slot restoration/readiness, AI configuration,
+duplication, missing audio, preserved unrelated failures and local-import aliases.
+`npm run test:recovery-browser` now includes three real PNG decoding/error checks
+in addition to the seven IndexedDB checks.
+
+Still outside this increment: complete prefab trees and terrain/audio prefab
+instantiation, arbitrary custom meshes, timeline persistence, every material/UV
+property, complete inactive-scene preload, dependency archives, full audio/physics
+playtests and play-session isolation. Recovery includes the newly serialized
+terrain/audio data, but inherits all other version 1 limits.

@@ -1,3 +1,6 @@
+import { resolvePortableReferences } from '../project/project-document.js';
+import { SOUND_RUNTIME_CODE } from '../engine/sound-data.js';
+import { TERRAIN_RUNTIME_CODE } from '../engine/terrain-data.js';
 import { PROCEDURAL_SFX_RUNTIME_CODE } from '../engine/procedural-sfx.js';
 
 /**
@@ -12,7 +15,9 @@ export class GameBundler {
   }
 
   compileStandaloneHTML(options = {}) {
-    const sceneJSON = this.editor.exportSceneJSON();
+    const sceneData = JSON.parse(this.editor.exportSceneJSON());
+    resolvePortableReferences(sceneData, this.editor.assetsPanel?.assets || this.editor.projectAssets || []);
+    const sceneJSON = JSON.stringify(sceneData);
     const title = options.title || this.editor.projectName || 'My MakuluLinux 3D Game';
     const author = options.author || 'MakuluLinux Creator';
 
@@ -547,6 +552,9 @@ export class GameBundler {
     // Inline Procedural Web Audio SFX Generator
     ${PROCEDURAL_SFX_RUNTIME_CODE}
 
+    ${TERRAIN_RUNTIME_CODE}
+    ${SOUND_RUNTIME_CODE}
+
     // Build Scene Graph from Exported Data
     function buildNode(data, parent) {
       const ent = new pc.Entity(data.name);
@@ -557,6 +565,8 @@ export class GameBundler {
       else if (data.rotation) ent.setEulerAngles(...data.rotation);
       if (data.scale) ent.setLocalScale(...data.scale);
       ent.enabled = data.enabled !== false;
+
+      if (data.terrain) applyTerrainMesh(pc, app, ent, data.terrain);
 
       // 3D GLB Model Asset Loading & Skeletal Mesh Animation Control
       if (data.modelUrl) {
@@ -622,17 +632,21 @@ export class GameBundler {
 
       // Render Component & Material
       if (data.components && data.components.render) {
-        ent.addComponent('render', {
+        if (!data.terrain) ent.addComponent('render', {
           type: data.components.render.type || 'box',
           castShadows: data.components.render.castShadows !== false
         });
         if (data.components.render.material) {
           const m = data.components.render.material;
           const mat = new pc.StandardMaterial();
+          if (data.terrain) mat.diffuseMapVertexColor = true;
           if (m.diffuse) mat.diffuse = new pc.Color(...m.diffuse);
           if (m.emissive) mat.emissive = new pc.Color(...m.emissive);
           if (m.metalness !== undefined) { mat.metalness = m.metalness; mat.useMetalness = true; }
           if (m.roughness !== undefined) mat.roughness = m.roughness;
+          if (m.gloss !== undefined) mat.gloss = m.gloss;
+          if (m.glossInvert !== undefined) mat.glossInvert = m.glossInvert;
+          if (m.diffuseMapVertexColor !== undefined) mat.diffuseMapVertexColor = m.diffuseMapVertexColor;
           if (m.opacity !== undefined) { mat.opacity = m.opacity; if (m.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL; }
           [['diffuseMapUrl', 'diffuseMap'], ['normalMapUrl', 'normalMap'], ['roughnessMapUrl', 'glossMap'], ['emissiveMapUrl', 'emissiveMap']].forEach(([field, property]) => {
             if (!m[field]) return;
@@ -679,6 +693,7 @@ export class GameBundler {
         const col = data.components.collision;
         ent.addComponent('collision', {
           type: col.type || 'box',
+          ...(data.terrain && col.type === 'mesh' ? { model: ent._terrainCollisionModel } : {}),
           radius: col.radius || 0.5,
           height: col.height ?? 2,
           halfExtents: col.halfExtents ? new pc.Vec3(...col.halfExtents) : new pc.Vec3(0.5, 0.5, 0.5)
@@ -714,12 +729,23 @@ export class GameBundler {
       if (data.components && data.components.sound) {
         const snd = data.components.sound;
         ent.addComponent('sound', {
+          enabled: snd.enabled !== false, positional: snd.positional !== false,
+          refDistance: snd.minDistance ?? snd.refDistance ?? 1, rollOffFactor: snd.rollOffFactor ?? 1, distanceModel: snd.distanceModel || 'linear',
           volume: snd.volume !== undefined ? snd.volume : 1,
           pitch: snd.pitch !== undefined ? snd.pitch : 1,
           loop: snd.loop !== false,
           minDistance: snd.minDistance !== undefined ? snd.minDistance : 1,
           maxDistance: snd.maxDistance !== undefined ? snd.maxDistance : 15,
-          autoPlay: Boolean(snd.autoPlay)
+          autoPlay: false
+        });
+        validateSoundData(snd).forEach(slot => {
+          applySoundSlot(ent.sound, slot, null, false);
+          if (!slot.url) return;
+          const embedded = EMBEDDED_ASSETS.find(asset => asset.name === slot.url || asset.dataUrl === slot.url);
+          app.assets.loadFromUrl(embedded ? embedded.dataUrl : slot.url, 'audio', (error, asset) => {
+            if (!error && asset && asset.resource) applySoundSlot(ent.sound, slot, asset, true);
+            else console.warn('An audio slot could not be loaded.');
+          });
         });
       }
 
@@ -768,7 +794,7 @@ export class GameBundler {
     }
 
     // Ensure a Camera exists
-    let gameCamera = app.root.find(node => node.camera);
+    let gameCamera = app.root.findOne(node => node.camera);
     if (!gameCamera) {
       gameCamera = new pc.Entity('Fallback Camera');
       gameCamera.addComponent('camera', {
@@ -779,6 +805,8 @@ export class GameBundler {
       gameCamera.lookAt(0, 1, 0);
       app.root.addChild(gameCamera);
     }
+
+    if (!gameCamera.audiolistener) gameCamera.addComponent('audiolistener');
 
     // WASD Movement Runtime Loop
     const keys = {};

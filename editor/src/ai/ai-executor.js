@@ -163,11 +163,12 @@ export class AIExecutor {
             const gen = new TerrainGenerator(this.editor);
             gen.generate({
               name: act.name || 'Procedural Terrain',
-              width: act.width || 40,
-              depth: act.depth || 40,
-              maxHeight: act.maxHeight || 6,
-              roughness: act.roughness || 0.07,
-              seed: act.seed || 1234
+              width: act.width ?? 40,
+              depth: act.depth ?? 40,
+              maxHeight: act.maxHeight ?? 6,
+              roughness: act.roughness ?? 0.07,
+              subdivisions: act.subdivisions ?? 32, brushMode: act.brushMode || 'raise',
+              seed: act.seed ?? 1234
             });
             executed.push({ action: act.action, target: act.name || 'Procedural Terrain' });
             break;
@@ -339,13 +340,14 @@ export class AIExecutor {
             if (!target) {
               target = this.editor.createEntity({ name: act.name || 'AudioEmitter', transform: { position: act.position || [0, 1, 0] } });
             }
-            this.editor.addComponent(target, 'sound', {
+            const audioReport = await this.editor.configureSound(target, {
               assetUrl: act.url || './models/wind.wav',
               volume: act.volume !== undefined ? act.volume : 1,
               pitch: act.pitch !== undefined ? act.pitch : 1,
               loop: act.loop !== false,
               autoPlay: Boolean(act.autoPlay)
             });
+            if (audioReport.status !== 'ready') throw new Error('Audio source could not be loaded.');
             executed.push({ action: act.action, target: target.name });
             break;
           }

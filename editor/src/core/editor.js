@@ -1,10 +1,12 @@
+import { serializeSoundComponent, queueSoundSlots, validateSoundData } from '../engine/sound-data.js';
 import * as pc from 'playcanvas';
 import { CommandBus, Command } from './command-bus.js';
 import { SelectionManager } from './selection.js';
 import { PrefabSystem } from './prefabs.js';
 import { TriggerSystem } from './triggers.js';
+import { applyTerrainMesh } from '../engine/terrain-data.js';
 import { ResourceLoadSession } from '../project/resource-load-session.js';
-import { PROJECT_FORMAT, PROJECT_VERSION, newDocumentId, parseProjectDocument, validateSceneData, serializeAssetRegistry } from '../project/project-document.js';
+import { PROJECT_FORMAT, PROJECT_VERSION, newDocumentId, parseProjectDocument, validateSceneData, serializeAssetRegistry, resolvePortableReferences } from '../project/project-document.js';
 
 /**
  * Simple Event Emitter
@@ -68,6 +70,8 @@ export class Editor {
       jetpack: { enabled: true }
     };
     this.defaultHudConfig = JSON.parse(JSON.stringify(this.hudConfig));
+    this.events.on('game:play', () => this.playSceneAudio());
+    this.events.on('game:stop', () => this.getApp()?.root.forEach(node => node.sound?.stop?.()));
   }
 
   setRuntime(runtime) {
@@ -95,7 +99,7 @@ export class Editor {
     const entity = new pc.Entity(name);
 
     entity.locked = Boolean(options.locked);
-    entity.tags = options.tags || [];
+    entity.tags.add(...(options.tags || []));
 
     // Apply transform if provided
     if (options.transform) {
@@ -345,11 +349,29 @@ export class Editor {
       clone = target.clone();
       clone.name = `${target.name} (Copy)`;
     } catch (e) {
-      clone = new pc.Entity(`${target.name} (Copy)`);
+      throw new Error('Entity could not be duplicated without losing component data.');
     }
     if (target._modelUrl) {
       clone._modelUrl = target._modelUrl;
     }
+    const copyResourceMetadata = (source, copy) => {
+      if (source._studioModelInstance) copy._studioModelInstance = true;
+      if (source._modelUrl) copy._modelUrl = source._modelUrl;
+      if (source._terrainData) {
+        const material = copy.render?.material?.clone();
+        if (copy.collision) copy.removeComponent('collision');
+        if (copy.render) copy.removeComponent('render');
+        applyTerrainMesh(pc, app, copy, source._terrainData);
+        if (material) { copy.render.material = material; copy.once('destroy', () => material.destroy()); }
+        if (source.collision) copy.addComponent('collision', { type: 'mesh', model: copy._terrainCollisionModel });
+      }
+      if (source.sound && copy.sound) {
+        for (const field of ['_studioSlotSources', '_studioSlotAutoPlay', '_studioSlotDurations']) if (source.sound[field]) copy.sound[field] = JSON.parse(JSON.stringify(source.sound[field]));
+        for (const field of ['assetUrl', 'loop', 'autoPlay', 'minDistance']) if (source.sound[field] !== undefined) copy.sound[field] = source.sound[field];
+      }
+      source.children.forEach((child, index) => { if (copy.children[index]) copyResourceMetadata(child, copy.children[index]); });
+    };
+    copyResourceMetadata(target, clone);
     const pos = target.getPosition().clone().add(new pc.Vec3(1, 0, 0));
     clone.setPosition(pos);
 
@@ -503,17 +525,6 @@ export class Editor {
     const snapshots = new Map(this.scenes);
     snapshots.set(this.activeSceneName, JSON.stringify(active));
     const assets = serializeAssetRegistry(this.assetsPanel?.assets || this.projectAssets);
-    const aliases = new Map((this.assetsPanel?.assets || this.projectAssets)
-      .filter(asset => asset.sourceUrl && asset.base64Data).map(asset => [asset.sourceUrl, asset.base64Data]));
-    const portableReferences = value => {
-      if (!value || typeof value !== 'object') return;
-      for (const [key, child] of Object.entries(value)) {
-        if (['modelUrl', 'diffuseMapUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl', 'url'].includes(key) && typeof child === 'string') {
-          if (aliases.has(child)) value[key] = aliases.get(child);
-          else if (child.startsWith('blob:')) throw new Error('A temporary asset reference is not ready to save. Finish importing it first.');
-        } else portableReferences(child);
-      }
-    };
     const scripts = Object.fromEntries(this.scripts);
     const scenes = [...snapshots].map(([name, snapshot]) => {
       const data = typeof snapshot === 'string' ? JSON.parse(snapshot) : snapshot;
@@ -533,7 +544,7 @@ export class Editor {
       activeSceneId: this.sceneIds.get(this.activeSceneName), scenes, scripts, assets,
       prefabs: [...this.prefabs.prefabs].map(([id, data]) => ({ id, data })), settings
     };
-    portableReferences(document);
+    resolvePortableReferences(document, this.assetsPanel?.assets || this.projectAssets);
     return JSON.stringify(parseProjectDocument(document), null, 2);
   }
 
@@ -596,6 +607,43 @@ export class Editor {
     return session === this.sceneResourceSession ? report : { ...report, status: 'cancelled' };
   }
 
+  async configureSound(entity, data, { assetTimeoutMs = 30000 } = {}) {
+    validateSoundData(data);
+    if (this.isPlaying || this.sceneResourceStatus?.status === 'loading') throw new Error('Stop play and wait for current resources before configuring sound.');
+    if (!entity.sound) this.addComponent(entity, 'sound', {});
+    const sound = entity.sound;
+    for (const field of ['volume', 'pitch', 'positional', 'maxDistance', 'rollOffFactor', 'distanceModel']) if (data[field] !== undefined) sound[field] = data[field];
+    sound.refDistance = data.minDistance ?? data.refDistance ?? sound.refDistance;
+    sound.minDistance = sound.refDistance;
+    const session = new ResourceLoadSession({ timeoutMs: assetTimeoutMs, onChange: report => {
+      if (this.sceneResourceSession === session) { this.sceneResourceStatus = report; this.events.emit('scene:resources', report); }
+    } });
+    entity._studioId ||= newDocumentId();
+    // Configuring one source must not erase failures for other scene resources.
+    for (const failure of this.sceneResourceStatus?.failures || []) {
+      if (failure.entityId === entity._studioId && failure.kind.startsWith('audio:')) continue;
+      if (failure.entityId && !this.getApp()?.root.findOne(node => node._studioId === failure.entityId)) continue;
+      session.add(failure, done => done('retained-failure'), () => {});
+    }
+    queueSoundSlots(entity, data, this.getApp(), session);
+    this.sceneResourceSession?.cancel(); this.sceneResourceSession = session;
+    this.events.emit('entity:component:changed', entity);
+    return session.start();
+  }
+
+  playSceneAudio() {
+    const app = this.getApp();
+    if (!app || this.sceneResourceStatus?.status === 'loading' || this.sceneResourceStatus?.status === 'failed') return;
+    const camera = app.root.findOne(node => node.camera?.enabled);
+    if (camera && !app.root.findOne(node => node.audiolistener) && app.systems?.audiolistener) camera.addComponent('audiolistener');
+    app.root.forEach(node => {
+      if (!node.enabled || !node.sound?.enabled) return;
+      for (const slot of Object.values(node.sound.slots || {})) {
+        if (node.sound._studioSlotAutoPlay?.[slot.name] || slot.autoPlay) node.sound.play(slot.name);
+      }
+    });
+  }
+
   /**
    * Save Scene to JSON
    */
@@ -619,6 +667,7 @@ export class Editor {
         children: []
       };
 
+      if (node._terrainData) data.terrain = node._terrainData;
       if (node.scriptData) data.scriptData = node.scriptData;
 
       if (node._modelUrl) {
@@ -637,6 +686,7 @@ export class Editor {
             emissive: mat.emissive ? [mat.emissive.r, mat.emissive.g, mat.emissive.b] : [0, 0, 0],
             metalness: mat.metalness !== undefined ? mat.metalness : 0.5,
             roughness: mat.roughness !== undefined ? mat.roughness : 0.3,
+            gloss: mat.gloss, glossInvert: Boolean(mat.glossInvert), diffuseMapVertexColor: Boolean(mat.diffuseMapVertexColor),
             opacity: mat.opacity !== undefined ? mat.opacity : 1.0,
             diffuseMapUrl: mat._diffuseMapUrl || null,
             normalMapUrl: mat._normalMapUrl || null,
@@ -704,14 +754,7 @@ export class Editor {
         };
       }
       if (node.sound) {
-        data.components.sound = {
-          volume: node.sound.volume !== undefined ? node.sound.volume : 1,
-          pitch: node.sound.pitch !== undefined ? node.sound.pitch : 1,
-          loop: node.sound.loop !== false,
-          minDistance: node.sound.minDistance !== undefined ? node.sound.minDistance : 1,
-          maxDistance: node.sound.maxDistance !== undefined ? node.sound.maxDistance : 15,
-          autoPlay: Boolean(node.sound.autoPlay)
-        };
+        data.components.sound = serializeSoundComponent(node.sound, app?.assets);
       }
       if (node.script) {
         data.components.script = {
@@ -798,7 +841,7 @@ export class Editor {
         const ent = new pc.Entity(nodeData.name);
         ent.locked = Boolean(nodeData.locked);
         ent._studioId = nodeData.id || newDocumentId();
-        ent.tags = nodeData.tags || [];
+        ent.tags.add(...(nodeData.tags || []));
         parent.addChild(ent);
         if (nodeData.localPosition) ent.setLocalPosition(...nodeData.localPosition);
         else if (nodeData.position) ent.setPosition(...nodeData.position);
@@ -807,6 +850,8 @@ export class Editor {
         if (nodeData.scriptData) ent.scriptData = nodeData.scriptData;
         if (nodeData.scale) ent.setLocalScale(...nodeData.scale);
         ent.enabled = nodeData.enabled !== false;
+
+        if (nodeData.terrain) applyTerrainMesh(pc, app, ent, nodeData.terrain);
 
         if (nodeData.modelUrl) {
           ent._modelUrl = nodeData.modelUrl;
@@ -825,13 +870,14 @@ export class Editor {
 
         if (nodeData.components) {
           if (nodeData.components.render) {
-            ent.addComponent('render', {
+            if (!nodeData.terrain) ent.addComponent('render', {
               type: nodeData.components.render.type || 'box',
               castShadows: nodeData.components.render.castShadows !== false
             });
             if (nodeData.components.render.material) {
               const matData = nodeData.components.render.material;
               const mat = new pc.StandardMaterial();
+              if (nodeData.terrain) mat.diffuseMapVertexColor = true;
               if (matData.diffuse) mat.diffuse = new pc.Color(...matData.diffuse);
               if (matData.emissive) mat.emissive = new pc.Color(...matData.emissive);
               if (matData.metalness !== undefined) {
@@ -839,6 +885,9 @@ export class Editor {
                 mat.useMetalness = true;
               }
               if (matData.roughness !== undefined) mat.roughness = matData.roughness;
+              if (matData.gloss !== undefined) mat.gloss = matData.gloss;
+              if (matData.glossInvert !== undefined) mat.glossInvert = matData.glossInvert;
+              if (matData.diffuseMapVertexColor !== undefined) mat.diffuseMapVertexColor = matData.diffuseMapVertexColor;
               if (matData.opacity !== undefined) {
                 mat.opacity = matData.opacity;
                 if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
@@ -882,6 +931,7 @@ export class Editor {
             const col = nodeData.components.collision;
             ent.addComponent('collision', {
               type: col.type || 'box',
+              ...(nodeData.terrain && col.type === 'mesh' ? { model: ent._terrainCollisionModel } : {}),
               radius: col.radius || 0.5,
               height: col.height ?? 2,
               halfExtents: col.halfExtents ? new pc.Vec3(...col.halfExtents) : new pc.Vec3(0.5, 0.5, 0.5)
@@ -931,13 +981,16 @@ export class Editor {
           if (nodeData.components.sound) {
             const snd = nodeData.components.sound;
             ent.addComponent('sound', {
+              enabled: snd.enabled !== false, positional: snd.positional !== false,
+              refDistance: snd.minDistance ?? snd.refDistance ?? 1, rollOffFactor: snd.rollOffFactor ?? 1, distanceModel: snd.distanceModel || 'linear',
               volume: snd.volume !== undefined ? snd.volume : 1,
               pitch: snd.pitch !== undefined ? snd.pitch : 1,
               loop: snd.loop !== false,
               minDistance: snd.minDistance !== undefined ? snd.minDistance : 1,
               maxDistance: snd.maxDistance !== undefined ? snd.maxDistance : 15,
-              autoPlay: Boolean(snd.autoPlay)
+              autoPlay: false
             });
+            queueSoundSlots(ent, snd, app, session);
           }
           if (nodeData.components.script) {
             ent.addComponent('script');
