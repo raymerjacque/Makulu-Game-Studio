@@ -98,6 +98,11 @@ export class SFXStudioModal {
               <button class="btn sfx-type-btn" data-type="equip_item" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🎒 Equip Item</button>
               <button class="btn sfx-type-btn" data-type="heartbeat_low_hp" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">❤️ Low HP Heartbeat</button>
               <button class="btn sfx-type-btn" data-type="ui_click" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🔘 Tactile Click</button>
+              <button class="btn sfx-type-btn" data-type="jump_pad" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🚀 Jump Pad Boing</button>
+              <button class="btn sfx-type-btn" data-type="alarm_siren" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🚨 Alarm Siren</button>
+              <button class="btn sfx-type-btn" data-type="countdown_beep" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">⏱️ Countdown Beep</button>
+              <button class="btn sfx-type-btn" data-type="missile_launch" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🚀 Missile Launch</button>
+              <button class="btn sfx-type-btn" data-type="vending_dispense" style="justify-content: flex-start; gap: 6px; padding: 6px 8px; font-size: 11px;">🥫 Vending Drop</button>
             </div>
           </div>
 

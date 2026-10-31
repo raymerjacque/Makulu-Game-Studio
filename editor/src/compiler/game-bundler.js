@@ -2381,6 +2381,236 @@ export class GameBundler {
             if (minimap) {
               minimap.style.display = 'block';
             }
+          } else if (b.type === 'jump_pad_launch_booster') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.0;
+              if (dist <= radius) {
+                if (!b._jumpCd) b._jumpCd = 0;
+                if (b._jumpCd <= 0) {
+                  b._jumpCd = 1.0;
+                  const force = b.properties?.launchForce || 18;
+                  if (playerEntity.rigidbody) {
+                    playerEntity.rigidbody.linearVelocity = new pc.Vec3(0, force, 0);
+                    playerEntity.rigidbody.applyImpulse(0, force * 2, 0);
+                  } else {
+                    playerEntity.translate(0, force * 0.25, 0);
+                  }
+                  if (window.playProceduralSFX) window.playProceduralSFX('jump_pad', 0.4);
+                  window.triggerScreenShake(0.3, 0.2);
+                }
+              }
+              if (b._jumpCd > 0) b._jumpCd -= dt;
+            }
+          } else if (b.type === 'laser_security_tripwire') {
+            if (playerEntity) {
+              const start = node.getPosition();
+              const end = start.clone().add(node.forward.clone().mulScalar(b.properties?.length || 15));
+              const plyPos = playerEntity.getPosition();
+              const seg = end.clone().sub(start);
+              const l2 = seg.lengthSq();
+              let t = 0;
+              if (l2 > 0) t = Math.max(0, Math.min(1, plyPos.clone().sub(start).dot(seg) / l2));
+              const proj = start.clone().add(seg.mulScalar(t));
+              const dist = plyPos.distance(proj);
+              if (dist < 1.2) {
+                if (!b._alarmTimer) b._alarmTimer = 0;
+                b._alarmTimer -= dt;
+                if (b._alarmTimer <= 0) {
+                  b._alarmTimer = 1.5;
+                  if (window.playProceduralSFX) window.playProceduralSFX('alarm_siren', 0.5);
+                  window.triggerScreenShake(0.4, 0.25);
+                  const playerB = playerEntity._behaviors || [];
+                  const healthB = playerB.find(hb => hb.type === 'health');
+                  if (healthB) {
+                    healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - (b.properties?.damage || 20));
+                  }
+                }
+              }
+            }
+          } else if (b.type === 'shield_bubble_barrier') {
+            if (b.properties.shieldHp === undefined) b.properties.shieldHp = 150;
+            const pos = node.getPosition();
+            const radius = b.properties?.radius || 3.5;
+            app.root.forEach(other => {
+              if (other !== node && other.enabled && (other.name.toLowerCase().includes('bullet') || other.name.toLowerCase().includes('laser') || other.name.toLowerCase().includes('projectile'))) {
+                if (pos.distance(other.getPosition()) <= radius) {
+                  b.properties.shieldHp -= 15;
+                  if (window.playProceduralSFX) window.playProceduralSFX('shield_hit', 0.3);
+                  other.enabled = false;
+                  try { other.destroy(); } catch (e) {}
+                  if (b.properties.shieldHp <= 0) {
+                    node.enabled = false;
+                    if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                  }
+                }
+              }
+            });
+          } else if (b.type === 'zipline_traversal_slide') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist <= 3.0 && (keys['e'] || keys['keye'])) {
+                const speed = b.properties?.speed || 14;
+                const fwd = node.forward.clone().normalize().mulScalar(speed * dt);
+                playerEntity.translate(fwd);
+                if (window.playProceduralSFX) window.playProceduralSFX('boost', 0.15);
+              }
+            }
+          } else if (b.type === 'stealth_grass_hiding_bush') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              const radius = b.properties?.radius || 2.5;
+              playerEntity._inStealthBush = dist <= radius;
+            }
+          } else if (b.type === 'time_bomb_countdown') {
+            if (b.properties.countdown === undefined) b.properties.countdown = 5.0;
+            if (b.properties.countdown > 0) {
+              const prevFloor = Math.ceil(b.properties.countdown);
+              b.properties.countdown -= dt;
+              const nextFloor = Math.ceil(b.properties.countdown);
+              if (nextFloor < prevFloor && nextFloor > 0) {
+                if (window.playProceduralSFX) window.playProceduralSFX('countdown_beep', 0.3);
+              }
+              if (b.properties.countdown <= 0) {
+                if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                window.triggerScreenShake(0.8, 0.4);
+                const blastRadius = b.properties?.blastRadius || 8.0;
+                const dmg = b.properties?.damage || 120;
+                if (playerEntity && node.getPosition().distance(playerEntity.getPosition()) <= blastRadius) {
+                  const playerB = playerEntity._behaviors || [];
+                  const healthB = playerB.find(hb => hb.type === 'health');
+                  if (healthB) {
+                    healthB.properties.currentHp = Math.max(0, (healthB.properties.currentHp || 100) - dmg);
+                  }
+                }
+                node.enabled = false;
+              }
+            }
+          } else if (b.type === 'magnetic_boots_surface_walker') {
+            const force = b.properties?.stickForce || 20;
+            if (node.rigidbody) {
+              node.rigidbody.applyForce(0, -force * dt * 60, 0);
+            }
+          } else if (b.type === 'grav_repulsor_shockwave') {
+            if (!b._shockCd) b._shockCd = 0;
+            if (b._shockCd > 0) b._shockCd -= dt;
+            const shockKey = keys['q'] || keys['keyq'];
+            if (shockKey && b._shockCd <= 0) {
+              b._shockCd = b.properties?.cooldown || 4.0;
+              if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+              window.triggerScreenShake(0.6, 0.3);
+              const radius = b.properties?.radius || 10;
+              const shockForce = b.properties?.shockForce || 35;
+              const pos = node.getPosition();
+              app.root.forEach(other => {
+                if (other !== node && other.enabled && other.parent) {
+                  const dist = pos.distance(other.getPosition());
+                  if (dist <= radius && dist > 0.1) {
+                    const dir = other.getPosition().clone().sub(pos).normalize();
+                    if (other.rigidbody) {
+                      other.rigidbody.applyImpulse(dir.x * shockForce, (dir.y + 0.5) * shockForce, dir.z * shockForce);
+                    } else {
+                      other.translate(dir.x * 3, 1, dir.z * 3);
+                    }
+                  }
+                }
+              });
+            }
+          } else if (b.type === 'heat_seeking_homing_missile') {
+            const speed = b.properties?.speed || 18;
+            const turnRate = b.properties?.turnRate || 4.0;
+            let nearestEnemy = null;
+            let minDist = 999;
+            app.root.forEach(other => {
+              if (other !== node && other.enabled && other.parent) {
+                const n = (other.name || '').toLowerCase();
+                if (n.includes('enemy') || n.includes('monster') || n.includes('boss')) {
+                  const d = node.getPosition().distance(other.getPosition());
+                  if (d < minDist) {
+                    minDist = d;
+                    nearestEnemy = other;
+                  }
+                }
+              }
+            });
+            if (nearestEnemy) {
+              const targetPos = nearestEnemy.getPosition();
+              const curPos = node.getPosition();
+              const targetDir = targetPos.clone().sub(curPos).normalize();
+              const curForward = node.forward.clone().normalize();
+              curForward.lerp(curForward, targetDir, Math.min(1.0, dt * turnRate));
+              node.lookAt(curPos.clone().add(curForward));
+              node.translateLocal(0, 0, -speed * dt);
+              if (minDist < 1.5) {
+                if (window.playProceduralSFX) window.playProceduralSFX('explosion');
+                window.triggerScreenShake(0.5, 0.25);
+                const targetB = (nearestEnemy._behaviors || []).find(tb => tb.type === 'target_health' || tb.type === 'boss_ai');
+                if (targetB) {
+                  targetB.properties.currentHp = Math.max(0, (targetB.properties.currentHp || 100) - (b.properties?.damage || 60));
+                }
+                node.enabled = false;
+              }
+            } else {
+              node.translateLocal(0, 0, -speed * dt);
+            }
+          } else if (b.type === 'interactive_vending_machine') {
+            if (playerEntity) {
+              const dist = node.getPosition().distance(playerEntity.getPosition());
+              if (dist <= 2.5 && (keys['e'] || keys['keye'])) {
+                if (!b._vendCd) b._vendCd = 0;
+                if (b._vendCd <= 0) {
+                  b._vendCd = 1.0;
+                  const heal = b.properties?.healAmount || 35;
+                  const playerB = playerEntity._behaviors || [];
+                  const healthB = playerB.find(hb => hb.type === 'health');
+                  if (healthB) {
+                    const maxHp = healthB.properties.maxHp || 100;
+                    healthB.properties.currentHp = Math.min(maxHp, (healthB.properties.currentHp || maxHp) + heal);
+                    if (window.playProceduralSFX) window.playProceduralSFX('vending_dispense', 0.4);
+                  }
+                }
+              }
+              if (b._vendCd > 0) b._vendCd -= dt;
+            }
+          } else if (b.type === 'portal_gun_spatial_pair') {
+            if (!b._fireCd) b._fireCd = 0;
+            if (b._fireCd > 0) b._fireCd -= dt;
+            const shootKey = keys['f'] || keys['keyf'];
+            if (shootKey && b._fireCd <= 0) {
+              b._fireCd = 0.5;
+              if (window.playProceduralSFX) window.playProceduralSFX('teleport', 0.3);
+            }
+          } else if (b.type === 'slow_motion_dodge_roll') {
+            const rollKey = keys['alt'] || keys['altleft'];
+            if (rollKey && !b._rolling) {
+              b._rolling = true;
+              b._rollTime = b.properties?.duration || 0.6;
+              if (window.playProceduralSFX) window.playProceduralSFX('dash', 0.3);
+            }
+            if (b._rolling) {
+              b._rollTime -= dt;
+              node.translateLocal(0, 0, -(b.properties?.rollSpeed || 16) * dt);
+              if (b._rollTime <= 0) {
+                b._rolling = false;
+              }
+            }
+          } else if (b.type === 'dynamic_camera_cinematic_shake') {
+            if (b.properties?.trauma && b.properties.trauma > 0) {
+              b.properties.trauma = Math.max(0, b.properties.trauma - dt * (b.properties.decay || 1.5));
+              window.triggerScreenShake(b.properties.trauma * 0.5, 0.1);
+            }
+          } else if (b.type === 'procedural_ambient_dust_motes') {
+            if (!b._dustPhase) b._dustPhase = 0;
+            b._dustPhase += dt * 0.8;
+            node.translate(0, Math.sin(b._dustPhase) * 0.05 * dt, 0);
+          } else if (b.type === 'boss_phase3_meteor_rain') {
+            if (!b._meteorTimer) b._meteorTimer = 0;
+            b._meteorTimer -= dt;
+            if (b._meteorTimer <= 0) {
+              b._meteorTimer = b.properties?.interval || 3.5;
+              if (window.playProceduralSFX) window.playProceduralSFX('missile_launch', 0.3);
+              window.triggerScreenShake(0.5, 0.25);
+            }
           } else if (b.type === 'grappling_rope_physics') {
             if (playerEntity) {
               const maxDist = b.properties?.maxDistance || 25;
