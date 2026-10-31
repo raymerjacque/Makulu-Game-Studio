@@ -664,6 +664,113 @@ export class AIExecutor {
             break;
           }
 
+          case 'create_jump_pad': {
+            const pos = act.position || [0, 0.2, 0];
+            const pad = this.editor.createEntity({
+              name: act.name || 'Jump_Pad',
+              transform: { position: pos, scale: [2, 0.3, 2] },
+              components: [
+                { type: 'render', properties: { type: 'cylinder' } },
+                { type: 'collision', properties: { type: 'cylinder' } }
+              ]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(pad, 'jump_pad_launch_booster', {
+                launchForce: act.launchForce || 18,
+                radius: act.radius || 2.0
+              });
+            }
+            executed.push({ action: act.action, target: pad.name });
+            break;
+          }
+
+          case 'create_security_tripwire': {
+            const pos = act.position || [0, 1, 0];
+            const trip = this.editor.createEntity({
+              name: act.name || 'Security_Tripwire',
+              transform: { position: pos, scale: [0.1, 0.1, act.length || 15] },
+              components: [
+                { type: 'render', properties: { type: 'cylinder' } }
+              ]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(trip, 'laser_security_tripwire', {
+                length: act.length || 15,
+                damage: act.damage || 20
+              });
+            }
+            executed.push({ action: act.action, target: trip.name });
+            break;
+          }
+
+          case 'create_shield_bubble': {
+            const target = this.findTarget(act.target);
+            const pos = target ? target.getPosition().clone() : (act.position || [0, 1.5, 0]);
+            const bubble = this.editor.createEntity({
+              name: act.name || 'Shield_Bubble',
+              transform: { position: [pos.x, pos.y, pos.z], scale: [3.5, 3.5, 3.5] },
+              components: [
+                { type: 'render', properties: { type: 'sphere' } }
+              ]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(bubble, 'shield_bubble_barrier', {
+                radius: act.radius || 3.5,
+                shieldHp: act.shieldHp || 150
+              });
+            }
+            executed.push({ action: act.action, target: bubble.name });
+            break;
+          }
+
+          case 'create_zipline': {
+            const pos = act.position || [0, 5, 0];
+            const zipline = this.editor.createEntity({
+              name: act.name || 'Zipline_Anchor',
+              transform: { position: pos, scale: [0.2, 0.2, act.length || 30] },
+              components: [
+                { type: 'render', properties: { type: 'cylinder' } }
+              ]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(zipline, 'zipline_traversal_slide', {
+                speed: act.speed || 14,
+                length: act.length || 30
+              });
+            }
+            executed.push({ action: act.action, target: zipline.name });
+            break;
+          }
+
+          case 'create_time_bomb': {
+            const pos = act.position || [0, 0.5, 0];
+            const bomb = this.editor.createEntity({
+              name: act.name || 'Time_Bomb',
+              transform: { position: pos, scale: [0.8, 0.8, 0.8] },
+              components: [
+                { type: 'render', properties: { type: 'sphere' } },
+                { type: 'collision', properties: { type: 'sphere' } }
+              ]
+            });
+            if (this.editor.behaviors) {
+              this.editor.behaviors.attachBehavior(bomb, 'time_bomb_countdown', {
+                countdown: act.countdown || 5.0,
+                blastRadius: act.blastRadius || 8.0,
+                damage: act.damage || 120
+              });
+            }
+            executed.push({ action: act.action, target: bomb.name });
+            break;
+          }
+
+          case 'trigger_radial_shockwave': {
+            if (this.editor.behaviors) {
+              this.editor.behaviors.triggerScreenShake(act.intensity || 0.6, act.duration || 0.3);
+            }
+            executed.push({ action: act.action, target: 'Radial Shockwave' });
+            break;
+          }
+
           case 'create_flow_graph': {
             const target = this.findTarget(act.target);
             if (target && this.editor.behaviors) {

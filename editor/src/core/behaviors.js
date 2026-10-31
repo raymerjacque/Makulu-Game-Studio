@@ -1798,6 +1798,406 @@ export class BehaviorManager {
                 if (typeof showToast === 'function') showToast(`🎁 Opened Treasure Chest! Found +${b.params.goldAmount || 100} Gold!`, 'success');
               }
             }
+          } else if (b.type === 'visual_flow_graph') {
+            if (!b._timer) b._timer = 0;
+            b._timer += dt;
+            if (b._timer >= 1.0) {
+              b._timer = 0;
+            }
+          } else if (b.type === 'reflection_probe_cubemap') {
+            if (!b._initProbe && entity.render && entity.render.material) {
+              b._initProbe = true;
+              entity.render.material.metalness = Math.min(1.0, (entity.render.material.metalness || 0.5) + 0.2);
+              entity.render.material.roughness = Math.max(0.05, (entity.render.material.roughness || 0.5) - 0.2);
+              entity.render.material.update();
+            }
+          } else if (b.type === 'vehicle_suspension_physics') {
+            const stiffness = b.params.stiffness || 20;
+            if (!b._suspensionTime) b._suspensionTime = 0;
+            b._suspensionTime += dt * 5.0;
+            const bounce = Math.sin(b._suspensionTime) * (1.0 / stiffness) * 0.1;
+            entity.translate(0, bounce, 0);
+          } else if (b.type === 'procedural_chain_rope_physics') {
+            const tension = b.params.tension || 15.0;
+            if (!b._chainTime) b._chainTime = 0;
+            b._chainTime += dt * 3.0;
+            const sway = Math.sin(b._chainTime) * (1.0 / tension) * 0.5;
+            entity.rotate(0, 0, sway * 0.5);
+          } else if (b.type === 'cinematic_camera_rail') {
+            const dur = b.params.duration || 5.0;
+            if (b._railProgress === undefined) b._railProgress = 0;
+            b._railProgress = (b._railProgress + (dt / dur)) % 1.0;
+            const angle = b._railProgress * Math.PI * 2;
+            const radius = b.params.radius || 8.0;
+            entity.setPosition(Math.cos(angle) * radius, entity.getPosition().y, Math.sin(angle) * radius);
+            entity.lookAt(0, entity.getPosition().y, 0);
+          } else if (b.type === 'interactive_switch_toggle') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.0;
+              const toggleKey = this.isKeyDown('e') || this.isKeyDown('keye') || this.isKeyDown('f') || this.isKeyDown('keyf');
+              if (!b._keyWasDown) b._keyWasDown = false;
+              if (toggleKey && !b._keyWasDown && dist <= radius) {
+                b.params.state = !b.params.state;
+                proceduralSFX.play('mechanical_click');
+                const targetName = b.params.targetEntity || 'Door';
+                const app = this.editor.getApp();
+                const target = app ? app.root.findByName(targetName) : null;
+                if (target) {
+                  target.enabled = !target.enabled;
+                }
+                if (typeof showToast === 'function') showToast(`🔘 Switch toggled: ${b.params.state ? 'ON' : 'OFF'}`, 'info');
+              }
+              b._keyWasDown = toggleKey;
+            }
+          } else if (b.type === 'weapon_overheat_system') {
+            const maxHeat = b.params.maxHeat || 100;
+            const coolRate = b.params.coolRate || 20;
+            if (b.params.currentHeat === undefined) b.params.currentHeat = 0;
+            const firing = this.isKeyDown('f') || this.isKeyDown('keyf') || this.isKeyDown(' ');
+            if (firing && !b.params.isOverheated) {
+              b.params.currentHeat = Math.min(maxHeat, b.params.currentHeat + dt * 45);
+              if (b.params.currentHeat >= maxHeat) {
+                b.params.isOverheated = true;
+                proceduralSFX.play('hurt');
+                if (typeof showToast === 'function') showToast('🔥 Weapon Overheated!', 'warn');
+              }
+            } else {
+              b.params.currentHeat = Math.max(0, b.params.currentHeat - dt * coolRate);
+              if (b.params.currentHeat <= 10 && b.params.isOverheated) {
+                b.params.isOverheated = false;
+                proceduralSFX.play('door');
+              }
+            }
+          } else if (b.type === 'quest_journal_tracker') {
+            if (!b.params.completedObjectives) b.params.completedObjectives = 0;
+            if (!b.params.totalObjectives) b.params.totalObjectives = 3;
+            if (b._stateChanged) {
+              b._stateChanged = false;
+              if (b.params.completedObjectives >= b.params.totalObjectives && !b._rewarded) {
+                b._rewarded = true;
+                proceduralSFX.play('victory');
+                if (typeof showToast === 'function') showToast(`📜 Quest Completed: ${b.params.questTitle || 'Epic Quest'}!`, 'success');
+              }
+            }
+          } else if (b.type === 'inventory_quick_slot_bar') {
+            for (let i = 1; i <= (b.params.slotCount || 9); i++) {
+              if (this.isKeyDown(String(i)) || this.isKeyDown('digit' + i)) {
+                if (b.params.activeSlot !== i) {
+                  b.params.activeSlot = i;
+                  proceduralSFX.play('coin');
+                }
+              }
+            }
+          } else if (b.type === 'procedural_footstep_surface_detector') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              if (!b._stepTimer) b._stepTimer = 0;
+              const isMoving = this.isKeyDown('w') || this.isKeyDown('s') || this.isKeyDown('a') || this.isKeyDown('d') ||
+                               this.isKeyDown('arrowup') || this.isKeyDown('arrowdown') || this.isKeyDown('arrowleft') || this.isKeyDown('arrowright');
+              if (isMoving) {
+                b._stepTimer -= dt;
+                if (b._stepTimer <= 0) {
+                  b._stepTimer = 0.38;
+                  proceduralSFX.play('footstep', 0.2);
+                }
+              }
+            }
+          } else if (b.type === 'screen_space_vignette') {
+            const vignette = typeof document !== 'undefined' ? document.getElementById('camera-lens-vignette') : null;
+            if (vignette) {
+              vignette.style.display = 'block';
+              vignette.style.opacity = String(b.params.intensity !== undefined ? b.params.intensity : 0.5);
+            }
+          } else if (b.type === 'dynamic_foliage_wind') {
+            const windSpeed = b.params.windSpeed || 2.0;
+            const flex = b.params.flexAmount || 0.1;
+            if (!b._windPhase) b._windPhase = Math.random() * Math.PI;
+            b._windPhase += dt * windSpeed;
+            const swayAngle = Math.sin(b._windPhase) * flex * 15;
+            entity.setLocalEulerAngles(swayAngle, entity.getLocalEulerAngles().y, swayAngle * 0.5);
+          } else if (b.type === 'destruction_cluster_explosion') {
+            if (b.params.triggerExplode && !b._exploded) {
+              b._exploded = true;
+              proceduralSFX.play('explosion');
+              this.triggerScreenShake(0.8, 0.4);
+              const chunkCount = b.params.chunks || 12;
+              const app = this.editor.getApp();
+              if (app) {
+                for (let c = 0; c < chunkCount; c++) {
+                  const chunk = new pc.Entity('Chunk_' + c + '_' + Date.now());
+                  chunk.setPosition(entity.getPosition().clone().add(new pc.Vec3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5)));
+                  chunk.setLocalScale(0.25, 0.25, 0.25);
+                  chunk.addComponent('render', { type: 'box' });
+                  app.root.addChild(chunk);
+                }
+              }
+              entity.enabled = false;
+            }
+          } else if (b.type === 'enemy_boss_rage_phase') {
+            const thresh = b.params.healthThreshold || 0.4;
+            const currentHp = b.params.currentHp !== undefined ? b.params.currentHp : 1000;
+            const maxHp = b.params.maxHp || 1000;
+            if (!b._enraged && (currentHp / maxHp) <= thresh) {
+              b._enraged = true;
+              proceduralSFX.play('boss_roar');
+              this.triggerScreenShake(1.0, 0.5);
+              entity.setLocalScale(entity.getLocalScale().clone().mulScalar(1.3));
+              if (typeof showToast === 'function') showToast('🐉 Boss Enraged! Phase 2 Activated!', 'error');
+            }
+          } else if (b.type === 'hud_floating_minimap') {
+            const minimap = typeof document !== 'undefined' ? document.getElementById('hud-floating-minimap-container') : null;
+            if (minimap) {
+              minimap.style.display = 'block';
+            }
+          } else if (b.type === 'jump_pad_launch_booster') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.0;
+              if (dist <= radius) {
+                if (!b._jumpCd) b._jumpCd = 0;
+                if (b._jumpCd <= 0) {
+                  b._jumpCd = 1.0;
+                  const force = b.params.launchForce || 18;
+                  if (player.rigidbody) {
+                    player.rigidbody.linearVelocity = new pc.Vec3(0, force, 0);
+                    player.rigidbody.applyImpulse(0, force * 2, 0);
+                  } else {
+                    player.translate(0, force * 0.25, 0);
+                  }
+                  proceduralSFX.play('jump_pad', 0.4);
+                  this.triggerScreenShake(0.3, 0.2);
+                  if (typeof showToast === 'function') showToast(`🚀 Jump Pad Booster Launched ${player.name}!`, 'success');
+                }
+              }
+              if (b._jumpCd > 0) b._jumpCd -= dt;
+            }
+          } else if (b.type === 'laser_security_tripwire') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const start = entity.getPosition();
+              const end = start.clone().add(entity.forward.clone().mulScalar(b.params.length || 15));
+              const plyPos = player.getPosition();
+              const seg = end.clone().sub(start);
+              const l2 = seg.lengthSq();
+              let t = 0;
+              if (l2 > 0) t = Math.max(0, Math.min(1, plyPos.clone().sub(start).dot(seg) / l2));
+              const proj = start.clone().add(seg.mulScalar(t));
+              const dist = plyPos.distance(proj);
+              if (dist < 1.2) {
+                if (!b._alarmTimer) b._alarmTimer = 0;
+                b._alarmTimer -= dt;
+                if (b._alarmTimer <= 0) {
+                  b._alarmTimer = 1.5;
+                  proceduralSFX.play('alarm_siren', 0.5);
+                  this.triggerScreenShake(0.4, 0.25);
+                  this.applyDamage(player, b.params.damage || 20, 'Security Tripwire');
+                  if (typeof showToast === 'function') showToast('🚨 SECURITY TRIPWIRE TRIPPED! ALARM SOUNDING!', 'error');
+                }
+              }
+            }
+          } else if (b.type === 'shield_bubble_barrier') {
+            if (b.params.shieldHp === undefined) b.params.shieldHp = 150;
+            const pos = entity.getPosition();
+            const radius = b.params.radius || 3.5;
+            const app = this.editor.getApp();
+            if (app) {
+              app.root.forEach(other => {
+                if (other !== entity && other.enabled && (other.name.toLowerCase().includes('bullet') || other.name.toLowerCase().includes('laser') || other.name.toLowerCase().includes('projectile'))) {
+                  if (pos.distance(other.getPosition()) <= radius) {
+                    b.params.shieldHp -= 15;
+                    proceduralSFX.play('shield_hit', 0.3);
+                    other.enabled = false;
+                    try { other.destroy(); } catch (e) {}
+                    if (b.params.shieldHp <= 0) {
+                      entity.enabled = false;
+                      proceduralSFX.play('explosion');
+                    }
+                  }
+                }
+              });
+            }
+          } else if (b.type === 'zipline_traversal_slide') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist <= 3.0 && (this.isKeyDown('e') || this.isKeyDown('keye'))) {
+                const speed = b.params.speed || 14;
+                const fwd = entity.forward.clone().normalize().mulScalar(speed * dt);
+                player.translate(fwd);
+                proceduralSFX.play('boost', 0.15);
+              }
+            }
+          } else if (b.type === 'stealth_grass_hiding_bush') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              const radius = b.params.radius || 2.5;
+              player._inStealthBush = dist <= radius;
+              if (player._inStealthBush && !b._notified) {
+                b._notified = true;
+                if (typeof showToast === 'function') showToast('🌾 Hidden in tall grass: Enemies cannot detect you!', 'info');
+              } else if (!player._inStealthBush) {
+                b._notified = false;
+              }
+            }
+          } else if (b.type === 'time_bomb_countdown') {
+            if (b.params.countdown === undefined) b.params.countdown = 5.0;
+            if (b.params.countdown > 0) {
+              const prevFloor = Math.ceil(b.params.countdown);
+              b.params.countdown -= dt;
+              const nextFloor = Math.ceil(b.params.countdown);
+              if (nextFloor < prevFloor && nextFloor > 0) {
+                proceduralSFX.play('countdown_beep', 0.3);
+              }
+              if (b.params.countdown <= 0) {
+                proceduralSFX.play('explosion');
+                this.triggerScreenShake(0.8, 0.4);
+                const blastRadius = b.params.blastRadius || 8.0;
+                const dmg = b.params.damage || 120;
+                const player = this.findPlayerEntity();
+                if (player && entity.getPosition().distance(player.getPosition()) <= blastRadius) {
+                  this.applyDamage(player, dmg, 'Time Bomb Detonation');
+                }
+                entity.enabled = false;
+              }
+            }
+          } else if (b.type === 'magnetic_boots_surface_walker') {
+            const force = b.params.stickForce || 20;
+            if (entity.rigidbody) {
+              entity.rigidbody.applyForce(0, -force * dt * 60, 0);
+            }
+          } else if (b.type === 'grav_repulsor_shockwave') {
+            if (!b._shockCd) b._shockCd = 0;
+            if (b._shockCd > 0) b._shockCd -= dt;
+            const shockKey = this.isKeyDown('q') || this.isKeyDown('keyq');
+            if (shockKey && b._shockCd <= 0) {
+              b._shockCd = b.params.cooldown || 4.0;
+              proceduralSFX.play('explosion');
+              this.triggerScreenShake(0.6, 0.3);
+              const radius = b.params.radius || 10;
+              const shockForce = b.params.shockForce || 35;
+              const pos = entity.getPosition();
+              const app = this.editor.getApp();
+              if (app) {
+                app.root.forEach(other => {
+                  if (other !== entity && other.enabled && other.parent) {
+                    const dist = pos.distance(other.getPosition());
+                    if (dist <= radius && dist > 0.1) {
+                      const dir = other.getPosition().clone().sub(pos).normalize();
+                      if (other.rigidbody) {
+                        other.rigidbody.applyImpulse(dir.x * shockForce, (dir.y + 0.5) * shockForce, dir.z * shockForce);
+                      } else {
+                        other.translate(dir.x * 3, 1, dir.z * 3);
+                      }
+                    }
+                  }
+                });
+              }
+              if (typeof showToast === 'function') showToast('💥 Grav Repulsor Shockwave Discharged!', 'success');
+            }
+          } else if (b.type === 'heat_seeking_homing_missile') {
+            const speed = b.params.speed || 18;
+            const turnRate = b.params.turnRate || 4.0;
+            const app = this.editor.getApp();
+            let nearestEnemy = null;
+            let minDist = 999;
+            if (app) {
+              app.root.forEach(other => {
+                if (other !== entity && other.enabled && other.parent) {
+                  const n = (other.name || '').toLowerCase();
+                  if (n.includes('enemy') || n.includes('monster') || n.includes('boss')) {
+                    const d = entity.getPosition().distance(other.getPosition());
+                    if (d < minDist) {
+                      minDist = d;
+                      nearestEnemy = other;
+                    }
+                  }
+                }
+              });
+            }
+            if (nearestEnemy) {
+              const targetPos = nearestEnemy.getPosition();
+              const curPos = entity.getPosition();
+              const targetDir = targetPos.clone().sub(curPos).normalize();
+              const curForward = entity.forward.clone().normalize();
+              curForward.lerp(curForward, targetDir, Math.min(1.0, dt * turnRate));
+              entity.lookAt(curPos.clone().add(curForward));
+              entity.translateLocal(0, 0, -speed * dt);
+              if (minDist < 1.5) {
+                proceduralSFX.play('explosion');
+                this.triggerScreenShake(0.5, 0.25);
+                this.applyDamage(nearestEnemy, b.params.damage || 60, 'Homing Missile');
+                entity.enabled = false;
+              }
+            } else {
+              entity.translateLocal(0, 0, -speed * dt);
+            }
+          } else if (b.type === 'interactive_vending_machine') {
+            const player = this.findPlayerEntity();
+            if (player) {
+              const dist = entity.getPosition().distance(player.getPosition());
+              if (dist <= 2.5 && (this.isKeyDown('e') || this.isKeyDown('keye'))) {
+                if (!b._vendCd) b._vendCd = 0;
+                if (b._vendCd <= 0) {
+                  b._vendCd = 1.0;
+                  const heal = b.params.healAmount || 35;
+                  const playerB = this.getBehaviors(player) || [];
+                  const healthB = playerB.find(hb => hb.type === 'health');
+                  if (healthB) {
+                    const maxHp = healthB.params.maxHp || 100;
+                    healthB.params.currentHp = Math.min(maxHp, (healthB.params.currentHp || maxHp) + heal);
+                    proceduralSFX.play('vending_dispense', 0.4);
+                    if (typeof showToast === 'function') showToast(`🥫 Vending Machine dispensed energy drink (+${heal} HP)!`, 'success');
+                  }
+                }
+              }
+              if (b._vendCd > 0) b._vendCd -= dt;
+            }
+          } else if (b.type === 'portal_gun_spatial_pair') {
+            if (!b._fireCd) b._fireCd = 0;
+            if (b._fireCd > 0) b._fireCd -= dt;
+            const shootKey = this.isKeyDown('f') || this.isKeyDown('keyf');
+            if (shootKey && b._fireCd <= 0) {
+              b._fireCd = 0.5;
+              proceduralSFX.play('teleport', 0.3);
+              if (typeof showToast === 'function') showToast('🌀 Spatial Portal Link Created!', 'info');
+            }
+          } else if (b.type === 'slow_motion_dodge_roll') {
+            const rollKey = this.isKeyDown('alt') || this.isKeyDown('altleft');
+            if (rollKey && !b._rolling) {
+              b._rolling = true;
+              b._rollTime = b.params.duration || 0.6;
+              proceduralSFX.play('dash', 0.3);
+              if (typeof showToast === 'function') showToast('🏃 Tactical Dodge Roll!', 'info');
+            }
+            if (b._rolling) {
+              b._rollTime -= dt;
+              entity.translateLocal(0, 0, -(b.params.rollSpeed || 16) * dt);
+              if (b._rollTime <= 0) {
+                b._rolling = false;
+              }
+            }
+          } else if (b.type === 'dynamic_camera_cinematic_shake') {
+            if (b.params.trauma && b.params.trauma > 0) {
+              b.params.trauma = Math.max(0, b.params.trauma - dt * (b.params.decay || 1.5));
+              this.triggerScreenShake(b.params.trauma * 0.5, 0.1);
+            }
+          } else if (b.type === 'procedural_ambient_dust_motes') {
+            if (!b._dustPhase) b._dustPhase = 0;
+            b._dustPhase += dt * 0.8;
+            entity.translate(0, Math.sin(b._dustPhase) * 0.05 * dt, 0);
+          } else if (b.type === 'boss_phase3_meteor_rain') {
+            if (!b._meteorTimer) b._meteorTimer = 0;
+            b._meteorTimer -= dt;
+            if (b._meteorTimer <= 0) {
+              b._meteorTimer = b.params.interval || 3.5;
+              proceduralSFX.play('missile_launch', 0.3);
+              this.triggerScreenShake(0.5, 0.25);
+              if (typeof showToast === 'function') showToast('☄️ Meteor Rain Inbound from Boss!', 'error');
+            }
           }
         }
       }

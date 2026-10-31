@@ -138,7 +138,22 @@ export const BEHAVIOR_CATALOG = [
   { type: 'dynamic_foliage_wind', icon: '🌿', name: 'Harmonic Foliage Wind Bending', defaultParams: { windSpeed: 2.0, flexAmount: 0.1 } },
   { type: 'destruction_cluster_explosion', icon: '💥', name: 'Cluster Explosive Shattering', defaultParams: { chunks: 12, blastForce: 25 } },
   { type: 'enemy_boss_rage_phase', icon: '🐉', name: 'Boss Phase 2 Enrage & Seismic Surge', defaultParams: { healthThreshold: 0.4 } },
-  { type: 'hud_floating_minimap', icon: '🗺️', name: 'HUD Floating Minimap Surveillance', defaultParams: { scanRange: 35.0 } }
+  { type: 'hud_floating_minimap', icon: '🗺️', name: 'HUD Floating Minimap Surveillance', defaultParams: { scanRange: 35.0 } },
+  { type: 'jump_pad_launch_booster', icon: '🚀', name: 'Jump Pad Launch Booster', defaultParams: { launchForce: 18, radius: 2.0 } },
+  { type: 'laser_security_tripwire', icon: '🚨', name: 'Laser Security Tripwire', defaultParams: { length: 15, damage: 20 } },
+  { type: 'shield_bubble_barrier', icon: '🛡️', name: 'Shield Bubble Barrier', defaultParams: { radius: 3.5, shieldHp: 150 } },
+  { type: 'zipline_traversal_slide', icon: '🚡', name: 'Zipline Traversal Slide', defaultParams: { speed: 14, length: 30 } },
+  { type: 'stealth_grass_hiding_bush', icon: '🌾', name: 'Stealth Grass Hiding Bush', defaultParams: { radius: 2.5 } },
+  { type: 'time_bomb_countdown', icon: '💣', name: 'Time Bomb Countdown Detonator', defaultParams: { countdown: 5.0, blastRadius: 8.0, damage: 120 } },
+  { type: 'magnetic_boots_surface_walker', icon: '🧲', name: 'Magnetic Boots Surface Walker', defaultParams: { stickForce: 20 } },
+  { type: 'grav_repulsor_shockwave', icon: '💥', name: 'Grav Repulsor Shockwave (\'Q\')', defaultParams: { radius: 10, shockForce: 35, cooldown: 4.0 } },
+  { type: 'heat_seeking_homing_missile', icon: '🚀', name: 'Heat-Seeking Homing Missile', defaultParams: { speed: 18, turnRate: 4.0, damage: 60 } },
+  { type: 'interactive_vending_machine', icon: '🥫', name: 'Interactive Vending Machine (\'E\')', defaultParams: { cost: 50, healAmount: 35 } },
+  { type: 'portal_gun_spatial_pair', icon: '🌀', name: 'Portal Gun Spatial Pair', defaultParams: { maxDistance: 40 } },
+  { type: 'slow_motion_dodge_roll', icon: '🏃', name: 'Slow Motion Dodge Roll (\'Alt\')', defaultParams: { rollSpeed: 16, timeScale: 0.35, duration: 0.6 } },
+  { type: 'dynamic_camera_cinematic_shake', icon: '📳', name: 'Dynamic Camera Cinematic Shake', defaultParams: { trauma: 0.8, decay: 1.5 } },
+  { type: 'procedural_ambient_dust_motes', icon: '✨', name: 'Procedural Ambient Dust Motes', defaultParams: { count: 40, areaSize: 12 } },
+  { type: 'boss_phase3_meteor_rain', icon: '☄️', name: 'Boss Phase 3 Meteor Rain', defaultParams: { meteorCount: 6, interval: 3.5, damage: 45 } }
 ];
 
 /**

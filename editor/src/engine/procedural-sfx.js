@@ -508,7 +508,8 @@ export function generateWAVDataURL(typeOrParams, sampleRate = 22050) {
     footstep: 0.08, footstep_grass: 0.08, footstep_stone: 0.06, slash_sword: 0.12,
     shield_block: 0.15, reload_gun: 0.2, engine_rumble: 0.4, ambient_dungeon: 0.6,
     thunder_bolt: 0.5, teleport: 0.28, powerup: 0.3, shield_hit: 0.15,
-    reload: 0.2, magic_spell: 0.3
+    reload: 0.2, magic_spell: 0.3, jump_pad: 0.22, alarm_siren: 0.45,
+    countdown_beep: 0.08, missile_launch: 0.4, vending_dispense: 0.35
   };
 
   const duration = params.duration || (params.attack !== undefined ? (params.attack + (params.decay || 0.1) + (params.release || 0.2)) : null) || durationMap[type] || 0.3;
@@ -612,6 +613,20 @@ export function generateWAVDataURL(typeOrParams, sampleRate = 22050) {
         sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 12) * 0.8;
       } else if (type === 'ui_click') {
         sample = (Math.sin(2 * Math.PI * 1200 * t) >= 0 ? 0.3 : -0.3) * Math.exp(-t * 40);
+      } else if (type === 'jump_pad') {
+        const freq = 120 + t * 3800;
+        sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 8) * 0.6;
+      } else if (type === 'alarm_siren') {
+        const freq = Math.sin(t * 25) > 0 ? 880 : 650;
+        sample = ((2 * ((freq * t) % 1)) - 1) * Math.exp(-t * 3) * 0.5;
+      } else if (type === 'countdown_beep') {
+        sample = Math.sin(2 * Math.PI * 1760 * t) * Math.exp(-t * 35) * 0.5;
+      } else if (type === 'missile_launch') {
+        const freq = 80 + t * 450;
+        sample = (Math.sin(2 * Math.PI * freq * t) * 0.4 + (Math.random() * 2 - 1) * 0.6) * Math.exp(-t * 4) * 0.6;
+      } else if (type === 'vending_dispense') {
+        const freq = t < 0.1 ? 900 : 350;
+        sample = (Math.sin(2 * Math.PI * freq * t) >= 0 ? 0.4 : -0.4) * Math.exp(-t * 7);
       } else {
         sample = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-t * 6) * 0.5;
       }
