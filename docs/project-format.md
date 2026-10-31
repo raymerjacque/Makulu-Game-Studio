@@ -428,3 +428,22 @@ across scene-copy restoration and isolated game preview, including actual game
 input/blur, GLB readiness, camera selection, restart/close, blocked parent/storage/
 bridge/external fetch access, late preparation, errors and timeout cleanup. The
 existing offline artifact test remains a separate portability check.
+
+
+## Terrain dialog integration repair (31 October 2026)
+
+The real UI path exposed a missing PlayCanvas import in `ModelResizerOverlay`.
+Selecting a generated terrain threw `pc is not defined`; the generator removed
+the entity, leaving the collision helper visible. Mesh colliders were also being
+represented by a default solid cube: the old material `wireframe` flag was not
+the engine's mesh-instance render style.
+
+The overlay now imports PlayCanvas explicitly. Selected mesh collision helpers
+reuse the actual collision mesh and set wireframe render style, with helper
+material cleanup. The terrain dialog frames the newly placed terrain. A real
+browser reproduction failed before this fix with the reported error and now
+passes eight additional assertions: 40m surface bounds, 1,089 mesh vertices,
+non-flat elevation, mesh/static collision, selection/modal completion, helper
+geometry/style, framing and undo/redo. Combined browser coverage is now 45
+assertions. This does not add sculpting controls, texture assets or certify
+terrain traversal by every supported character/controller.

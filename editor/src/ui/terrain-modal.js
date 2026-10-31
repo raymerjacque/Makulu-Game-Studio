@@ -182,7 +182,7 @@ export class TerrainModal {
       const seedNum = parseInt(seedInput.value, 10);
 
       try {
-        this.generator.generate({
+        const terrain = this.generator.generate({
           name: 'Procedural Terrain',
           width: size,
           depth: size,
@@ -194,6 +194,7 @@ export class TerrainModal {
           customHeights: this.customHeights || null
         });
 
+        this.editor.runtime?.editorCamera?.frameEntity(terrain);
         this.close();
       } catch (error) { showToast(error.message || 'Terrain could not be generated.', 'error'); }
     });

@@ -203,7 +203,7 @@
       "id": "terrain",
       "name": "Procedural terrain",
       "status": "partial",
-      "editor": "Final-grid terrain generation, real image heightmap decoding, undoable creation and independent duplication exist.",
+      "editor": "Final-grid terrain generation, real image heightmap decoding, undoable creation and independent duplication exist. Actual modal/resize-overlay integration is repaired; selection no longer throws, camera frames the surface and selected mesh collider helpers use true mesh wireframe.",
       "persistence": "Versioned final height samples reconstruct the mesh, collision source and static body; malformed grids are rejected.",
       "export": "The shared mesh builder reconstructs saved terrain in delivered scenes; full Ammo/play/visual certification remains pending.",
       "next": "Verify Ammo contacts, traversal, large terrains and full prefab/resource workflows.",
@@ -212,9 +212,11 @@
         "editor/src/engine/terrain-generator.js",
         "editor/src/engine/heightmap-reader.js",
         "editor/tests/terrain-and-sound-persistence.test.js",
-        "editor/scripts/test-recovery-browser.js"
+        "editor/scripts/test-recovery-browser.js",
+        "editor/src/ui/model-resizer-overlay.js",
+        "editor/scripts/test-play-session-browser.js"
       ],
-      "proof": "Real engine mesh/position/collision-source and exported-builder tests pass; three real-browser PNG decode/error checks pass."
+      "proof": "Real engine mesh/position/collision-source and exported-builder tests pass; three real-browser PNG decode/error checks pass. Eight real-browser dialog assertions reproduce the missing-import failure before repair and verify full terrain geometry, framing, helper rendering and undo/redo afterward."
     },
     {
       "id": "prefabs",
@@ -8917,7 +8919,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 67
+            "line": 69
           },
           "verification": "template-declaration-only"
         },
@@ -8928,7 +8930,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 68
+            "line": 70
           },
           "verification": "template-declaration-only"
         },
@@ -8939,7 +8941,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 69
+            "line": 71
           },
           "verification": "template-declaration-only"
         },
@@ -8950,7 +8952,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 73
+            "line": 75
           },
           "verification": "template-declaration-only"
         },
@@ -8961,7 +8963,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 75
+            "line": 77
           },
           "verification": "template-declaration-only"
         },
@@ -8972,7 +8974,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 76
+            "line": 78
           },
           "verification": "template-declaration-only"
         },
@@ -8983,7 +8985,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 80
+            "line": 82
           },
           "verification": "template-declaration-only"
         },
@@ -8994,7 +8996,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 82
+            "line": 84
           },
           "verification": "template-declaration-only"
         },
@@ -9005,7 +9007,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/model-resizer-overlay.js",
-            "line": 83
+            "line": 85
           },
           "verification": "template-declaration-only"
         }

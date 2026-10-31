@@ -1,3 +1,5 @@
+import * as pc from 'playcanvas';
+
 /**
  * Interactive 3D Model Canvas Resizer Overlay
  * Provides corner hook arrows and floating transform controls directly on 3D models in the viewport.

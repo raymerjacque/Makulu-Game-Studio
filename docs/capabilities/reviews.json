@@ -145,7 +145,7 @@
       "id": "terrain",
       "name": "Procedural terrain",
       "status": "partial",
-      "editor": "Final-grid terrain generation, real image heightmap decoding, undoable creation and independent duplication exist.",
+      "editor": "Final-grid terrain generation, real image heightmap decoding, undoable creation and independent duplication exist. Actual modal/resize-overlay integration is repaired; selection no longer throws, camera frames the surface and selected mesh collider helpers use true mesh wireframe.",
       "persistence": "Versioned final height samples reconstruct the mesh, collision source and static body; malformed grids are rejected.",
       "export": "The shared mesh builder reconstructs saved terrain in delivered scenes; full Ammo/play/visual certification remains pending.",
       "next": "Verify Ammo contacts, traversal, large terrains and full prefab/resource workflows.",
@@ -154,9 +154,11 @@
         "editor/src/engine/terrain-generator.js",
         "editor/src/engine/heightmap-reader.js",
         "editor/tests/terrain-and-sound-persistence.test.js",
-        "editor/scripts/test-recovery-browser.js"
+        "editor/scripts/test-recovery-browser.js",
+        "editor/src/ui/model-resizer-overlay.js",
+        "editor/scripts/test-play-session-browser.js"
       ],
-      "proof": "Real engine mesh/position/collision-source and exported-builder tests pass; three real-browser PNG decode/error checks pass."
+      "proof": "Real engine mesh/position/collision-source and exported-builder tests pass; three real-browser PNG decode/error checks pass. Eight real-browser dialog assertions reproduce the missing-import failure before repair and verify full terrain geometry, framing, helper rendering and undo/redo afterward."
     },
     {
       "id": "prefabs",

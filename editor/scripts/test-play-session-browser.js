@@ -17,6 +17,8 @@ import { BehaviorManager } from '/src/core/behaviors.js';
 import { EngineRuntime } from '/src/engine/pc-app.js';
 import { initializeEditorPhysics } from '/src/compiler/runtime-bundle.js';
 import { TopBar } from '/src/ui/topbar.js';
+import { ModelResizerOverlay } from '/src/ui/model-resizer-overlay.js';
+import { TerrainModal } from '/src/ui/terrain-modal.js';
 import { prepareGame } from '/src/runtime/prepare-game.js';
 let checks = 0, report;
 const check = (value, message) => { if (!value) throw new Error(message); checks++; };
@@ -115,6 +117,24 @@ try {
   check(editor.exportProjectJSON() === original, 'Failure/cancellation changed the editing project');
   window.removeEventListener('message', receive);
   check(!document.body.dataset.untrustedWrite, 'Untrusted code changed parent document');
+  const resizer = new ModelResizerOverlay(document.getElementById('viewport-container'), editor);
+  const terrainModal = new TerrainModal(editor); terrainModal.open();
+  terrainModal.modal.querySelector('#terrain-size').value = '40';
+  terrainModal.modal.querySelector('#terrain-subdivs').value = '32';
+  terrainModal.modal.querySelector('#terrain-height').value = '8';
+  terrainModal.modal.querySelector('#terrain-seed').value = '1234';
+  terrainModal.modal.querySelector('#terrain-btn-generate').click();
+  const terrain = runtime.app.root.findByName('Procedural Terrain');
+  check(Boolean(terrain), 'Terrain dialog failed to place mesh: ' + document.getElementById('toast-container')?.textContent);
+  check(terrain.render.meshInstances[0].mesh.vertexBuffer.numVertices === 1089 && terrain._terrainData.heights.length === 33, 'Terrain is a primitive block instead of the requested height grid');
+  const bounds = resizer.getModelBounds(terrain);
+  check(Math.abs(bounds.halfExtents.x * 2 - 40) < 0.001 && Math.abs(bounds.halfExtents.z * 2 - 40) < 0.001 && bounds.halfExtents.y > 0.1, 'Terrain bounds do not show a full elevated surface');
+  check(terrain.collision.type === 'mesh' && terrain.rigidbody.type === 'static' && editor.selection.getActive() === terrain && !terrainModal.isOpen, 'Terrain collision/selection/modal did not finish');
+  const collisionHelper = runtime.visualHelpers.helperEntity.findByName('CollisionGizmo');
+  check(collisionHelper.render.meshInstances[0].mesh === terrain.render.meshInstances[0].mesh && collisionHelper.render.meshInstances[0].renderStyle === 1, 'Terrain collision helper substituted a solid block');
+  check(runtime.editorCamera.distance >= 60, 'Camera did not frame the full terrain');
+  editor.commandBus.undo(); check(!terrain.parent, 'Terrain undo did not remove the mesh');
+  editor.commandBus.redo(); check(terrain.parent === runtime.app.root && resizer.getModelBounds(terrain).halfExtents.x > 19, 'Terrain redo did not restore the full mesh');
   runtime.app.destroy(); report = { ok: true, checks };
 
 } catch (error) { report = { ok: false, checks, error: error.message, stack: error.stack }; }

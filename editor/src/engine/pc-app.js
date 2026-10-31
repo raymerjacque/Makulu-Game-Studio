@@ -963,7 +963,13 @@ export class ComponentVisualHelpers {
         colEntity.setLocalScale(half.x * 2, half.y * 2, half.z * 2);
       }
 
-      colEntity.addComponent('render', { type: meshType, material: mat });
+      if (col.type === 'mesh' && col.model?.meshInstances?.length) {
+        colEntity.setLocalScale(active.getWorldTransform().getScale());
+        colEntity.addComponent('render', { meshInstances: col.model.meshInstances.map(source => new pc.MeshInstance(source.mesh, mat, colEntity)) });
+      } else colEntity.addComponent('render', { type: meshType, material: mat });
+      // Wireframe is a mesh-instance render style in this engine version, not a material flag.
+      colEntity.render.meshInstances.forEach(instance => { instance.renderStyle = pc.RENDERSTYLE_WIREFRAME; });
+      colEntity.once('destroy', () => mat.destroy());
       this.helperEntity.addChild(colEntity);
     }
 
