@@ -5,7 +5,7 @@
       "name": "Scene hierarchy and transforms",
       "status": "partial",
       "editor": "Selection, creation, parenting, transforms and gizmos exist.",
-      "persistence": "World/local reconstruction and field completeness need repair.",
+      "persistence": "Local transforms and entity IDs now round-trip; full component coverage and name-reference migration remain pending.",
       "export": "Separate generated loader; parity unverified.",
       "next": "Round-trip nested transforms; validate parenting and undo.",
       "evidence": [
@@ -13,7 +13,7 @@
         "editor/src/engine/pc-app.js",
         "editor/src/ui/hierarchy.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Project round-trip tests exercise nested transformed entities and generated-game scene reconstruction."
     },
     {
       "id": "modes",
@@ -33,16 +33,16 @@
     {
       "id": "project-save",
       "name": "Complete project save/open",
-      "status": "broken",
-      "editor": "Active-scene JSON export/import is wired.",
-      "persistence": "Scene collection omitted; script registry exported but not restored.",
-      "export": "Not an editable project package.",
-      "next": "Versioned full-project format with round-trip fixtures.",
+      "status": "partial",
+      "editor": "Versioned full-project Save/Open is wired; legacy scene import is supported.",
+      "persistence": "All scenes, shared script source, IDs, selected settings, asset/prefab records and supported scene data round-trip.",
+      "export": "Editable JSON document; not yet a complete offline dependency archive.",
+      "next": "Await asset readiness; complete remaining component/resource fields and durable recovery.",
       "evidence": [
         "editor/src/core/editor.js",
         "editor/src/ui/topbar.js"
       ],
-      "proof": "Previous targeted check reproduced one saved script becoming zero restored scripts; source still lacks script restoration."
+      "proof": "Fresh-editor multi-scene round trips and invalid-import preservation pass in project-document tests."
     },
     {
       "id": "recovery",
@@ -63,14 +63,14 @@
       "name": "Multiple scenes",
       "status": "partial",
       "editor": "In-memory create/switch/rename/duplicate/delete exists.",
-      "persistence": "All scenes are not packaged by active-scene export.",
+      "persistence": "Scene collection, active scene and stable scene IDs persist in the new project format.",
       "export": "Exporter reads active scene; full scene delivery unresolved.",
-      "next": "Persist scene collection and verify transitions after restart/export.",
+      "next": "Certify runtime transitions and delivery of every scene; migrate name references.",
       "evidence": [
         "editor/src/core/editor.js",
         "editor/src/compiler/game-bundler.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Project tests reopen and switch scenes, retain global scripts and check rename/duplicate identity."
     },
     {
       "id": "undo",
@@ -106,9 +106,9 @@
       "name": "GLB models and animation",
       "status": "partial",
       "editor": "Bundled model catalog and GLB loading/animation setup exist.",
-      "persistence": "Model URL reload and generated children need ownership/duplication tests.",
+      "persistence": "Generated instance children excluded; completed local-import aliases can persist as embedded model URLs.",
       "export": "Referenced paths and model resources need portable collection.",
-      "next": "Reopen and export animated model with all textures offline.",
+      "next": "Await load readiness and verify animated/textured models with every dependency offline.",
       "evidence": [
         "editor/src/store/model-store.js",
         "editor/src/core/editor.js",
@@ -151,7 +151,7 @@
       "name": "Reusable prefabs",
       "status": "partial",
       "editor": "Prefab creation and instantiation exist.",
-      "persistence": "Prefab map is not part of scene document; tree/reference completeness unverified.",
+      "persistence": "Prefab library records now persist in the project document; complete prefab tree/reference semantics remain unverified.",
       "export": "Not a portable prefab project library.",
       "next": "Recursive instances, stable references and project persistence.",
       "evidence": [
@@ -165,7 +165,7 @@
       "name": "Physics and joints",
       "status": "partial",
       "editor": "Component/constraint interfaces and custom helpers exist.",
-      "persistence": "Box extents omitted; some joint data treated as virtual component.",
+      "persistence": "Collision half-extents and zero mass/friction/restitution now round-trip; complete joint fields and semantics remain unverified.",
       "export": "Exporter loads Ammo externally; editor setup differs.",
       "next": "Explicit shared physics initialization and constraint scenarios.",
       "evidence": [
@@ -174,7 +174,7 @@
         "editor/src/engine/pc-app.js",
         "editor/src/compiler/game-bundler.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Real Collision/RigidBody/Script systems with NullGraphicsDevice pass project round-trip checks."
     },
     {
       "id": "audio",
@@ -196,16 +196,16 @@
       "name": "Custom script lifecycle",
       "status": "partial",
       "editor": "Code editor, registry and attributes exist.",
-      "persistence": "Saved scripts are not restored by current loader; bindings incomplete.",
+      "persistence": "Shared script source and script attribute data now restore and survive scene switching.",
       "export": "Runtime injects registered script code; isolation/parity not certified.",
-      "next": "Restore scripts/bindings and isolate lifecycle execution.",
+      "next": "Certify script attachment/activation lifecycle and isolate generated execution.",
       "evidence": [
         "editor/src/ui/code-editor.js",
         "editor/src/core/script-attributes.js",
         "editor/src/core/editor.js",
         "editor/src/compiler/game-bundler.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Project and legacy import tests restore source without evaluating it; component attribute round-trip is tested."
     },
     {
       "id": "timeline",
@@ -369,7 +369,7 @@
       "name": "Desktop distribution",
       "status": "partial",
       "editor": "Electron shell and Linux build configuration exist.",
-      "persistence": "Desktop file adapter and recovery still need implementation.",
+      "persistence": "Browser project-file download/open exists; atomic desktop saves and recovery remain pending.",
       "export": "Release artifacts are ignored generated output.",
       "next": "Clean install and packaged workflow support matrix.",
       "evidence": [
@@ -435,7 +435,7 @@
     },
     "generate_script": {
       "status": "partial",
-      "notes": "Registers code in memory; current scene loader does not restore the saved script registry."
+      "notes": "Registers code in the shared script library; source now persists, but full attachment/activation and isolation are not certified."
     },
     "create_shader_graph": {
       "status": "partial",
@@ -481,7 +481,11 @@
     },
     "topbar": {
       "status": "partial",
-      "notes": "File/mode/play controls are wired; active-scene export and non-isolated play are known foundation gaps."
+      "notes": "Full-project Save/Open replaces active-scene-only file workflow; isolated play, resource readiness and recovery remain pending."
+    },
+    "assets": {
+      "status": "partial",
+      "notes": "Asset records and completed local-import bytes persist; imported labels render as text. Complete dependency packaging remains pending."
     }
   }
 }

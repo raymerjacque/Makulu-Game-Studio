@@ -3,6 +3,7 @@ import { CommandBus, Command } from './command-bus.js';
 import { SelectionManager } from './selection.js';
 import { PrefabSystem } from './prefabs.js';
 import { TriggerSystem } from './triggers.js';
+import { PROJECT_FORMAT, PROJECT_VERSION, newDocumentId, parseProjectDocument, validateSceneData, serializeAssetRegistry } from '../project/project-document.js';
 
 /**
  * Simple Event Emitter
@@ -38,6 +39,10 @@ export class Editor {
     this.runtime = null;
     this.root = new pc.Entity('Root');
     this.projectName = 'Untitled Project';
+    this.projectId = newDocumentId();
+    this.sceneIds = new Map([['Main Scene', newDocumentId()]]);
+    this.projectAssets = [];
+    this.lastProjectError = null;
     this.activeSceneName = 'Main Scene';
     this.scenes = new Map([[this.activeSceneName, null]]); // sceneName -> json string
 
@@ -61,6 +66,7 @@ export class Editor {
       keys: { enabled: true },
       jetpack: { enabled: true }
     };
+    this.defaultHudConfig = JSON.parse(JSON.stringify(this.hudConfig));
   }
 
   setRuntime(runtime) {
@@ -191,6 +197,7 @@ export class Editor {
         rootEntity.setPosition(...position);
         rootEntity.setEulerAngles(...rotation);
         rootEntity.setLocalScale(...scale);
+        modelEntity._studioModelInstance = true;
         rootEntity.addChild(modelEntity);
 
         // Auto-configure skeletal animations if present in GLB container
@@ -488,6 +495,81 @@ export class Editor {
     this.commandBus.execute(command);
   }
 
+  /** Editable project document; exported games continue using the scene API. */
+  exportProjectJSON() {
+    if (this.isPlaying) throw new Error('Stop the play session before saving the editable project.');
+    const active = JSON.parse(this.exportSceneJSON());
+    const snapshots = new Map(this.scenes);
+    snapshots.set(this.activeSceneName, JSON.stringify(active));
+    const assets = serializeAssetRegistry(this.assetsPanel?.assets || this.projectAssets);
+    const aliases = new Map((this.assetsPanel?.assets || this.projectAssets)
+      .filter(asset => asset.sourceUrl && asset.base64Data).map(asset => [asset.sourceUrl, asset.base64Data]));
+    const portableReferences = value => {
+      if (!value || typeof value !== 'object') return;
+      for (const [key, child] of Object.entries(value)) {
+        if (['modelUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl', 'url'].includes(key) && typeof child === 'string') {
+          if (aliases.has(child)) value[key] = aliases.get(child);
+          else if (child.startsWith('blob:')) throw new Error('A temporary asset reference is not ready to save. Finish importing it first.');
+        } else portableReferences(child);
+      }
+    };
+    const scripts = Object.fromEntries(this.scripts);
+    const scenes = [...snapshots].map(([name, snapshot]) => {
+      const data = typeof snapshot === 'string' ? JSON.parse(snapshot) : snapshot;
+      if (!data) throw new Error(`Scene ${name} has no saved content.`);
+      data.scene = name;
+      delete data.scripts; // Script source belongs to the authoritative project-wide registry.
+      if (!this.sceneIds.has(name)) this.sceneIds.set(name, newDocumentId());
+      return { id: this.sceneIds.get(name), name, data };
+    });
+    const settings = {};
+    for (const key of ['shadowResolution', 'clusteredLightingSettings', 'audioVolumes', 'textureCompressionSettings']) {
+      if (this[key] !== undefined) settings[key] = this[key];
+    }
+    const document = {
+      format: PROJECT_FORMAT, schemaVersion: PROJECT_VERSION, id: this.projectId,
+      name: this.projectName, engineVersion: pc.version,
+      activeSceneId: this.sceneIds.get(this.activeSceneName), scenes, scripts, assets,
+      prefabs: [...this.prefabs.prefabs].map(([id, data]) => ({ id, data })), settings
+    };
+    portableReferences(document);
+    return JSON.stringify(parseProjectDocument(document), null, 2);
+  }
+
+  /** Validate every scene before replacing the current project. Does not execute imported scripts. */
+  loadProjectJSON(input) {
+    try {
+      if (this.isPlaying) throw new Error('Stop the play session before opening a project.');
+      const document = parseProjectDocument(input);
+      const active = document.scenes.find(scene => scene.id === document.activeSceneId);
+      if (!this.loadSceneJSON(active.data)) throw new Error(this.lastProjectError || 'Could not restore the active scene.');
+      this.projectId = document.id;
+      this.projectName = document.name;
+      this.activeSceneName = active.name;
+      this.scenes = new Map(document.scenes.map(scene => [scene.name, JSON.stringify({ ...scene.data, scene: scene.name })]));
+      this.sceneIds = new Map(document.scenes.map(scene => [scene.name, scene.id]));
+      this.scripts = new Map(Object.entries(document.scripts));
+      this.projectAssets = document.assets;
+      this.prefabs.prefabs = new Map(document.prefabs.map(prefab => [prefab.id, prefab.data]));
+      for (const key of ['shadowResolution', 'clusteredLightingSettings', 'audioVolumes', 'textureCompressionSettings']) {
+        this[key] = document.settings[key] ?? (key === 'textureCompressionSettings' ? active.data.textureCompression : undefined);
+      }
+      if (this.assetsPanel) {
+        this.assetsPanel.assets = document.assets;
+        this.assetsPanel.renderAssetCards();
+      }
+      this.commandBus.clear();
+      this.lastProjectError = null;
+      this.events.emit('scene:list:changed', [...this.scenes.keys()]);
+      this.events.emit('project:loaded', document);
+      return true;
+    } catch (err) {
+      this.lastProjectError = err.message;
+      this.events.emit('project:load:error', err.message);
+      return false;
+    }
+  }
+
   /**
    * Save Scene to JSON
    */
@@ -500,13 +582,18 @@ export class Editor {
         name: node.name,
         enabled: node.enabled,
         locked: Boolean(node.locked),
-        tags: Array.from(node.tags || []),
+        tags: node.tags?.list ? node.tags.list() : Array.from(node.tags || []),
+        id: node._studioId || (node._studioId = newDocumentId()),
+        localPosition: [node.getLocalPosition().x, node.getLocalPosition().y, node.getLocalPosition().z],
+        localRotation: [node.getLocalEulerAngles().x, node.getLocalEulerAngles().y, node.getLocalEulerAngles().z],
         position: [node.getPosition().x, node.getPosition().y, node.getPosition().z],
         rotation: [node.getEulerAngles().x, node.getEulerAngles().y, node.getEulerAngles().z],
         scale: [node.getLocalScale().x, node.getLocalScale().y, node.getLocalScale().z],
         components: {},
         children: []
       };
+
+      if (node.scriptData) data.scriptData = node.scriptData;
 
       if (node._modelUrl) {
         data.modelUrl = node._modelUrl;
@@ -551,7 +638,8 @@ export class Editor {
         data.components.collision = {
           type: node.collision.type || 'box',
           radius: node.collision.radius || 0.5,
-          height: node.collision.height || 2,
+          height: node.collision.height ?? 2,
+          halfExtents: node.collision.halfExtents ? [node.collision.halfExtents.x, node.collision.halfExtents.y, node.collision.halfExtents.z] : [0.5, 0.5, 0.5],
           group: node.collision.group !== undefined ? node.collision.group : 1,
           mask: node.collision.mask !== undefined ? node.collision.mask : 65535
         };
@@ -559,7 +647,7 @@ export class Editor {
       if (node.rigidbody) {
         data.components.rigidbody = {
           type: node.rigidbody.type || 'static',
-          mass: node.rigidbody.mass || 1,
+          mass: node.rigidbody.mass ?? 1,
           restitution: node.rigidbody.restitution !== undefined ? node.rigidbody.restitution : 0.5,
           friction: node.rigidbody.friction !== undefined ? node.rigidbody.friction : 0.5,
           group: node.rigidbody.group !== undefined ? node.rigidbody.group : 1,
@@ -617,7 +705,7 @@ export class Editor {
       }
 
       node.children.forEach(child => {
-        if (child.name !== 'EditorGrid' && child.name !== 'EditorCamera') {
+        if (child.name !== 'EditorGrid' && child.name !== 'EditorCamera' && !child._studioModelInstance) {
           data.children.push(serializeNode(child));
         }
       });
@@ -643,6 +731,7 @@ export class Editor {
 
     const rootNode = app ? app.root : this.root;
     const sceneData = {
+      sceneFormatVersion: 1,
       project: this.projectName,
       scene: this.activeSceneName,
       atmosphere: this.runtime ? this.runtime.currentAtmosphere || 'day' : 'day',
@@ -662,46 +751,42 @@ export class Editor {
   /**
    * Import and Deserialize Scene JSON
    */
-  loadSceneJSON(jsonData) {
+  loadSceneJSON(jsonData, { restoreScripts = true, restoreProjectName = true } = {}) {
+    const staging = new pc.Entity('SceneImportStaging');
+    const loadToken = {};
+    const loadState = { committed: false, abandoned: false };
+    const isCurrentLoad = () => !loadState.abandoned && (!loadState.committed || loadToken === this._sceneLoadToken);
     try {
       const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
-      if (data.project) this.projectName = data.project;
-      if (data.scene) this.activeSceneName = data.scene;
-      if (data.hud) this.hudConfig = data.hud;
-      if (data.postProcessing) this.postProcessingConfig = data.postProcessing;
-      if (data.textureCompression) this.textureCompressionSettings = data.textureCompression;
-      if (data.animGraph) this.animGraph = data.animGraph;
-
+      validateSceneData(data);
       const app = this.getApp();
       const appRoot = app ? app.root : this.root;
       if (!appRoot) return true;
 
-      // Clear existing user entities (keep EditorGrid and EditorCamera)
-      const toRemove = [];
-      appRoot.children.forEach(c => {
-        if (c.name !== 'EditorGrid' && c.name !== 'EditorCamera') {
-          toRemove.push(c);
-        }
-      });
-      toRemove.forEach(c => appRoot.removeChild(c));
-
       const buildNode = (nodeData, parent) => {
         const ent = new pc.Entity(nodeData.name);
         ent.locked = Boolean(nodeData.locked);
+        ent._studioId = nodeData.id || newDocumentId();
         ent.tags = nodeData.tags || [];
-        if (nodeData.position) ent.setPosition(...nodeData.position);
-        if (nodeData.rotation) ent.setEulerAngles(...nodeData.rotation);
+        parent.addChild(ent);
+        if (nodeData.localPosition) ent.setLocalPosition(...nodeData.localPosition);
+        else if (nodeData.position) ent.setPosition(...nodeData.position);
+        if (nodeData.localRotation) ent.setLocalEulerAngles(...nodeData.localRotation);
+        else if (nodeData.rotation) ent.setEulerAngles(...nodeData.rotation);
+        if (nodeData.scriptData) ent.scriptData = nodeData.scriptData;
         if (nodeData.scale) ent.setLocalScale(...nodeData.scale);
         ent.enabled = nodeData.enabled !== false;
 
         if (nodeData.modelUrl) {
           ent._modelUrl = nodeData.modelUrl;
-          app.assets.loadFromUrl(nodeData.modelUrl, 'container', (err, asset) => {
+          if (app?.assets) app.assets.loadFromUrl(nodeData.modelUrl, 'container', (err, asset) => {
+            if (!isCurrentLoad()) return;
             if (!err && asset && asset.resource) {
               const modelEntity = asset.resource.instantiateRenderEntity({
                 castShadows: true,
                 receiveShadows: true
               });
+              modelEntity._studioModelInstance = true;
               ent.addChild(modelEntity);
 
               if (asset.resource.animations && asset.resource.animations.length > 0) {
@@ -735,9 +820,9 @@ export class Editor {
               if (matData.roughnessMapUrl) mat._roughnessMapUrl = matData.roughnessMapUrl;
               if (matData.emissiveMapUrl) mat._emissiveMapUrl = matData.emissiveMapUrl;
 
-              if (app.assets && matData.normalMapUrl) {
+              if (app?.assets && matData.normalMapUrl) {
                 app.assets.loadFromUrl(matData.normalMapUrl, 'texture', (err, texAsset) => {
-                  if (!err && texAsset) { mat.normalMap = texAsset.resource; mat.update(); }
+                  if (isCurrentLoad() && !err && texAsset) { mat.normalMap = texAsset.resource; mat.update(); }
                 });
               }
               mat.update();
@@ -766,7 +851,8 @@ export class Editor {
             ent.addComponent('collision', {
               type: col.type || 'box',
               radius: col.radius || 0.5,
-              height: col.height || 2
+              height: col.height ?? 2,
+              halfExtents: col.halfExtents ? new pc.Vec3(...col.halfExtents) : new pc.Vec3(0.5, 0.5, 0.5)
             });
             if (col.group !== undefined) ent.collision.group = col.group;
             if (col.mask !== undefined) ent.collision.mask = col.mask;
@@ -775,9 +861,9 @@ export class Editor {
             const rb = nodeData.components.rigidbody;
             ent.addComponent('rigidbody', {
               type: rb.type || 'static',
-              mass: rb.mass || 1,
-              restitution: rb.restitution || 0.5,
-              friction: rb.friction || 0.5,
+              mass: rb.mass ?? 1,
+              restitution: rb.restitution ?? 0.5,
+              friction: rb.friction ?? 0.5,
               linearFactor: rb.linearFactor ? new pc.Vec3(...rb.linearFactor) : new pc.Vec3(1, 1, 1),
               angularFactor: rb.angularFactor ? new pc.Vec3(...rb.angularFactor) : new pc.Vec3(1, 1, 1)
             });
@@ -835,8 +921,6 @@ export class Editor {
           });
         }
 
-        parent.addChild(ent);
-
         if (nodeData.children) {
           nodeData.children.forEach(childData => buildNode(childData, ent));
         }
@@ -845,8 +929,30 @@ export class Editor {
       };
 
       if (data.root && data.root.children) {
-        data.root.children.forEach(childData => buildNode(childData, appRoot));
+        data.root.children.forEach(childData => buildNode(childData, staging));
       }
+
+      // Commit only after the complete hierarchy has been constructed successfully.
+      this._sceneLoadToken = loadToken;
+      loadState.committed = true;
+      const toRemove = appRoot.children.filter(c => c.name !== 'EditorGrid' && c.name !== 'EditorCamera');
+      const forgetBehaviors = node => {
+        this.behaviors?.activeBehaviors?.delete(node);
+        node.children.forEach(forgetBehaviors);
+      };
+      toRemove.forEach(node => { forgetBehaviors(node); node.destroy(); });
+      [...staging.children].forEach(node => appRoot.addChild(node));
+      staging.destroy();
+      if (restoreProjectName && data.project) this.projectName = data.project;
+      if (data.scene) this.activeSceneName = data.scene;
+      this.hudConfig = data.hud || JSON.parse(JSON.stringify(this.defaultHudConfig));
+      this.postProcessingConfig = data.postProcessing || null;
+      this.textureCompressionSettings = data.textureCompression || { targetFormat: 'auto', qualityLevel: 'normal', maxAnisotropy: 4, generateMipmaps: true };
+      this.animGraph = data.animGraph || null;
+      appRoot._studioId = data.root.id || newDocumentId();
+
+      if (restoreScripts) this.scripts = new Map(Object.entries(data.scripts || {}));
+      this.lastProjectError = null;
 
       // Restore atmosphere
       if (data.atmosphere && this.runtime && this.runtime.setAtmosphere) {
@@ -873,7 +979,12 @@ export class Editor {
       this.events.emit('scene:changed');
       return true;
     } catch (err) {
-      console.error('Editor: Failed to load scene JSON:', err);
+      loadState.abandoned = true;
+      const discard = node => { this.behaviors?.activeBehaviors?.delete(node); node.children.forEach(discard); };
+      discard(staging);
+      staging.destroy();
+      this.lastProjectError = err.message;
+      console.error('Editor: Failed to load scene JSON:', err.message);
       return false;
     }
   }
@@ -883,54 +994,42 @@ export class Editor {
    */
   switchScene(sceneName) {
     if (!sceneName || sceneName === this.activeSceneName) return;
-
-    // 1. Snapshot and store the outgoing scene state
-    const currentSceneJSON = this.exportSceneJSON();
-    this.scenes.set(this.activeSceneName, currentSceneJSON);
-
-    // 2. Load target scene if previously stored
-    if (this.scenes.has(sceneName)) {
-      this.loadSceneJSON(this.scenes.get(sceneName));
-      this.activeSceneName = sceneName;
-    } else {
-      // Create new clean scene
-      this.activeSceneName = sceneName;
-      const app = this.getApp();
-      if (app && app.root) {
-        const toRemove = [];
-        app.root.children.forEach(c => {
-          if (c.name !== 'EditorGrid' && c.name !== 'EditorCamera') {
-            toRemove.push(c);
-          }
-        });
-        toRemove.forEach(c => app.root.removeChild(c));
-        this.selection.clear();
-        this.events.emit('scene:changed');
-      }
-      this.scenes.set(sceneName, this.exportSceneJSON());
-    }
-    this.events.emit('scene:list:changed', Array.from(this.scenes.keys()));
+    const outgoing = this.exportSceneJSON();
+    const destination = this.scenes.get(sceneName) || JSON.stringify({
+      sceneFormatVersion: 1, project: this.projectName, scene: sceneName,
+      root: { name: 'Root', children: [] }, scripts: Object.fromEntries(this.scripts)
+    });
+    const compression = this.textureCompressionSettings;
+    if (!this.loadSceneJSON(destination, { restoreScripts: false, restoreProjectName: false })) return false;
+    if (compression !== undefined) this.textureCompressionSettings = compression;
+    // The snapshot may contain an old name after a rename or duplication.
+    const outgoingName = JSON.parse(outgoing).scene;
+    this.scenes.set(outgoingName, outgoing);
+    this.activeSceneName = sceneName;
+    if (!this.sceneIds.has(sceneName)) this.sceneIds.set(sceneName, newDocumentId());
+    this.scenes.set(sceneName, this.exportSceneJSON());
+    this.commandBus.clear();
+    this.events.emit('scene:list:changed', [...this.scenes.keys()]);
+    return true;
   }
 
   /**
    * Delete scene by name
    */
   deleteScene(sceneName) {
-    if (!sceneName || this.scenes.size <= 1) return false;
-    if (!this.scenes.has(sceneName)) return false;
-
-    this.scenes.delete(sceneName);
-
+    if (!sceneName || this.scenes.size <= 1 || !this.scenes.has(sceneName)) return false;
     if (this.activeSceneName === sceneName) {
-      const remainingNames = Array.from(this.scenes.keys());
-      const nextScene = remainingNames[0];
+      const nextScene = [...this.scenes.keys()].find(name => name !== sceneName);
+      const snapshot = this.scenes.get(nextScene);
+      const compression = this.textureCompressionSettings;
+      if (!snapshot || !this.loadSceneJSON(snapshot, { restoreScripts: false, restoreProjectName: false })) return false;
+      if (compression !== undefined) this.textureCompressionSettings = compression;
       this.activeSceneName = nextScene;
-      if (this.scenes.get(nextScene)) {
-        this.loadSceneJSON(this.scenes.get(nextScene));
-      }
+      this.commandBus.clear();
     }
-
-    this.events.emit('scene:list:changed', Array.from(this.scenes.keys()));
+    this.scenes.delete(sceneName);
+    this.sceneIds.delete(sceneName);
+    this.events.emit('scene:list:changed', [...this.scenes.keys()]);
     return true;
   }
 
@@ -939,11 +1038,14 @@ export class Editor {
    */
   renameScene(oldName, newName) {
     if (!oldName || !newName || oldName === newName) return false;
-    if (!this.scenes.has(oldName)) return false;
+    if (!this.scenes.has(oldName) || this.scenes.has(newName)) return false;
 
     const data = this.scenes.get(oldName);
     this.scenes.delete(oldName);
     this.scenes.set(newName, data);
+    const id = this.sceneIds.get(oldName) || newDocumentId();
+    this.sceneIds.delete(oldName);
+    this.sceneIds.set(newName, id);
 
     if (this.activeSceneName === oldName) {
       this.activeSceneName = newName;
@@ -958,11 +1060,18 @@ export class Editor {
    */
   duplicateScene(sceneName) {
     const target = sceneName || this.activeSceneName;
+    if (!this.scenes.has(target)) return null;
     const json = (target === this.activeSceneName) ? this.exportSceneJSON() : (this.scenes.get(target) || '{}');
-    const newName = `${target}_Copy`;
+    let newName = `${target}_Copy`;
+    let suffix = 2;
+    while (this.scenes.has(newName)) newName = `${target}_Copy_${suffix++}`;
 
     this.scenes.set(newName, json);
-    this.switchScene(newName);
+    if (!this.switchScene(newName)) {
+      this.scenes.delete(newName);
+      this.sceneIds.delete(newName);
+      return null;
+    }
     return newName;
   }
 }

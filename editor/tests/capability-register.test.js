@@ -46,9 +46,10 @@ test('known no-op and missing persistence outcomes remain visible release blocke
   for (const id of ['consult_skill', 'open_tool_modal', 'create_flow_graph']) {
     assert.equal(register.aiActions.find(item => item.id === id)?.status, 'broken', id);
   }
-  for (const id of ['project-save', 'publish', 'graphs']) {
+  for (const id of ['publish', 'graphs']) {
     assert.equal(register.features.find(item => item.id === id)?.status, 'broken', id);
   }
+  assert.equal(register.features.find(item => item.id === 'project-save')?.status, 'partial');
   assert.ok(register.gaps.actionsMissingFromPrompt.length > 0);
   assert.equal(register.features.find(item => item.id === 'complete-game-runner')?.status, 'absent');
 });

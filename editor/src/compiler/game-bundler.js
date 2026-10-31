@@ -550,8 +550,11 @@ export class GameBundler {
     // Build Scene Graph from Exported Data
     function buildNode(data, parent) {
       const ent = new pc.Entity(data.name);
-      if (data.position) ent.setPosition(...data.position);
-      if (data.rotation) ent.setEulerAngles(...data.rotation);
+      parent.addChild(ent);
+      if (data.localPosition) ent.setLocalPosition(...data.localPosition);
+      else if (data.position) ent.setPosition(...data.position);
+      if (data.localRotation) ent.setLocalEulerAngles(...data.localRotation);
+      else if (data.rotation) ent.setEulerAngles(...data.rotation);
       if (data.scale) ent.setLocalScale(...data.scale);
       ent.enabled = data.enabled !== false;
 
@@ -671,7 +674,8 @@ export class GameBundler {
         ent.addComponent('collision', {
           type: col.type || 'box',
           radius: col.radius || 0.5,
-          height: col.height || 2
+          height: col.height ?? 2,
+          halfExtents: col.halfExtents ? new pc.Vec3(...col.halfExtents) : new pc.Vec3(0.5, 0.5, 0.5)
         });
       }
 
@@ -680,9 +684,9 @@ export class GameBundler {
         const rb = data.components.rigidbody;
         ent.addComponent('rigidbody', {
           type: rb.type || 'static',
-          mass: rb.mass || 1,
-          restitution: rb.restitution || 0.5,
-          friction: rb.friction || 0.5,
+          mass: rb.mass ?? 1,
+          restitution: rb.restitution ?? 0.5,
+          friction: rb.friction ?? 0.5,
           linearFactor: rb.linearFactor ? new pc.Vec3(...rb.linearFactor) : new pc.Vec3(1, 1, 1),
           angularFactor: rb.angularFactor ? new pc.Vec3(...rb.angularFactor) : new pc.Vec3(1, 1, 1)
         });
@@ -744,8 +748,6 @@ export class GameBundler {
       if (data.behaviors) {
         ent._behaviors = data.behaviors;
       }
-
-      parent.addChild(ent);
 
       if (data.children) {
         data.children.forEach(child => buildNode(child, ent));

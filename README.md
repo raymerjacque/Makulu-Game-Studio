@@ -838,3 +838,20 @@ npm run audit:capabilities:check
 Reviewed findings live in `docs/capabilities/reviews.json`. The generated
 `register.json` is an inventory, not an executable AI tool schema. The regression
 suite checks that generated artifacts remain synchronized with source and reviews.
+
+
+## Editable project saving — version 1
+
+File → Save Project (JSON) now saves every scene, the active scene, shared script
+source, persistent scene/entity identities, selected project settings, asset
+records and prefab-library records. File → Open Project / Scene accepts these
+files and older single-scene JSON. Invalid structure and unsupported versions are
+rejected before replacement; active hierarchy construction is staged.
+
+Nested transforms, collision box sizes and zero-valued physics properties have
+round-trip checks. Completed local-import bytes can replace temporary model URLs;
+unresolved imports block saving. This is not yet a complete offline archive: some
+resources remain relative/remote references, and autosave/recovery, asynchronous
+load readiness and complete component coverage remain pending. Stop play before
+saving/opening an editable project. See [the format contract](docs/project-format.md)
+and [roadmap progress](roadmap.html#progress).

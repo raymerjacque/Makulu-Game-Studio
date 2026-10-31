@@ -58,10 +58,10 @@ export class TopBar {
             <button class="topbar-menu-btn" data-menu="file">File ▾</button>
             <div class="topbar-dropdown-menu" id="menu-file">
               <div class="topbar-dropdown-item" id="menu-action-import">
-                <span class="item-label">📂 Import Project (JSON)...</span>
+                <span class="item-label">📂 Open Project / Scene...</span>
               </div>
               <div class="topbar-dropdown-item" id="menu-action-export">
-                <span class="item-label">💾 Export Project (JSON)...</span>
+                <span class="item-label">💾 Save Project (JSON)...</span>
               </div>
               <div class="topbar-dropdown-item" id="menu-action-export-html">
                 <span class="item-label">🌐 Export Standalone HTML5 Game...</span>
@@ -360,13 +360,14 @@ export class TopBar {
           if (file) {
             const reader = new FileReader();
             reader.onload = (event) => {
-              const success = this.editor.loadSceneJSON(event.target.result);
+              const success = this.editor.loadProjectJSON(event.target.result);
               if (success) {
-                showToast(`✨ Loaded scene from "${file.name}"!`, 'success');
+                showToast(`✨ Loaded project data from "${file.name}"!`, 'success');
               } else {
-                showToast(`Failed to parse scene JSON from "${file.name}"`, 'error');
+                showToast(this.editor.lastProjectError || `Could not open "${file.name}"`, 'error');
               }
             };
+            reader.onerror = () => showToast('Could not read the project file. Your current project is unchanged.', 'error');
             reader.readAsText(file);
           }
         };
@@ -378,15 +379,19 @@ export class TopBar {
     const exportItem = this.container.querySelector('#menu-action-export');
     if (exportItem) {
       exportItem.addEventListener('click', () => {
-        const json = this.editor.exportSceneJSON();
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${this.editor.projectName.replace(/\s+/g, '_')}_scene.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('💾 Scene exported to JSON file', 'success');
+        try {
+          const json = this.editor.exportProjectJSON();
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${this.editor.projectName.replace(/\s+/g, '_')}_project.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('💾 Project downloaded with all scenes and script source', 'success');
+        } catch (err) {
+          showToast(err.message || 'Could not save the project.', 'error');
+        }
       });
     }
 

@@ -128,11 +128,17 @@ export class AssetsPanel {
       const card = document.createElement('div');
       card.className = 'asset-card';
       card.draggable = true;
-      card.innerHTML = `
-        <div class="asset-preview">${asset.icon}</div>
-        <div class="asset-title" title="${asset.name}">${asset.name}</div>
-        <div style="font-size: 9px; color: var(--text-muted);">${asset.size}</div>
-      `;
+      const preview = document.createElement('div');
+      preview.className = 'asset-preview';
+      preview.textContent = asset.icon || '📄';
+      const title = document.createElement('div');
+      title.className = 'asset-title';
+      title.title = asset.name;
+      title.textContent = asset.name;
+      const size = document.createElement('div');
+      size.style.cssText = 'font-size: 9px; color: var(--text-muted);';
+      size.textContent = asset.size || '';
+      card.append(preview, title, size);
 
       // Drag to 3D Viewport
       card.addEventListener('dragstart', (e) => {
@@ -387,6 +393,7 @@ export class AssetsPanel {
       icon: icon,
       size: `${sizeKb} KB`,
       url: blobUrl,
+      sourceUrl: blobUrl,
       file: file,
       base64Data: null
     };
