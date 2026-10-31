@@ -1,1151 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MakuluLinux Game Studio — Master Architecture & Development Roadmap</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-base: #0c0f12;
-            --bg-surface: #14191f;
-            --bg-card: #1c222a;
-            --bg-card-hover: #232b35;
-            --border-subtle: #29323d;
-            --border-highlight: #ff6600;
-            --text-primary: #f0f4f8;
-            --text-secondary: #9aa7b5;
-            --text-muted: #5e6b78;
-            --accent-orange: #ff6600;
-            --accent-orange-glow: rgba(255, 102, 0, 0.25);
-            --accent-blue: #0099ff;
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-red: #ef4444;
-            --sidebar-w: 280px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            line-height: 1.65;
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar Navigation */
-        #nav-sidebar {
-            width: var(--sidebar-w);
-            background: var(--bg-surface);
-            border-right: 1px solid var(--border-subtle);
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            overflow-y: auto;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            flex-shrink: 0;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .brand-badge {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent-orange), #ff3300);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: #fff;
-            box-shadow: 0 4px 14px var(--accent-orange-glow);
-        }
-
-        .brand-text h1 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.3px;
-        }
-
-        .brand-text span {
-            font-size: 0.75rem;
-            color: var(--accent-orange);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-group-title {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin-top: 12px;
-            padding-left: 8px;
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .nav-links a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border-left: 3px solid var(--accent-orange);
-        }
-
-        /* Main Content Container */
-        #content-container {
-            flex: 1;
-            padding: 40px 60px 100px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Hero Header */
-        .hero {
-            background: linear-gradient(180deg, rgba(255, 102, 0, 0.08) 0%, rgba(20, 25, 31, 0) 100%);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 48px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -120px;
-            right: -100px;
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle, var(--accent-orange-glow) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .hero-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 102, 0, 0.12);
-            color: var(--accent-orange);
-            border: 1px solid rgba(255, 102, 0, 0.3);
-            border-radius: 100px;
-            padding: 6px 14px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-bottom: 16px;
-        }
-
-        .hero h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.8px;
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 900px;
-            line-height: 1.7;
-        }
-
-        /* Section Layout */
-        section {
-            margin-bottom: 56px;
-            scroll-margin-top: 40px;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 24px;
-            border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 14px;
-        }
-
-        .section-number {
-            width: 34px;
-            height: 34px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--accent-orange);
-        }
-
-        .section-header h3 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            letter-spacing: -0.4px;
-        }
-
-        .lead-text {
-            color: var(--text-secondary);
-            font-size: 1.05rem;
-            margin-bottom: 24px;
-            line-height: 1.7;
-        }
-
-        /* Card Grid Layouts */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            margin: 24px 0;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 24px;
-            transition: all 0.25s ease;
-            position: relative;
-        }
-
-        .card:hover {
-            border-color: rgba(255, 102, 0, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-        }
-
-        .card-icon {
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            margin-bottom: 16px;
-        }
-
-        .card h4 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .card p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        /* Comparison Table */
-        .table-wrap {
-            overflow-x: auto;
-            margin: 24px 0;
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            background: var(--bg-surface);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-            text-align: left;
-        }
-
-        th {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            padding: 14px 18px;
-            font-weight: 700;
-            border-bottom: 1px solid var(--border-subtle);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.6px;
-        }
-
-        td {
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            vertical-align: top;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-orange { background: rgba(255, 102, 0, 0.15); color: var(--accent-orange); border: 1px solid rgba(255, 102, 0, 0.3); }
-        .badge-blue { background: rgba(0, 153, 255, 0.15); color: var(--accent-blue); border: 1px solid rgba(0, 153, 255, 0.3); }
-        .badge-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); border: 1px solid rgba(139, 92, 246, 0.3); }
-
-        /* Code Blocks */
-        pre {
-            background: #090c0f;
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: 18px 20px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            color: #d1d5db;
-            overflow-x: auto;
-            margin: 18px 0;
-            line-height: 1.6;
-        }
-
-        code {
-            font-family: 'Fira Code', monospace;
-            background: rgba(255, 255, 255, 0.06);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            color: #fca5a5;
-        }
-
-        /* Callouts */
-        .callout {
-            border-left: 4px solid var(--accent-orange);
-            background: rgba(255, 102, 0, 0.05);
-            padding: 20px 24px;
-            border-radius: 0 12px 12px 0;
-            margin: 24px 0;
-        }
-
-        .callout-blue {
-            border-left-color: var(--accent-blue);
-            background: rgba(0, 153, 255, 0.05);
-        }
-
-        .callout-purple {
-            border-left-color: var(--accent-purple);
-            background: rgba(139, 92, 246, 0.05);
-        }
-
-        .callout-title {
-            font-weight: 700;
-            font-size: 1rem;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-
-        /* Timeline Roadmap */
-        .timeline {
-            position: relative;
-            padding-left: 36px;
-            margin: 32px 0;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 12px;
-            top: 10px;
-            bottom: 10px;
-            width: 2px;
-            background: var(--border-subtle);
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 36px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -30px;
-            top: 6px;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--bg-surface);
-            border: 3px solid var(--accent-orange);
-            box-shadow: 0 0 10px var(--accent-orange-glow);
-        }
-
-        .timeline-item.done::before {
-            border-color: var(--accent-green);
-        }
-
-        .timeline-phase {
-            font-size: 0.78rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--accent-orange);
-            margin-bottom: 4px;
-        }
-
-        .timeline-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .timeline-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 10px;
-        }
-
-        .checklist {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .checklist li {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-        }
-
-        .checklist li input[type="checkbox"] {
-            accent-color: var(--accent-orange);
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Interactive Diagram Container */
-        .diagram-box {
-            background: #0d1117;
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 24px;
-            margin: 24px 0;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            color: #e6edf3;
-            line-height: 1.5;
-            white-space: pre;
-            overflow-x: auto;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Sidebar Navigation -->
-    <nav id="nav-sidebar">
-        <div class="brand">
-            <div class="brand-badge">M</div>
-            <div class="brand-text">
-                <h1>MakuluLinux</h1>
-                <span>Game Studio</span>
-            </div>
-        </div>
-
-        <div class="nav-group-title">Navigation Index</div>
-        <ul class="nav-links">
-            <li><a href="#vision" class="active">🎯 Project Vision</a></li>
-            <li><a href="#gui-architecture">🖥️ Cross-Platform GUI Tech</a></li>
-            <li><a href="#editor-layout">📐 Editor Layout & Panes</a></li>
-            <li><a href="#simple-vs-pro">🎚️ Simple Mode vs Pro Mode</a></li>
-            <li><a href="#ai-architecture">🤖 AI-First Multi-Agent Engine</a></li>
-            <li><a href="#model-library">📦 3D Model Ecosystem & Terrain</a></li>
-            <li><a href="#cloud-backend">☁️ Cloud, Databases & FastAPI</a></li>
-            <li><a href="#aaa-graphics">🌟 AAA-Grade Graphics Pipeline</a></li>
-            <li><a href="#roadmap-phases">🗺️ Phased Implementation Plan</a></li>
-        </ul>
-
-        <div style="margin-top: auto; padding: 12px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">ACTIVE ENGINE</div>
-            <div style="font-size: 0.85rem; color: var(--text-primary); font-weight: 700; margin-top: 2px;">PlayCanvas v2.24+ (Local)</div>
-            <div style="font-size: 0.75rem; color: var(--accent-orange); margin-top: 4px;">● AI Backend: Electra / Nano</div>
-        </div>
-    </nav>
-
-    <!-- Main Content Area -->
-    <main id="content-container">
-
-        <!-- Hero Section -->
-        <div class="hero">
-            <div class="hero-pill">Official Blueprint & Technical Specification</div>
-            <h2>MakuluLinux Game Studio</h2>
-            <p>
-                A high-performance, cross-platform 3D Game Engine and Next-Gen Editor built on the open-source PlayCanvas engine. Designed with a familiar, battle-tested interface for game developers, an intuitive beginner mode for newcomers, and deep autonomous AI agent integration capable of constructing scenes, writing code, and orchestrating full game production.
-            </p>
-        </div>
-
-        <!-- Section 1: Vision -->
-        <section id="vision">
-            <div class="section-header">
-                <div class="section-number">01</div>
-                <h3>Strategic Vision & Core Pillars</h3>
-            </div>
-            <p class="lead-text">
-                PlayCanvas pioneered browser-based WebGL/WebGPU 3D rendering with an ultra-lightweight footprint and instant multi-platform execution. However, while their runtime engine is open-source, their world-class graphical editor is closed-source and hosted in a proprietary cloud. 
-                <strong>MakuluLinux Game Studio</strong> breaks this barrier by providing an open, locally owned, cross-distro editor that pairs AAA web-standards rendering with bleeding-edge AI co-pilots.
-            </p>
-
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-icon">🎮</div>
-                    <h4>Industry-Familiar Workflow</h4>
-                    <p>Designed specifically to feel natural to seasoned developers migrating from Unity, Unreal, and the PlayCanvas web editor. Zero friction in muscle memory.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🌱</div>
-                    <h4>Dual-Tier Interface</h4>
-                    <p>One-click instant toggle between <strong>Simple Mode</strong> (for hobbyists, students, and beginners) and <strong>Pro Mode</strong> (for technical artists and AAA programmers).</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🧠</div>
-                    <h4>AI-Native Architecture</h4>
-                    <p>Not just an LLM chatbox, but a unified transactional Command Bus where autonomous AI agents can execute every single editor action, from level design to bug fixing.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🌐</div>
-                    <h4>Ubiquitous Compatibility</h4>
-                    <p>Works natively across every Linux distribution (Ubuntu, Debian, Fedora, Arch, MakuluLinux), Windows, macOS, and pure Web browsers without rewriting code.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: GUI Tech Evaluation -->
-        <section id="gui-architecture">
-            <div class="section-header">
-                <div class="section-number">02</div>
-                <h3>Cross-Platform GUI Framework: Electron vs Qt vs Web</h3>
-            </div>
-            <p class="lead-text">
-                To guarantee seamless execution across every Linux distro (Ubuntu, Debian, Mint, Fedora, Arch, Cinnamon, GNOME, KDE, XFCE), as well as Windows and macOS, we evaluated the primary GUI architectures:
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Criteria</th>
-                            <th>Qt 6 (C++ / QML)</th>
-                            <th>GTK 4 (C / Rust)</th>
-                            <th>Electron + Web Components (Recommended)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Linux Distro Universality</strong></td>
-                            <td>Good, but library version mismatches (libstdc++, Qt ABI breaks) across distros often break apps.</td>
-                            <td>Poor portability on non-GNOME desktops and severe packaging headaches on Arch/Fedora/Debian.</td>
-                            <td><span class="badge badge-green">100% Perfect</span> Bundled Chromium runtime guarantees identical execution on all distros via AppImage/deb/rpm.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Engine Integration</strong></td>
-                            <td>Difficult. Requires embedding QWebEngineView with multi-process IPC lag to PlayCanvas WebGL/WebGPU.</td>
-                            <td>Extremely difficult. No native WebGPU/WebGL canvas without heavyweight webkitgtk bridging.</td>
-                            <td><span class="badge badge-green">Zero-Overhead Native</span> PlayCanvas runs directly inside the same V8/GPU process as the UI. Direct DOM/JS binding.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Windows & macOS Support</strong></td>
-                            <td>Supported, but requires native platform compilers and custom toolchains for each OS.</td>
-                            <td>Poor native look and feel on Windows/macOS; difficult cross-compilation.</td>
-                            <td><span class="badge badge-green">Native 1-Click Build</span> Electron-builder outputs `.exe`, `.dmg`, and Linux AppImages from a single codebase.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Web / Cloud Deployment</strong></td>
-                            <td>Impossible without full WebAssembly rewrite of GUI.</td>
-                            <td>Impossible. Desktop only.</td>
-                            <td><span class="badge badge-green">Dual Target</span> The exact same editor runs both as an offline desktop app AND a self-hosted cloud web app!</td>
-                        </tr>
-                        <tr>
-                            <td><strong>PlayCanvas PCUI Compatibility</strong></td>
-                            <td>Requires rewriting all PlayCanvas UI widgets in QML.</td>
-                            <td>Requires rewriting all widgets in GTK XML.</td>
-                            <td><span class="badge badge-green">100% Native</span> Directly utilizes PlayCanvas's official open-source <code>@playcanvas/pcui</code> component system.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="callout callout-blue">
-                <div class="callout-title">Architectural Decision: Dual Web + Electron Core</div>
-                <p>
-                    We build the editor using <strong>Vite + PlayCanvas PCUI + Modern Web Standards</strong>, wrapped in an <strong>Electron desktop shell</strong>. This gives us:
-                    <br>1. <strong>Single codebase:</strong> A single codebase that packages into a standalone Linux AppImage/deb (runs on ANY Linux distro out of the box), Windows installer, macOS package, AND a pure Web application that can be served via FastAPI/Nginx.
-                    <br>2. <strong>Zero IPC overhead:</strong> The PlayCanvas 3D scene and the Editor UI share the same JavaScript runtime memory space, meaning zero latency when inspecting thousands of entities.
-                </p>
-            </div>
-        </section>
-
-        <!-- Section 3: Editor Layout -->
-        <section id="editor-layout">
-            <div class="section-header">
-                <div class="section-number">03</div>
-                <h3>Editor Layout & Workspace Blueprint</h3>
-            </div>
-            <p class="lead-text">
-                The interface mirrors the intuitive 5-region docked workspace popularized by PlayCanvas, Unity, and Unreal Engine:
-            </p>
-
-            <div class="diagram-box">
-+---------------------------------------------------------------------------------------------------------------+
-|  [M] MakuluLinux Studio | Project: [CyberCity] | Scene: [MainLevel v] | View: [Perspective v] | [> Launch] [Save]  |
-+----+--------------------------+----------------------------------------------------+--------------------------+
-|    | HIERARCHY   [+ Add] [🔍] | 3D VIEWPORT (WebGL2 / WebGPU)                      | INSPECTOR & COMPONENTS   |
-| T  | ------------------------ |                                                    | ------------------------ |
-| R  | ▼ Root                   |                     [Camera View]                  | Entity: [PlayerCharacter]|
-| A  |   ► Camera & PostProcess |                           ▲ Y                      | [x] Enabled  Tag: [Hero] |
-| N  |   ▼ Environment          |                           |                        | ------------------------ |
-| S  |       Terrain_Chunk_01   |                           +----> X                 | ▼ TRANSFORM              |
-| F  |       Directional_Sun    |                          /                         |   Pos:  [0.0] [1.2] [0.0]|
-| O  |       PointLight_Torch01 |                         Z   [Interactive Gizmo]    |   Rot:  [0.0] [90.] [0.0]|
-| R  |   ▼ Characters           |                                                    |   Scale:[1.0] [1.0] [1.0]|
-| M  |     ► PlayerCharacter    |         [Infinite PBR Grid Floor]                  | ------------------------ |
-|    |     ► Guard_NPC          |                                                    | + ADD COMPONENT          |
-| S  |   ► Props & Buildings    |                                                    | [x] RENDER (Mesh: Hero)  |
-| T  |                          |                                                    | [x] RIGIDBODY (Dynamic)  |
-| R  |                          |                                                    | [x] COLLIDER (Capsule)   |
-| I  |                          |                                                    | [x] SCRIPT (player.js)   |
-| P  +--------------------------+----------------------------------------------------+--------------------------+
-|    | ASSETS BROWSER   [+ New] [Import File] [Library Store]        [🔍 Search]     | MAKULU AI ASSISTANT      |
-|    | ----------------------------------------------------------------------------- | ------------------------ |
-|    | 📁 /assets/              | [hero.glb]      [stone_wall.mat]    [player.js]    | 🤖 Copilot: "I've added  |
-|    |   ├── models/            | [diffuse.png]   [normal_map.png]    [torch.glb]    | 4 torch entities with    |
-|    |   ├── textures/          | [jump.wav]      [skybox_sunset.hdr] [level.json]   | flickering point lights."|
-|    |   ├── materials/         | -------------------------------------------------- | [Prompt: "Make player   |
-|    |   └── scripts/           | (Drag & drop any asset directly into 3D Viewport)  |  sprint on Shift key"]   |
-+----+--------------------------+----------------------------------------------------+--------------------------+
-            </div>
-
-            <div class="card-grid">
-                <div class="card">
-                    <h4>1. Left Transform Strip</h4>
-                    <p>Translate (W), Rotate (E), Scale (R), Bounding Box (B). World vs Local coordinate system toggle. Precise snapping increments (0.1m, 0.5m, 1m; 15°, 45°). Camera framing (F).</p>
-                </div>
-                <div class="card">
-                    <h4>2. Scene Hierarchy</h4>
-                    <p>Full scene graph tree with entity reparenting, multi-select, drag-drop grouping, instant search filter, visibility toggles, and right-click clone/delete/export.</p>
-                </div>
-                <div class="card">
-                    <h4>3. 3D WebGPU Viewport</h4>
-                    <p>Ultra-smooth 60+ FPS rendering powered by local PlayCanvas engine. Built-in interactive 3D gizmos, orbit/fly camera controls, grid floor, multi-camera split views, and in-editor simulation.</p>
-                </div>
-                <div class="card">
-                    <h4>4. Inspector & Component Stack</h4>
-                    <p>Live transform coordinates, component management (Render, Light, Camera, Collision, Rigidbody, Script, Audio, Particles), and interactive 3D PBR Material sphere preview.</p>
-                </div>
-                <div class="card">
-                    <h4>5. Asset Browser</h4>
-                    <p>Desktop-style folder tree with live thumbnail generation for 3D GLB models, PBR materials, textures, and audio. Drag assets directly into the 3D viewport to spawn them.</p>
-                </div>
-                <div class="card">
-                    <h4>6. Makulu AI Assistant Dock</h4>
-                    <p>Dedicated dockable AI panel capable of inspecting scene context, executing complex multi-step world modifications, generating code, and debugging in real time.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4: Simple vs Pro Mode -->
-        <section id="simple-vs-pro">
-            <div class="section-header">
-                <div class="section-number">04</div>
-                <h3>Dual-Tier UX: Simple Mode vs Advanced Pro Mode</h3>
-            </div>
-            <p class="lead-text">
-                To satisfy both complete beginners who want to build games without writing complex code and veteran developers building complex AAA systems, the editor features an instantaneous <strong>Simple / Pro Mode Switcher</strong> on the top navigation bar.
-            </p>
-
-            <div class="card-grid">
-                <div class="card" style="border-top: 4px solid var(--accent-green);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4>🌱 Simple Mode (Novice & Indie)</h4>
-                        <span class="badge badge-green">Beginner Friendly</span>
-                    </div>
-                    <p><strong>Goal:</strong> Zero intimidation. Build playable 3D games within minutes.</p>
-                    <ul class="checklist">
-                        <li><input type="checkbox" checked disabled> <strong>Simplified Inspector:</strong> Only displays intuitive properties (Position, Size, Look, Speed, Health, Jump Height). Complex matrices and quaternion math are hidden.</li>
-                        <li><input type="checkbox" checked disabled> <strong>No-Code Behavior Cards:</strong> Attach pre-built logic: <em>"WASD Character Movement"</em>, <em>"Follow Camera"</em>, <em>"Spin When Touched"</em>, <em>"Patrol Between Points"</em>.</li>
-                        <li><input type="checkbox" checked disabled> <strong>1-Click Asset Spawner:</strong> Click to drop pre-rigged characters, trees, cars, weapons, and platforms with physics already pre-configured.</li>
-                        <li><input type="checkbox" checked disabled> <strong>AI Prompt-to-Action Bar:</strong> Large, prominent prompt bar where the user can simply type: <em>"Make this car drive faster"</em> or <em>"Add 10 coins in a circle"</em>.</li>
-                        <li><input type="checkbox" checked disabled> <strong>1-Click Play & Share:</strong> Immediate playtesting without compiling, with instant web export URL generation.</li>
-                    </ul>
-                </div>
-
-                <div class="card" style="border-top: 4px solid var(--accent-orange);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4>⚡ Pro Mode (AAA & Technical)</h4>
-                        <span class="badge badge-orange">Advanced Developer</span>
-                    </div>
-                    <p><strong>Goal:</strong> Unrestricted power and complete control over the entire engine.</p>
-                    <ul class="checklist">
-                        <li><input type="checkbox" checked disabled> <strong>Raw ECS Component Control:</strong> Full access to custom render passes, layer masks, batch groups, and custom shader chunks.</li>
-                        <li><input type="checkbox" checked disabled> <strong>Embedded Monaco Code Editor:</strong> Full VS Code-grade code editing with TypeScript/JavaScript autocompletion for the entire <code>pc.*</code> engine namespace.</li>
-                        <li><input type="checkbox" checked disabled> <strong>Full Physics Rigging:</strong> Ammo.js compound collision meshes, kinematic controllers, raycasting masks, and linear/angular constraints.</li>
-                        <li><input type="checkbox" checked disabled> <strong>Performance Profiler:</strong> Real-time graphs for GPU draw calls, VRAM usage, shader compilation times, and memory allocations.</li>
-                        <li><input type="checkbox" checked disabled> <strong>Post-Processing & Shaders:</strong> Direct authoring of custom WGSL/GLSL shaders, SSAO, SSR, Bloom, and ACES Color Grading.</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: AI Architecture -->
-        <section id="ai-architecture">
-            <div class="section-header">
-                <div class="section-number">05</div>
-                <h3>AI-First Engine: Deep Multi-Agent Autonomous Studio</h3>
-            </div>
-            <p class="lead-text">
-                Most AI integrations in editors are basic chatbots that merely give advice. In <strong>MakuluLinux Game Studio</strong>, the AI is an <strong>Active Co-Creator</strong>. The entire editor is engineered around the <em>Universal Command Bus</em>, enabling autonomous AI agents to execute any action a human can perform.
-            </p>
-
-            <div class="callout callout-purple">
-                <div class="callout-title">MakuluLinux AI Backend Details</div>
-                <p>
-                    • <strong>Endpoint:</strong> <code>https://makululinux.us:2007/v1/chat/completions</code><br>
-                    • <strong>Primary Models:</strong> <code>electra</code> (complex reasoning & script synthesis) and <code>electra-nano</code> (rapid sub-second scene commands)<br>
-                    • <strong>Authentication:</strong> Auto-detected from <code>~/.config/ai_terminal/electra_auth.json</code> or user API key via AI Settings<br>
-                    • <strong>Quota:</strong> Unlimited generations enabled on Electra models.
-                </p>
-            </div>
-
-            <div class="diagram-box">
-┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                              UNIVERSAL COMMAND BUS (EDITOR CORE)                          │
-└────────┬──────────────────────────────────────────────────────────────────────────▲───────┘
-         │                                                                          │
-   ┌─────▼──────────────────────────────┐                         ┌─────────────────┴───────┐
-   │ HUMAN INPUT (Mouse, Keys, UI)      │                         │ MAKULU AI AGENT ENGINE  │
-   │ - Drag entity in hierarchy         │                         │ - Natural language chat │
-   │ - Move transform gizmo             │                         │ - JSON Tool-Calling API │
-   │ - Edit material slider in inspector│                         │ - Multi-step execution  │
-   └────────────────────────────────────┘                         └─────────────────────────┘
-         │                                                                          │
-         └───────────────────────────────┬──────────────────────────────────────────┘
-                                         ▼
-                   ┌──────────────────────────────────────────────┐
-                   │ TRANSACTION EXECUTION & UNDO/REDO MANAGER    │
-                   │  editor.executeCommand(action, payload)      │
-                   └─────────────────────┬────────────────────────┘
-                                         ▼
-      ┌──────────────────────────────────┴──────────────────────────────────┐
-      ▼                                  ▼                                  ▼
-┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
-│ SCENE GRAPH MUTATION    │   │ ASSET PIPELINE          │   │ SCRIPT & CODE PIPELINE  │
-│ - spawnEntity()         │   │ - importModel()         │   │ - generateScript()      │
-│ - setComponentProperty()│   │ - createMaterial()      │   │ - attachScript()        │
-│ - reparentNode()        │   │ - setTexture()          │   │ - fixRuntimeErrors()    │
-└─────────────────────────┘   └─────────────────────────┘   └─────────────────────────┘
-            </div>
-
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-icon">🏗️</div>
-                    <h4>1. Scene Architect Agent</h4>
-                    <p>Understands 3D spatial layout. Given prompts like <em>"Create an ancient castle courtyard with 6 pillars and an arched entryway"</em>, it generates entities, calculates proper transforms, scales, and collision bounds.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">💻</div>
-                    <h4>2. Gameplay Programmer Agent</h4>
-                    <p>Writes bug-free PlayCanvas JavaScript code (<code>pc.createScript</code>), configures script attributes (<code>@attribute</code>), binds keyboard/mouse inputs, and attaches scripts to selected entities.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🎨</div>
-                    <h4>3. Material & Shader Artist Agent</h4>
-                    <p>Translates prompts like <em>"Glowy sci-fi hexagonal energy shield"</em> or <em>"Rusted oxidized copper"</em> into exact PBR material settings, diffuse tints, roughness/metalness values, and custom GLSL shader chunks.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🩺</div>
-                    <h4>4. Autonomous Debugger & QA Agent</h4>
-                    <p>Monitors runtime console errors. If a script crashes during game playtesting, the agent catches the stack trace, analyzes the code, proposes a fix, and offers a 1-click "Auto-Fix & Reload" button.</p>
-                </div>
-            </div>
-
-            <h4>Example: AI Function-Calling Tool Schema</h4>
-            <pre><code>// The AI outputs structured JSON commands executed by the Universal Command Bus
-{
-  "tool_calls": [
-    {
-      "name": "create_entity",
-      "parameters": {
-        "name": "Torch_Pillar",
-        "parent": "Environment",
-        "transform": { "position": [4.5, 0.0, -2.0], "rotation": [0, 0, 0], "scale": [0.8, 3.0, 0.8] },
-        "components": [
-          { "type": "render", "properties": { "type": "cylinder", "material": "stone_pillar.mat" } },
-          { "type": "collision", "properties": { "type": "cylinder", "height": 3.0, "radius": 0.4 } },
-          { "type": "rigidbody", "properties": { "type": "static" } }
-        ]
-      }
-    },
-    {
-      "name": "create_entity",
-      "parameters": {
-        "name": "Torch_Flame_Light",
-        "parent": "Torch_Pillar",
-        "transform": { "position": [0.0, 1.8, 0.0] },
-        "components": [
-          { "type": "light", "properties": { "type": "point", "color": [1.0, 0.55, 0.1], "range": 8.0, "intensity": 2.5, "castShadows": true } },
-          { "type": "script", "properties": { "scripts": ["lightFlicker.js"] } }
-        ]
-      }
-    }
-  ]
-}</code></pre>
-        </section>
-
-        <!-- Section 6: Model Library & Terrain -->
-        <section id="model-library">
-            <div class="section-header">
-                <div class="section-number">06</div>
-                <h3>Asset Ecosystem, Free 3D Model Stores & Terrain</h3>
-            </div>
-            <p class="lead-text">
-                A game engine is only as good as its asset pipeline. PlayCanvas natively utilizes <strong>glTF 2.0 / GLB</strong>, the industry-standard "JPEG of 3D". MakuluLinux Game Studio integrates direct access to premier free model repositories, procedural terrain generators, and ready-to-play templates:
-            </p>
-
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-icon">🍕</div>
-                    <h4>Poly Pizza Direct Integration</h4>
-                    <p>Integrated in-editor search and 1-click import for thousands of free low-poly CC0 3D models with instant GLB download and attribution metadata.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📦</div>
-                    <h4>Kenney.nl CC0 Starter Kits</h4>
-                    <p>Pre-bundled library of hundreds of modular game-ready models: Medieval Castle, Sci-Fi Space Kit, City Kit, Nature Pack, and Vehicle Kit—royalty free for any commercial use.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🏞️</div>
-                    <h4>Poly Haven & ambientCG (PBR Materials)</h4>
-                    <p>Direct download of 1K/2K/4K PBR textures (Diffuse, Normal, Roughness, Ambient Occlusion, Displacement) and high dynamic range 360° HDRI skyboxes.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🏃</div>
-                    <h4>Rigged Characters & Animations</h4>
-                    <p>Pre-rigged humanoids with standard Mixamo / GLTF skeletal hierarchies and pre-baked animation sets (Idle, Walk, Run, Jump, Attack, Die).</p>
-                </div>
-            </div>
-
-            <h4>Procedural 3D Terrain Generator</h4>
-            <p class="lead-text">
-                Instead of requiring external tools like Blender just to make a mountain or valley, MakuluLinux Game Studio includes a built-in <strong>Heightmap & Terrain Sculptor</strong>:
-            </p>
-            <ul class="checklist">
-                <li><input type="checkbox" checked disabled> <strong>Procedural Perlin / Simplex Noise:</strong> Generate realistic mountain ranges, rolling hills, canyons, and plains with adjustable octaves, frequency, and persistence.</li>
-                <li><input type="checkbox" checked disabled> <strong>Real-time Brush Sculpting:</strong> Raise, Lower, Smooth, and Flatten brushes with radius and falloff control directly inside the 3D viewport.</li>
-                <li><input type="checkbox" checked disabled> <strong>Splatmap Multi-Texture Blending:</strong> Automatically blend Grass on flat surfaces, Rock on steep cliff angles, and Snow at high altitudes via GPU shaders.</li>
-                <li><input type="checkbox" checked disabled> <strong>Automatic Collision Generation:</strong> Instant conversion of terrain height fields into static Ammo.js physics collision shapes.</li>
-            </ul>
-
-            <h4 style="margin-top: 28px;">Curated Project Templates</h4>
-            <div class="card-grid">
-                <div class="card">
-                    <h4>1. First-Person Shooter (FPS)</h4>
-                    <p>Character controller with mouselook, weapon sway, projectile shooting, health system, sound effects, and target dummy enemies.</p>
-                </div>
-                <div class="card">
-                    <h4>2. Third-Person Action Adventure</h4>
-                    <p>Orbiting third-person camera, animated character movement, jumping, combat animations, and level checkpoints.</p>
-                </div>
-                <div class="card">
-                    <h4>3. Arcade Racing / Vehicle Sandbox</h4>
-                    <p>Raycast vehicle physics, suspension tuning, drift mechanics, engine audio, and race track checkpoint timer.</p>
-                </div>
-                <div class="card">
-                    <h4>4. Physics & Puzzle Sandbox</h4>
-                    <p>Interactive grab-and-throw physics, dominoes, gravity toggles, exploding barrels, and pressure plates.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 7: Cloud & Backend -->
-        <section id="cloud-backend">
-            <div class="section-header">
-                <div class="section-number">07</div>
-                <h3>Cloud Sync, Remote Database & FastAPI Backend</h3>
-            </div>
-            <p class="lead-text">
-                MakuluLinux Game Studio is built with modern cloud architecture in mind. It supports fully local offline development, but also seamlessly interfaces with a custom FastAPI backend for remote collaboration, cloud asset hosting, user accounts, and one-click web publishing:
-            </p>
-
-            <div class="diagram-box">
-┌─────────────────────────────────┐                 ┌──────────────────────────────────────────────┐
-│  MAKULU GAME STUDIO EDITOR      │                 │  MAKULU FASTAPI CLOUD BACKEND (Port 2007)    │
-│  (Desktop or Web Browser)       │                 │  (Ubuntu 24.04 / Nginx / MariaDB)            │
-└────────────────┬────────────────┘                 └───────────────────────▲──────────────────────┘
-                 │                                                          │
-                 │ 1. Project Sync & Auto-Save (JSON Scene Graphs)          │
-                 ├──────────────────────────────────────────────────────────┤
-                 │ 2. Remote Asset Storage (GLB models, textures, audio)    │
-                 ├──────────────────────────────────────────────────────────┤
-                 │ 3. 1-Click Game Publishing (HTML5 Standalone Bundle)     │
-                 ├──────────────────────────────────────────────────────────┤
-                 │ 4. Multi-User Realtime Collaboration (WebSocket Delta)   │
-                 └──────────────────────────────────────────────────────────┘
-            </div>
-
-            <div class="card-grid">
-                <div class="card">
-                    <h4>Remote Database & User Auth</h4>
-                    <p>JWT-based user authentication. Store project metadata, version tags, user permissions, and shared team assets in MariaDB/PostgreSQL via FastAPI.</p>
-                </div>
-                <div class="card">
-                    <h4>1-Click Instant Web Publishing</h4>
-                    <p>Export the compiled game into an optimized standalone HTML5 bundle and upload it to the MakuluLinux web server (<code>https://makululinux.us/games/[project_id]</code>) for instant play on mobile and desktop.</p>
-                </div>
-                <div class="card">
-                    <h4>Cloud Asset Streaming</h4>
-                    <p>Heavy assets (4K textures, large meshes) can be stored in the cloud and streamed on-demand to keep project sizes lightweight on local disk.</p>
-                </div>
-                <div class="card">
-                    <h4>Multiplayer Backend Ready</h4>
-                    <p>Built-in integration templates for Colyseus / WebSockets allowing developers to create real-time multiplayer games right out of the box.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 8: AAA Graphics -->
-        <section id="aaa-graphics">
-            <div class="section-header">
-                <div class="section-number">08</div>
-                <h3>AAA-Grade Rendering Pipeline</h3>
-            </div>
-            <p class="lead-text">
-                Leveraging the latest capabilities of the local PlayCanvas engine (v2.24+), MakuluLinux Game Studio delivers graphical fidelity comparable to desktop engines while maintaining high framerates across low-end and high-end hardware:
-            </p>
-
-            <div class="card-grid">
-                <div class="card">
-                    <h4>⚡ WebGPU & WebGL2 Next-Gen API</h4>
-                    <p>WebGPU compute shaders, bind groups, and indirect drawing alongside rock-solid WebGL2 fallback for 100% device coverage.</p>
-                </div>
-                <div class="card">
-                    <h4>💡 Clustered Lighting Pipeline</h4>
-                    <p>Render hundreds of dynamic point and spot lights simultaneously with minimal performance cost via GPU clustered light culling.</p>
-                </div>
-                <div class="card">
-                    <h4>✨ Physically Based Rendering (PBR)</h4>
-                    <p>Full support for Metallic-Roughness, Anisotropy, Sheen, Clearcoat, Transmission (glass/refraction), and Subsurface Scattering.</p>
-                </div>
-                <div class="card">
-                    <h4>🎥 Cinematic Post-Processing Stack</h4>
-                    <p>Built-in Screen-Space Ambient Occlusion (SSAO), HDR Bloom with threshold curves, Screen-Space Reflections (SSR), Depth of Field bokeh, and ACES Tonemapping.</p>
-                </div>
-                <div class="card">
-                    <h4>☁️ 3D Gaussian Splatting</h4>
-                    <p>Native rendering of photo-realistic 3D Gaussian Splats directly in the editor, allowing real-world scans to be placed into games.</p>
-                </div>
-                <div class="card">
-                    <h4>🌑 Cascaded Shadow Maps (CSM)</h4>
-                    <p>Ultra-crisp directional shadows with seamless distance fading, soft PCF filtering, and contact shadow approximation.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 9: Roadmap Phases -->
-        <section id="roadmap-phases">
-            <div class="section-header">
-                <div class="section-number">09</div>
-                <h3>Comprehensive Phased Implementation Plan</h3>
-            </div>
-            <p class="lead-text">
-                The development of MakuluLinux Game Studio is structured into six well-defined, testable phases:
-            </p>
-
-            <div class="timeline">
-
-                <!-- Phase 1 -->
-                <div class="timeline-item done">
-                    <div class="timeline-phase">Phase 01 · Completed Milestone</div>
-                    <div class="timeline-title">Core Engine Linking, Viewport Shell & Desktop Integration</div>
-                    <div class="timeline-content">
-                        <p>Project initialized in <code>/PlayCanvas/editor</code> with Vite, connected to the local PlayCanvas engine, active on port 3000, 5-region docked workspace running, Electron desktop wrapper and launchers deployed.</p>
-                        <ul class="checklist">
-                            <li><input type="checkbox" checked disabled> Clone PlayCanvas Engine to <code>/PlayCanvas/engine</code></li>
-                            <li><input type="checkbox" checked disabled> Verify MakuluLinux FastAPI endpoint & API key (Verified with Electra models)</li>
-                            <li><input type="checkbox" checked disabled> Create Master Architecture Blueprint (<code>roadmap.html</code>)</li>
-                            <li><input type="checkbox" checked disabled> Initialize <code>editor/</code> project with Vite + ESM + PlayCanvas runtime</li>
-                            <li><input type="checkbox" checked disabled> Build 3D WebGL2/WebGPU Viewport with infinite grid floor and orbit/fly camera</li>
-                            <li><input type="checkbox" checked disabled> Integrate native PlayCanvas <code>TranslateGizmo</code>, <code>RotateGizmo</code>, <code>ScaleGizmo</code></li>
-                            <li><input type="checkbox" checked disabled> Implement Electron desktop wrapper (<code>electron.cjs</code>) & 1-click launcher (<code>launch.sh</code>)</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Phase 2 -->
-                <div class="timeline-item done">
-                    <div class="timeline-phase">Phase 02 · Completed Milestone</div>
-                    <div class="timeline-title">Hierarchy, Inspector, Material Preview & Script Studio</div>
-                    <div class="timeline-content">
-                        <p>Deepened the Scene Graph Hierarchy, Entity & Component Inspector, 3D rotating PBR Material preview sphere, in-editor Script Studio with templates, and the transactional Command Bus with full undo/redo.</p>
-                        <ul class="checklist">
-                            <li><input type="checkbox" checked disabled> Universal Command Bus with full Undo / Redo history (Ctrl+Z / Ctrl+Y)</li>
-                            <li><input type="checkbox" checked disabled> Scene Hierarchy tree (add, delete, duplicate entities, search filter)</li>
-                            <li><input type="checkbox" checked disabled> Entity Inspector with Vector3 Transform controls (Pos, Rot, Scale)</li>
-                            <li><input type="checkbox" checked disabled> Expanded Component cards (Collision, Rigidbody physics, Camera, Script, Light)</li>
-                            <li><input type="checkbox" checked disabled> Interactive PBR Material Inspector with real-time 3D rotating preview sphere</li>
-                            <li><input type="checkbox" checked disabled> Built-in Script Code Editor with syntax styling, templates & live compilation</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Phase 3 -->
-                <div class="timeline-item done">
-                    <div class="timeline-phase">Phase 03 · Completed Milestone</div>
-                    <div class="timeline-title">Dual-Tier Interface, Model Store & Interactive Viewport Fixes</div>
-                    <div class="timeline-content">
-                        <p>Implemented Simple Mode beginner cards & quick palettes, functional gizmo dragging with pointer event gates, visible fixtures for spot/point lights and cameras, simulation mode with active banners, and 1-click model/terrain spawners.</p>
-                        <ul class="checklist">
-                            <li><input type="checkbox" checked disabled> 1-Click Simple/Pro Mode switcher with dynamic Inspector transformation</li>
-                            <li><input type="checkbox" checked disabled> Plug-and-play behavior engine (WASD Movement, Object Spinner, Light Flicker)</li>
-                            <li><input type="checkbox" checked disabled> Full Gizmo drag interaction and DPI-scaled Raycast hit-testing</li>
-                            <li><input type="checkbox" checked disabled> Visible 3D editor fixtures for Spot Lights, Point Lights, and Cameras</li>
-                            <li><input type="checkbox" checked disabled> Live Game Simulation Mode (▶ Play / ⏹ Stop) with viewport banner</li>
-                            <li><input type="checkbox" checked disabled> Makulu 3D Model Store modal with 1-click spawn (Kenney & Poly Pizza CC0 assets)</li>
-                            <li><input type="checkbox" checked disabled> Procedural 3D Terrain Generator with elevation biome coloring & seed controls</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Phase 4 -->
-                <div class="timeline-item done">
-                    <div class="timeline-phase">Phase 04 · Completed Milestone</div>
-                    <div class="timeline-title">Makulu AI Multi-Agent Autonomous Studio & Starter Templates</div>
-                    <div class="timeline-content">
-                        <p>Implemented streaming AI chat dock with Electra/Nano models, AI Scene Health Doctor with 1-click auto-fixes, Console Drawer with error catching, and 1-Click Game Genre Starter Templates (FPS, Adventure, Cyberpunk, Physics).</p>
-                        <ul class="checklist">
-                            <li><input type="checkbox" checked disabled> Streaming AI chat dock in editor connecting to <code>https://makululinux.us:2007</code></li>
-                            <li><input type="checkbox" checked disabled> Function-calling tool execution engine (maps LLM tool calls to Command Bus)</li>
-                            <li><input type="checkbox" checked disabled> AI Scene Architect: Natural language prompt to 3D entity generation</li>
-                            <li><input type="checkbox" checked disabled> AI Auto-Debugger & Console Drawer: Catches runtime errors with "Ask AI to Fix"</li>
-                            <li><input type="checkbox" checked disabled> AI Scene Health Doctor: Scans for missing colliders, light blowouts & fixes them</li>
-                            <li><input type="checkbox" checked disabled> Multi-Provider AI Settings Dialog (OpenAI, Gemini, Claude, Groq, Kimi, Mistral, OpenRouter, Local Ollama)</li>
-                            <li><input type="checkbox" checked disabled> 1-Click Game Genre Starter Templates (FPS Arena, Courtyard, Cyberpunk, Domino Physics)</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Phase 5 -->
-                <div class="timeline-item done">
-                    <div class="timeline-phase">Phase 05 · Completed Milestone</div>
-                    <div class="timeline-title">Standalone Game Bundler & 1-Click Cloud Web Publisher</div>
-                    <div class="timeline-content">
-                        <p>Implemented the standalone HTML5 Game Compiler, single-file zero-install game exporter (.html), and the 1-Click Cloud Web Publisher modal with instant live URL generation and sharing.</p>
-                        <ul class="checklist">
-                            <li><input type="checkbox" checked disabled> Local JSON Scene Graph Serializer & Exporter</li>
-                            <li><input type="checkbox" checked disabled> Standalone HTML5 Game Compiler & Bundler (Zero-install self-contained game)</li>
-                            <li><input type="checkbox" checked disabled> 1-Click Cloud Web Publisher with live playtest URL and clipboard copy</li>
-                            <li><input type="checkbox" checked disabled> Responsive full-screen game canvas with mobile touch & keyboard controls</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Phase 6 -->
-                <div class="timeline-item done">
-                    <div class="timeline-phase">Phase 06 · Completed Milestone</div>
-                    <div class="timeline-title">Desktop Packaging (AppImage, Deb, Directory) & Production Verification</div>
-                    <div class="timeline-content">
-                        <p>Completed universal cross-distro packaging for MakuluLinux, Ubuntu, Debian, Fedora, Arch, and all Linux distros via standalone AppImage, Debian <code>.deb</code>, unpacked binary, native desktop launcher, and Vite production bundle.</p>
-                        <ul class="checklist">
-                            <li><input type="checkbox" checked disabled> Electron desktop wrapper (<code>electron.cjs</code>) & 1-click execution script (<code>launch.sh</code>)</li>
-                            <li><input type="checkbox" checked disabled> Native desktop entry file with custom 512x512 icon (<code>MakuluLinux-Game-Studio.desktop</code>)</li>
-                            <li><input type="checkbox" checked disabled> Linux universal AppImage builder & generated bundle (<code>MakuluLinux Game Studio-1.0.0.AppImage</code> - 139 MB)</li>
-                            <li><input type="checkbox" checked disabled> Debian package builder & generated package (<code>makululinux-game-studio_1.0.0_amd64.deb</code> - 110 MB)</li>
-                            <li><input type="checkbox" checked disabled> Built-in Categorized <b>Help & Reference Studio Modal</b> with live search filter & hotkeys table</li>
-                            <li><input type="checkbox" checked disabled> Built-in 10-Step <b>Novice Game Creation Guide Modal</b> ("The Rolling Gem Collector") with visual progress bar</li>
-                            <li><input type="checkbox" checked disabled> Unpacked standalone Linux binary in <code>release/linux-unpacked/</code></li>
-                            <li><input type="checkbox" checked disabled> End-to-end studio verification & full-stack production build</li>
-                        </ul>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
-
-    <script>
-        // Smooth scrolling and active link highlighting
-        const navLinks = document.querySelectorAll('.nav-links a');
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                navLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-            });
-        });
-
-        // Intersection Observer to highlight current active section on scroll
-        const sections = document.querySelectorAll('section');
-        window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop - 80;
-                if (pageYOffset >= sectionTop) {
-                    current = section.getAttribute('id');
-                }
-            });
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === `#${current}`) {
-                    link.classList.add('active');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><title>MakuluLinux Game Studio — Completion Roadmap</title>
+<style>
+:root{--bg:#0c111a;--panel:#141d2b;--line:#2b3a4e;--text:#edf3fb;--muted:#b2bfd0;--accent:#ffad66;--green:#7ce3c0;--blue:#9bc6ff}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}a:hover{color:var(--accent)}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:4px}.layout{max-width:1580px;margin:auto;display:grid;grid-template-columns:260px minmax(0,1fr)}nav{position:sticky;top:0;height:100vh;overflow:auto;padding:28px 20px;border-right:1px solid var(--line)}nav strong{display:block;font-size:18px;margin-bottom:6px}nav a{display:block;padding:7px 0;text-decoration:none;font-size:13px}nav small{color:var(--muted)}main{padding:48px clamp(22px,5vw,76px);min-width:0}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}h1{font-size:clamp(34px,4.7vw,62px);line-height:1.1;letter-spacing:-.04em;max-width:940px;margin:18px 0 24px}h2{font-size:29px;line-height:1.25;margin:0 0 18px}h3{font-size:19px;margin:24px 0 10px}p{margin:10px 0 18px}section{padding:38px 0;border-top:1px solid var(--line);margin-top:32px}.lead{font-size:20px;color:var(--muted);max-width:920px}.badge{display:inline-block;border:1px solid var(--line);border-radius:30px;padding:5px 12px;font-size:12px;color:var(--green);margin:4px 6px 4px 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}.card,.callout{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.card h3{margin-top:0}.callout{border-left:4px solid var(--accent);margin:22px 0}.muted,small{color:var(--muted)}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:14px;margin:20px 0}th,td{padding:13px 15px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--panel);color:var(--green)}td:first-child{font-weight:650}ul,ol{padding-left:24px}li{margin:8px 0}.task{padding:19px 0;border-bottom:1px solid var(--line)}.task:last-child{border-bottom:0}.task h3{margin:0 0 8px}.task-id{font-size:12px;color:var(--accent);display:inline-block;min-width:54px}.gate{background:#132b29;border:1px solid #31564c;border-radius:12px;padding:20px;margin-top:24px}.gate strong{color:var(--green)}.pipeline{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0}.pipeline span{border:1px solid var(--line);background:var(--panel);padding:10px 14px;border-radius:8px}.mock{border:1px solid var(--line);border-radius:15px;overflow:hidden;margin:22px 0}.mock-bar{padding:13px 18px;background:var(--panel);font-size:13px}.mock-body{display:grid;grid-template-columns:1fr 1.5fr;min-height:270px}.mock-chat{padding:24px;border-right:1px solid var(--line)}.mock-preview{display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;background:radial-gradient(ellipse at 50% 90%,#28504e,transparent 65%),#101a27}.bubble{border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:12px;font-size:14px}.phase-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.phase-head h2{margin:0}.phase-head .badge{color:var(--accent)}button{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 14px;color:var(--text);font:inherit;cursor:pointer}footer{color:var(--muted);font-size:13px;margin-top:38px}code{color:var(--green);overflow-wrap:anywhere}.nowrap{white-space:nowrap}@media(max-width:1000px){.layout{grid-template-columns:1fr}nav{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}nav .links{display:flex;gap:8px 18px;flex-wrap:wrap}nav a{font-size:12px}main{padding-top:30px}}@media(max-width:600px){.mock-body{grid-template-columns:1fr}.mock-chat{border-right:0;border-bottom:1px solid var(--line)}.mock-preview{min-height:180px}h2{font-size:24px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{body{background:white;color:#111;font-size:10pt}.layout{display:block}nav,button{display:none}main{padding:0}.lead,.muted,small,footer{color:#444}section{break-before:auto;margin-top:14px;padding:18px 0}h1{font-size:30pt}h2{font-size:20pt}h3{break-after:avoid}.card,.callout,.gate,th,.pipeline span,.mock-bar{background:#f2f4f6;color:#111;border-color:#aaa}a,.eyebrow,.task-id,.gate strong,th{color:#333}td,th{border-color:#aaa}.task,.gate,.card{break-inside:avoid}.mock-preview{background:#eee;color:#111}.table-wrap{overflow:visible}}
+</style></head><body><div class="layout"><nav aria-label="Roadmap sections"><strong>MakuluLinux<br>Game Studio</strong><small>Completion roadmap<br>31 October 2026 · Revision 1</small><div class="links">
+
+<a href="#vision">Product destination</a>
+<a href="#baseline">Verified starting point</a>
+<a href="#simple">Simple &amp; Pro experience</a>
+<a href="#workflow">Prompt-to-game workflow</a>
+<a href="#architecture">Target architecture</a>
+<a href="#scope">Definition of finished</a>
+<a href="#sequence">Delivery order</a>
+<a href="#p0">P0 · Establish the truth &amp; secure the foundation</a>
+<a href="#p1">P1 · Make projects durable, portable &amp; recoverable</a>
+<a href="#p2">P2 · Unify editing operations &amp; isolate play sessions</a>
+<a href="#p3">P3 · Deliver the new Simple mode</a>
+<a href="#p4">P4 · Define a complete game before generating content</a>
+<a href="#p5">P5 · Build a persistent autonomous workflow runner</a>
+<a href="#p6">P6 · Add automated playtesting, inspection &amp; repair</a>
+<a href="#p7">P7 · Finish the gameplay &amp; visual authoring foundation</a>
+<a href="#p8">P8 · Ship portable exports &amp; genuine sharing</a>
+<a href="#p9">P9 · Harden performance, compatibility &amp; desktop delivery</a>
+<a href="#p10">P10 · Prove the product with benchmarks &amp; beta users</a>
+<a href="#verification">Verification matrix</a>
+<a href="#backlog">First implementation backlog</a>
+<a href="#risks">Risks &amp; decisions</a>
+<a href="#tracking">Execution &amp; release rules</a>
+</div></nav><main><header><div class="eyebrow">From broad prototype to dependable product</div><h1>One prompt.<br>A complete, playable game.<br>A studio you can trust.</h1><p class="lead">A detailed plan to finish MakuluLinux Game Studio: dependable projects, a focused Simple mode, a capable Pro editor, and an autonomous workflow that builds, tests, repairs and delivers games.</p><span class="badge">Planning document · implementation pending</span><span class="badge">Updated 31 October 2026</span><span class="badge">Evidence before completion</span><p class="muted">This replaces the previous feature-expansion roadmap. Phase IDs describe planned work, not completed functionality. No delivery dates or completion percentages are implied. Estimates should follow the foundation audit.</p><button type="button" id="print-roadmap">Print / Save as PDF</button></header>
+<section id="vision"><h2>The product we are finishing</h2><p><strong>Simple mode:</strong> the user describes a game, sees progress, plays a working preview, requests revisions, saves the editable project, and exports or shares the result. They should not need to manipulate components, understand JSON actions, or repeatedly prompt the AI to continue.</p><p><strong>Pro mode:</strong> the same project opens in a full editor with hierarchy, inspector, assets, scripts and advanced authoring tools. Manual development and AI assistance use the same commands and runtime.</p><div class="callout"><strong>Primary success criterion</strong><p>A supported prompt produces a coherent playable game with a defined objective, suitable controls, feedback, restart and a verified portable export. The workflow stops when its completion contract passes or reports a concrete blocker; it does not stop merely because a few entities were spawned.</p></div><div class="cards"><div class="card"><h3>Reliability first</h3><p>Protect user work, make edits reversible, and ensure preview matches delivery.</p></div><div class="card"><h3>Depth before breadth</h3><p>Finish a smaller certified toolset before expanding the behavior count.</p></div><div class="card"><h3>Finite automation</h3><p>Persist tasks, budgets and evidence; avoid endless retries and invented success.</p></div></div></section>
+<section id="baseline"><h2>Verified starting point</h2><p>The October 2026 source review found a substantial early-alpha editor, not an empty shell. Production build and the existing test run passed. These checks did not establish end-to-end gameplay quality or compatibility across all advertised platforms.</p><div class="table-wrap"><table><thead><tr><th>Area</th><th>What exists</th><th>Gap to resolve</th></tr></thead><tbody><tr><td>Editor & engine</td><td>PlayCanvas viewport, hierarchy, inspector, gizmos, assets, Electron shell, Simple/Pro modes.</td><td>Integrated reliability, simpler novice experience, explicit support matrix.</td></tr><tr><td>Gameplay & content</td><td>Large behavior catalog, GLB assets, terrain, materials, animation, procedural audio and authoring dialogs.</td><td>Uneven mechanic depth; distinguish working, partial and experimental tools.</td></tr><tr><td>Persistence</td><td>Active-scene JSON import/export and in-memory multi-scene handling.</td><td>Complete project persistence absent from the current export path; exported scripts were not restored in a targeted reopening check.</td></tr><tr><td>AI</td><td>Multi-provider client, JSON action executor, team-role orchestration, structural inspection.</td><td>No durable complete-game task runner; team decomposition largely uses keyword-based recipes; skill consultation does not retrieve content.</td></tr><tr><td>Undo & play</td><td>Command bus and play/stop toggling.</td><td>Some mutations bypass history; targeted AI transform added no undo entry; full play-state restoration requires implementation/verification.</td></tr><tr><td>Export & hosting</td><td>Substantial generated HTML runtime and local preview.</td><td>External engine/physics dependencies and asset portability gaps; publishing currently creates a URL without uploading.</td></tr><tr><td>Security</td><td>Electron context isolation and disabled Node integration.</td><td>Network-bound development credential endpoint and unsafe AI text rendering require immediate fixes.</td></tr></tbody></table></div><p class="muted">Evidence anchors: <code>editor/src/core/editor.js</code>, <code>core/command-bus.js</code>, <code>ai/ai-client.js</code>, <code>ai/ai-executor.js</code>, <code>ai/swarm/agent-team.js</code>, <code>core/behaviors.js</code>, <code>compiler/game-bundler.js</code>, <code>cloud/publisher.js</code>, <code>ui/ai-assistant.js</code>, and <code>editor/vite.config.js</code>. Revalidate findings as fixes land.</p></section>
+<section id="simple"><h2>A simpler front door; a full editor behind it</h2><div class="mock" role="img" aria-label="Conceptual Simple mode: compact file controls above a chat area and a large playable preview"><div class="mock-bar">Game Studio · My Adventure · Saved &nbsp; | &nbsp; New / Open &nbsp; Save &nbsp; Export / Share &nbsp; Settings &nbsp; Open in Pro</div><div class="mock-body"><div class="mock-chat"><div class="bubble">You: Build a small island adventure where I collect five crystals and escape.</div><div class="bubble">Studio: The playable island is ready. I’m checking collection, the exit and restart before polishing the lighting.</div><div class="bubble">Describe the next change…</div><small>Pause / Cancel · Checkpoints · Build details</small></div><div class="mock-preview"><div><strong>Large playable preview</strong><br><small>Play / Stop · Restart · Controls<br>Last working version remains available during changes</small></div></div></div></div><p class="muted">This is a layout concept, not an implemented interface or a real build status.</p><div class="table-wrap"><table><thead><tr><th>Keep visible in Simple</th><th>Move to Pro / optional details</th></tr></thead><tbody><tr><td>Prompt conversation, preview, brief summary, meaningful build state, pause/cancel, undo/checkpoints.</td><td>Hierarchy, component inspector, raw scripts, transform gizmos and numeric editing.</td></tr><tr><td>New/Open, Save, saved-state indicator, Export/Share, basic AI setup, controls/help.</td><td>Material/shader/flow graph tools, terrain sculpting, physics joints, timeline, animation graphs, profiler and console.</td></tr><tr><td>Plain-language failures and suggested recovery; deliberate access to Pro.</td><td>Raw actions, specialist messages, diagnostics and detailed test evidence.</td></tr></tbody></table></div><p><strong>Mode switching is a view change, not a project conversion.</strong> A Pro edit is immediately represented in the project that Simple mode and its AI read. A new AI request must recognize the latest manual changes and protect them with a checkpoint.</p></section>
+<section id="workflow"><h2>The complete prompt-to-game workflow</h2><div class="pipeline"><span>1 · Understand</span><span>2 · Plan</span><span>3 · Greybox</span><span>4 · Gameplay</span><span>5 · Test & repair</span><span>6 · Polish</span><span>7 · Verify export</span><span>8 · Deliver</span></div><ol><li><strong>Understand:</strong> infer sensible defaults, clarify only essential ambiguity, and save the Game Brief plus supported scope.</li><li><strong>Plan:</strong> create a finite task graph and acceptance checklist. Verify tool and asset feasibility before changing the scene.</li><li><strong>Build a greybox:</strong> establish scale, floor/layout, player, camera, controls and a playable loop before decorative assets.</li><li><strong>Implement gameplay:</strong> wire objectives, enemies/interactions, score/health, progression, win/fail or endless-loop rules, help and restart.</li><li><strong>Test and repair:</strong> run the game, simulate inputs, inspect errors and outcomes, and repair failed checks within a fixed budget.</li><li><strong>Polish:</strong> apply consistent assets, animation, lighting, HUD, sound and performance improvements without breaking the verified loop.</li><li><strong>Verify delivery:</strong> save a checkpoint, package assets, run the exported artifact in a clean environment, and repeat required gameplay checks.</li><li><strong>Deliver:</strong> show a truthful completion report and playable preview. Offer export or authorized publishing. Persist the run so subsequent requests modify the existing game.</li></ol><div class="callout"><strong>Example completion contract: island adventure</strong><p>The player spawns safely, movement and camera work, exactly five reachable crystals can be collected once each, the HUD counts progress, the escape stays locked until collection is complete, the escape triggers victory, restart resets the run, the saved project reopens correctly, and the exported game passes the same checks. Art quality and performance are assessed against a declared target.</p></div><p><strong>A revision prompt uses the same loop at smaller scope.</strong> “Make it nighttime and add two guards” becomes a change plan, checkpoint, scoped edit, regression check and updated preview—not a fresh world that discards existing work.</p></section>
+<section id="architecture"><h2>Target architecture and data contracts</h2><div class="table-wrap"><table><thead><tr><th>Layer / contract</th><th>Responsibility</th><th>Required properties</th></tr></thead><tbody><tr><td>ProjectDocument</td><td>Canonical editable state shared by both modes.</td><td>Versioned schema, stable IDs, all scenes/assets/scripts, migrations, portable references.</td></tr><tr><td>CapabilityRegistry</td><td>Single source for commands, behavior schemas, AI tools, documentation and support status.</td><td>Discoverable, validated, tested in preview/export; no phantom capabilities.</td></tr><tr><td>CommandTransaction</td><td>Apply manual and AI changes.</td><td>Revision checks, async completion, journal, atomic rollback where possible, resource cleanup, grouped undo.</td></tr><tr><td>GameBrief & BuildPlan</td><td>Define intent, finite scope, task dependencies and completion checks.</td><td>Persisted assumptions, supported genre contract, asset and performance constraints.</td></tr><tr><td>BuildRun & TaskResult</td><td>Coordinate planning, execution, verification and recovery.</td><td>Task IDs, real states, retry limits, cancellation, checkpoint links, evidence and remaining blockers.</td></tr><tr><td>Shared game runtime</td><td>Load project content and run game systems.</td><td>Same version in isolated preview, test runner and exports; no editor privileges.</td></tr><tr><td>ValidationReport</td><td>Establish readiness.</td><td>Exact tested revision, check results, logs/screenshots, measured metrics, limitations.</td></tr><tr><td>ExportManifest</td><td>Make delivery reproducible.</td><td>Pinned runtime, complete dependencies, checksums, licenses, target requirements, verified output.</td></tr></tbody></table></div><p><strong>Suggested boundaries:</strong> introduce focused project/persistence, validated commands, shared runtime, workflow orchestration, validation and export modules. Keep UI rendering separate from state mutation. Extract incrementally from existing files rather than rewriting the entire editor in one step.</p><p><strong>Provider access:</strong> use a narrow platform adapter. Desktop can broker credentials in the main process; web needs a deliberate local/BYOK or backend design. Never ship a shared service secret in frontend code. Generated game scripts execute outside the credential-bearing editor context.</p></section>
+<section id="scope"><h2>What “finished” means for the first dependable release</h2><div class="cards"><div class="card"><h3>Required</h3><ul><li>Trustworthy save/open/recovery and reversible edits.</li><li>Simple chat + preview and usable Pro mode.</li><li>Three complete supported single-player game families.</li><li>Persistent AI build/test/repair workflow.</li><li>Portable verified exports.</li><li>Truthful status and tested supported platforms.</li></ul></div><div class="card"><h3>Conditional / separate service</h3><ul><li>Real public hosting requires a functioning hosting service.</li><li>Single-file HTML requires a compatible embedding strategy.</li><li>Mobile claims require touch and device validation.</li><li>Windows/macOS require tested builds.</li></ul></div><div class="card"><h3>Defer until stable</h3><ul><li>Multiplayer, collaborative editing and accounts beyond hosting needs.</li><li>Large open worlds and unrestricted genre coverage.</li><li>New advanced behavior batches.</li><li>Asset marketplaces, generative 3D services and elaborate agent visualizations.</li></ul></div></div><p>A release may omit hosting or advanced graphs if those controls and claims are removed or clearly experimental. It may not omit project safety, truthful completion, or functioning gameplay/export for its declared supported scope.</p></section>
+<section id="sequence"><h2>Delivery order and milestone gates</h2><div class="table-wrap"><table><thead><tr><th>Milestone</th><th>Phases</th><th>Demonstrable outcome</th></tr></thead><tbody><tr><td>M0 · Trusted foundation</td><td>P0 → P1 → P2</td><td>Secure app, complete project round-trip, reversible edits and isolated preview.</td></tr><tr><td>M1 · Complete manual game</td><td>P7 core subset + P8 portable export</td><td>One reference game built by hand, saved, reopened and exported without loss.</td></tr><tr><td>M2 · Simple product shell</td><td>P3 + P4</td><td>Chat/preview experience with a finite, testable game brief and plan.</td></tr><tr><td>M3 · Autonomous vertical slice</td><td>P5 + P6 + first certified starter</td><td>One prompt reaches a complete verified game; revision, failure and resume work.</td></tr><tr><td>M4 · Supported product breadth</td><td>Remaining release-scope P7/P8 + P9</td><td>Three certified game families, portable delivery, supported targets and genuine hosting if included.</td></tr><tr><td>M5 · Release candidate</td><td>P10</td><td>Benchmark and usability evidence support a narrowly accurate release.</td></tr></tbody></table></div><p><strong>Critical path:</strong> secure access → durable project → transaction/runtime foundation → certified game loop → persistent workflow → automated verification → portable delivery → beta evidence. Interface design, capability auditing and test-fixture design can proceed while foundations are implemented, but downstream milestones cannot pass on mock integrations.</p><p><strong>Scheduling rule:</strong> do not assign optimistic calendar dates to unbounded work. After P0, estimate each milestone in small implementation batches, name an owner, record dependencies and revisit estimates using actual delivery evidence. The milestone gates—not feature counts—determine readiness.</p></section>
+<section id="p0"><div class="phase-head"><h2>P0 · Establish the truth &amp; secure the foundation</h2><span class="badge">Critical · first</span></div><p class="muted"><strong>Dependencies:</strong> None. This phase must precede wider distribution and credential-bearing automated execution.</p>
+<article class="task" id="p0-1"><h3><span class="task-id">P0.1</span>Create a verified capability register</h3><p>Inventory every menu, behavior, AI action, graph tool, asset workflow, and export feature. Classify each as working, partial, experimental, broken, or absent. Record editor support, save/load support, runtime support, export support, tests, and user-visible claims separately. A catalog entry or notification is not evidence of a working mechanic.</p></article>
+<article class="task" id="p0-2"><h3><span class="task-id">P0.2</span>Close the credential exposure path</h3><p>Restrict development services to loopback by default. Remove the network-accessible credential-return endpoint or replace it with an authenticated, origin-checked local broker. Keep desktop credential access scoped to the trusted application. Never include credentials in project packages, games, logs, or diagnostics.</p></article>
+<article class="task" id="p0-3"><h3><span class="task-id">P0.3</span>Treat AI output and imported projects as untrusted</h3><p>Render AI text safely; sanitize any supported rich text. Validate imported documents, action payloads, asset locations, and external URLs. Isolate generated game code from the editor and its credentials. Restrict Electron navigation and external-link protocols; define a production content-security policy.</p></article>
+<article class="task" id="p0-4"><h3><span class="task-id">P0.4</span>Establish a reproducible baseline</h3><p>Pin the renderer/runtime dependency versions through the lockfile and export manifest. Record build commands and supported targets. Separate ignored generated output from source. Add editor-focused CI for tests, production build, schema checks, and representative export checks; the cloned engine’s CI is not a substitute.</p></article>
+<article class="task" id="p0-5"><h3><span class="task-id">P0.5</span>Make product claims accurate</h3><p>Remove false success messages for publishing, skill consultation, and incomplete mechanics. Clearly label experimental tools. Replace unsupported AAA, universal offline, and autonomous-completion claims with tested capabilities.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>Credential endpoints cannot be reached from another machine; hostile AI text is rendered inert; no secret enters a saved/exported artifact; capability register and reproducible editor checks exist.</p></div></section>
+<section id="p1"><div class="phase-head"><h2>P1 · Make projects durable, portable &amp; recoverable</h2><span class="badge">Critical · foundation</span></div><p class="muted"><strong>Dependencies:</strong> P0 security, baseline and capability inventory.</p>
+<article class="task" id="p1-1"><h3><span class="task-id">P1.1</span>Introduce a versioned project document</h3><p>Define project ID, schema version, engine version, project settings, scenes with stable IDs, active scene ID, asset manifest, scripts and attachments, materials, prefabs, animation data, timeline data, HUD, triggers, input mappings, and supported graph definitions. Store references by stable ID rather than display name. Design migration and validation before adopting the format.</p></article>
+<article class="task" id="p1-2"><h3><span class="task-id">P1.2</span>Build complete serialization and restoration</h3><p>Save and restore all component fields, collision extents, materials and textures, sound sources/slots, script definitions and bindings, terrain mesh/generation data, animation tracks, custom properties, and behavior configuration. Use local transforms for hierarchy reconstruction. Avoid serializing imported model subtrees twice. Await asset loading and report failures before declaring a project open.</p></article>
+<article class="task" id="p1-3"><h3><span class="task-id">P1.3</span>Create a real project package</h3><p>Provide a native editable package containing the project manifest and required assets. Preserve every scene and portable references. Include licensing/attribution metadata. Support browser file import/download and a desktop save adapter without assuming browser access to arbitrary local files.</p></article>
+<article class="task" id="p1-4"><h3><span class="task-id">P1.4</span>Add autosave, recovery and revisions</h3><p>Create rolling local recovery snapshots, a visible saved/unsaved state, save failures, crash recovery, and checkpoints before AI builds or project migrations. Browser storage needs quota handling; desktop saves need atomic replacement and backup. Distinguish a recovery snapshot from an explicitly saved portable project.</p></article>
+<article class="task" id="p1-5"><h3><span class="task-id">P1.5</span>Clean scene lifecycle and ownership</h3><p>Destroy or release removed entities and owned GPU/audio resources, unregister stale behaviors and triggers, clear scene-specific selection/history appropriately, and prevent duplicate assets/listeners on reopening. Make scene rename, duplicate, switch, and delete consistent and ID-safe.</p></article>
+<article class="task" id="p1-6"><h3><span class="task-id">P1.6</span>Prove lossless round trips</h3><p>Build fixtures with nested transformed entities, multiple scenes, imported animated models, scripts, prefabs, physics, textures, sound, terrain, HUD, and graphs. Compare meaningful state before save and after reopening. Exercise missing assets, corrupted input, old formats, storage exhaustion, and interrupted writes.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>A representative multi-scene project reopens after application restart with equivalent content and behavior, all scripts restored, portable assets intact, and a usable recovery snapshot after interruption.</p></div></section>
+<section id="p2"><div class="phase-head"><h2>P2 · Unify editing operations &amp; isolate play sessions</h2><span class="badge">Critical · foundation</span></div><p class="muted"><strong>Dependencies:</strong> P1 project identity, snapshots and deterministic loading.</p>
+<article class="task" id="p2-1"><h3><span class="task-id">P2.1</span>Use one command and validation layer</h3><p>Route UI edits, AI changes, scripting attachments, materials, behaviors, HUD, atmosphere, graphs, and scene operations through typed validated commands. Use the same argument rules for manual and AI actions. Reject unsupported component configurations rather than silently creating fake component objects.</p></article>
+<article class="task" id="p2-2"><h3><span class="task-id">P2.2</span>Make AI batches reversible transactions</h3><p>Group one requested change into a named transaction with preconditions, before/after state, an action journal, resource ownership, and rollback. Await asynchronous model/texture loads before marking commands complete. Handle cancellation, partial failure, and redo deterministically. Undo one prompt as one coherent operation.</p></article>
+<article class="task" id="p2-3"><h3><span class="task-id">P2.3</span>Create an isolated game session</h3><p>Run a clone/snapshot of project content in a separate preview context; exclude editor helpers and credentials. Initialize physics explicitly. Start with the configured game camera and input map. Stop destroys session resources and returns to the exact editing state. Provide explicit optional apply-back only for supported changes.</p></article>
+<article class="task" id="p2-4"><h3><span class="task-id">P2.4</span>Share the game runtime</h3><p>Extract shared scene loading, asset resolution, gameplay behaviors, scripts, HUD, physics, animation, and environment application from the exporter/editor. Preview and exported games must consume the same versioned runtime and project representation. Do not maintain two unrelated behavior implementations.</p></article>
+<article class="task" id="p2-5"><h3><span class="task-id">P2.5</span>Make runtime failures visible</h3><p>Collect structured errors, warnings, missing references, physics failures, script faults, loading timings, and session events. Link actionable issues to the affected object or script. Keep diagnostics free of secrets and cap log volume.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>One undo restores an entire mixed AI edit; failed asynchronous batches roll back; play/stop leaves the editing project unchanged; the same fixture behaves consistently in preview and export.</p></div></section>
+<section id="p3"><div class="phase-head"><h2>P3 · Deliver the new Simple mode</h2><span class="badge">High · core product experience</span></div><p class="muted"><strong>Dependencies:</strong> P1/P2 save, rollback and preview foundations. UI design can begin earlier; acceptance requires those foundations.</p>
+<article class="task" id="p3-1"><h3><span class="task-id">P3.1</span>Replace the dense editor layout</h3><p>Give Simple mode two main areas: conversation and a large playable preview. Keep New/Open, Save, project name/save state, Play/Stop or Restart, Export/Share, and a small settings menu. Put build status, cancellation and checkpoints where users can find them. Use plain language throughout.</p></article>
+<article class="task" id="p3-2"><h3><span class="task-id">P3.2</span>Move technical tools into Pro mode</h3><p>Hide hierarchy, component inspector, asset browser, transform toolstrip, terrain/material/shader/flow graph tools, animation panels, physics tools, timeline, profiler, and developer console from the default Simple layout. Keep the underlying project model intact. Offer an explicit Open in Pro action and a return to Simple action without conversion or data loss.</p></article>
+<article class="task" id="p3-3"><h3><span class="task-id">P3.3</span>Make the conversation task-oriented</h3><p>Show the game brief, short assumptions, next milestone, active task, preview-ready checkpoints, and concise summaries of completed changes. Provide example prompts and contextual suggestions such as add an enemy, improve lighting, make controls easier, or create another level. Keep raw JSON, stack traces and agent chatter in optional details.</p></article>
+<article class="task" id="p3-4"><h3><span class="task-id">P3.4</span>Handle first-run and empty states</h3><p>Let users start from a prompt, a small set of tested genre templates, or an existing project. Detect missing AI configuration and offer setup without discarding the prompt. Use sensible defaults for camera, controls, difficulty, visual direction, and desktop/mobile target. Ask only questions that materially affect feasibility or design.</p></article>
+<article class="task" id="p3-5"><h3><span class="task-id">P3.5</span>Design interruptions and error recovery</h3><p>Users can cancel the current build, keep the last working preview, revert a change, resume later, or retry a failed step. Clearly distinguish planning, building, testing, repairing, paused, blocked, ready to preview, and finished. No fake progress percentage or unconditional success banner.</p></article>
+<article class="task" id="p3-6"><h3><span class="task-id">P3.6</span>Validate usability and accessibility</h3><p>Provide keyboard access, focus handling, readable contrast, responsive panels and clear loading states. Test the flow on smaller laptops. Confirm a novice can create, revise, save, reopen, play and export a supported game without touching the Pro interface.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>A first-time user completes the supported prompt-to-export journey through chat and preview only; mode switching preserves the same project, selection context where relevant, and build history.</p></div></section>
+<section id="p4"><div class="phase-head"><h2>P4 · Define a complete game before generating content</h2><span class="badge">High · automation contract</span></div><p class="muted"><strong>Dependencies:</strong> P0 capability register and P1 persisted project metadata; uses P3 conversation design.</p>
+<article class="task" id="p4-1"><h3><span class="task-id">P4.1</span>Turn the prompt into a persisted Game Brief</h3><p>Capture genre, audience, platform/input, visual style, camera, core loop, objective, fail condition, progression, number of levels, session length, asset constraints, performance target, accessibility and content constraints. Store explicit user requests separately from inferred defaults. Let users edit the brief.</p></article>
+<article class="task" id="p4-2"><h3><span class="task-id">P4.2</span>Create a testable completion contract</h3><p>Every supported game needs a playable entry point, controls/help, functioning core mechanic, feedback/HUD, objective, win/lose or an explicitly intended endless loop, restart, sound policy, saved project, and verified export. Define optional features separately so the agent cannot endlessly expand the scope.</p></article>
+<article class="task" id="p4-3"><h3><span class="task-id">P4.3</span>Plan a dependency graph of tasks</h3><p>Generate milestones and tasks with stable IDs, dependencies, required capabilities, target objects, inputs, expected changes, acceptance checks, estimated cost class, and rollback point. Order a playable greybox before visual polish. Require feasibility validation against the capability register before execution.</p></article>
+<article class="task" id="p4-4"><h3><span class="task-id">P4.4</span>Bound scope and unsupported requests</h3><p>Start with a deliberately supported set of compact single-player game types. Suggest a feasible alternative when requests require unavailable capabilities. Treat multiplayer, arbitrary AAA-scale worlds, custom engine work and unrestricted code generation as separate future scope. Never silently replace an unsupported mechanic with a sound or notification.</p></article>
+<article class="task" id="p4-5"><h3><span class="task-id">P4.5</span>Plan creative direction and asset use</h3><p>Choose a coherent palette, scale conventions, lighting, UI style, and an approved asset family. Track attribution, permitted use, download size, triangle/texture budgets, animation availability and fallback assets. Use deterministic procedural assets where appropriate. Missing assets must fail visibly or use a disclosed compatible substitute.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>Before building, each supported request has a saved brief, finite task graph, explicit completion checks, known asset strategy, and a feasible supported scope.</p></div></section>
+<section id="p5"><div class="phase-head"><h2>P5 · Build a persistent autonomous workflow runner</h2><span class="badge">High · automation engine</span></div><p class="muted"><strong>Dependencies:</strong> P2 transactional tools, P4 task/completion contracts and P1 durable storage.</p>
+<article class="task" id="p5-1"><h3><span class="task-id">P5.1</span>Implement a durable state machine</h3><p>Use explicit states: draft, planning, queued, executing, validating, repairing, checkpointed, awaiting input, paused, cancelled, failed, ready for review, completed. Persist run ID, brief revision, task graph, current step, action journal, evidence, budgets and checkpoint references. Resume safely after restart rather than replaying completed work.</p></article>
+<article class="task" id="p5-2"><h3><span class="task-id">P5.2</span>Expose typed, discoverable tools</h3><p>Replace fenced-text-only execution with provider tool calling where available and a strictly validated structured fallback. Generate tool schemas and AI documentation from one capability registry. Cover read/query, create/update, asset lookup/import, script lifecycle, run/stop, inspect, test, save/checkpoint, and export. Return structured success, failure and retryable status.</p></article>
+<article class="task" id="p5-3"><h3><span class="task-id">P5.3</span>Provide accurate scene and project context</h3><p>Let the agent query stable IDs, hierarchy, transforms, components, behaviors, scripts, assets, active scenes, cameras, errors and previous task results. Supply compact summaries and retrieve details as needed. Version context and detect concurrent user changes. Never rely on the last eight chat messages as project memory.</p></article>
+<article class="task" id="p5-4"><h3><span class="task-id">P5.4</span>Make execution safe to repeat</h3><p>Use idempotency keys and expected revision checks for mutating actions. Prevent duplicate entities/assets on retries. Run changes against checkpoints or working revisions. Validate references before commit, await loads, and record actual results instead of assuming requested actions succeeded.</p></article>
+<article class="task" id="p5-5"><h3><span class="task-id">P5.5</span>Integrate skills as real knowledge</h3><p>Package curated skill content with the application or retrieve it through a defined loader. Consultation must return instructions and examples to the model. Keep skill versions tied to available tools and runtime behavior. Resolve the current no-op consultation path and avoid shipping unusable filesystem references.</p></article>
+<article class="task" id="p5-6"><h3><span class="task-id">P5.6</span>Implement provider resilience and budgets</h3><p>Support request timeout, cancellation, rate-limit backoff, bounded retries, context compaction, configurable token budgets and cost visibility where provider data permits. Do not silently change providers or paid accounts. Persist incomplete runs without secrets; credentials remain in the configured secure adapter.</p></article>
+<article class="task" id="p5-7"><h3><span class="task-id">P5.7</span>Replace keyword team mode with real task coordination</h3><p>Have a planner assign validated tasks to builder, gameplay, art and QA responsibilities. Start with sequential execution against shared project state; parallelize only isolated work when conflict handling is proven. Persist handoffs, inputs, outputs and evidence. Role names do not establish independent reasoning or successful QA.</p></article>
+<article class="task" id="p5-8"><h3><span class="task-id">P5.8</span>Give users reliable control</h3><p>Pause at safe transaction boundaries, stop model requests, cancel queued tasks, preserve the last known good state, and resume from a checkpoint. Require user input only for missing essentials, external publishing authorization, budget increases or scope changes; ordinary in-scope building should continue automatically.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>A supported request continues through multiple dependent tasks without repeated prompts, survives restart, cancels safely, avoids duplicate work on retries, and reports actual task state and remaining blockers.</p></div></section>
+<section id="p6"><div class="phase-head"><h2>P6 · Add automated playtesting, inspection &amp; repair</h2><span class="badge">High · prove completion</span></div><p class="muted"><strong>Dependencies:</strong> P2 shared runtime and telemetry, P4 acceptance contracts, P5 persisted runner.</p>
+<article class="task" id="p6-1"><h3><span class="task-id">P6.1</span>Validate structure before launching</h3><p>Check required camera/player or genre equivalents, spawn safety, scripts, asset availability, references, collision/physics prerequisites, scene transitions, HUD bindings, input actions and objective wiring. Report defects with stable object IDs and actionable causes.</p></article>
+<article class="task" id="p6-2"><h3><span class="task-id">P6.2</span>Run real game smoke tests</h3><p>Launch the shared runtime in an isolated browser test context. Wait for assets and readiness, capture console/runtime failures, simulate input, test restart and scene transitions, and collect screenshots. Use a consistent seed and bounded test duration. A generated HTML string is not a passing playtest.</p></article>
+<article class="task" id="p6-3"><h3><span class="task-id">P6.3</span>Verify mechanics and outcomes</h3><p>For each supported genre, assert movement/input effect, collisions where needed, damage/collection/scoring, objective progress, fail/win or endless-loop rules, restart state and reachable required content. Use runtime telemetry plus scripted scenarios; screenshots alone cannot establish playability.</p></article>
+<article class="task" id="p6-4"><h3><span class="task-id">P6.4</span>Review presentation and performance</h3><p>Capture start, gameplay and end-state views. Check camera framing, visible player, readable UI, asset scale, obvious clipping and lighting. Measure load time, frame timing, memory trend, draw calls and asset weight on declared hardware tiers. Visual model review supplements deterministic tests, and does not claim universal artistic correctness.</p></article>
+<article class="task" id="p6-5"><h3><span class="task-id">P6.5</span>Make repairs bounded and evidence-driven</h3><p>Translate defects into targeted repair tasks, checkpoint, apply changes, rerun failed checks and relevant regressions. Detect repeated failures and no-progress cycles. Default to a configurable maximum of three repair cycles per defect group; then keep the working checkpoint and explain the blocker instead of declaring success.</p></article>
+<article class="task" id="p6-6"><h3><span class="task-id">P6.6</span>Create a completion report</h3><p>List requested features, checks passed/failed, screenshots, export verification, known limitations and the exact project/runtime revision tested. Only mark completed when required checks pass. Let the user preview intermediate results without confusing them with the finished game.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>An intentionally broken supported game is detected and repaired within budget; an unrepairable game reports a specific blocker; no completion state is possible with failing required checks.</p></div></section>
+<section id="p7"><div class="phase-head"><h2>P7 · Finish the gameplay &amp; visual authoring foundation</h2><span class="badge">High · focused depth</span></div><p class="muted"><strong>Dependencies:</strong> Begins after P0 inventory; integrates with P1/P2. Certified starters must precede final AI benchmark acceptance.</p>
+<article class="task" id="p7-1"><h3><span class="task-id">P7.1</span>Certify a core behavior set</h3><p>Prioritize movement, camera, physics interaction, health/damage, enemies, pickups, score, checkpoints, doors, hazards, spawning, objectives and restart. Define configuration schemas and interoperable events. Add behavior lifecycle cleanup, reset and serialization. Test combinations rather than attachment alone.</p></article>
+<article class="task" id="p7-2"><h3><span class="task-id">P7.2</span>Finish or withdraw incomplete advanced behaviors</h3><p>Audit all advertised behaviors. Implement genuine paired portals, surface walking, time control and other advanced mechanics only when they fit the release scope; otherwise label experimental or hide them. Remove fake success notifications. Verify runtime/preview/export parity for every exposed behavior.</p></article>
+<article class="task" id="p7-3"><h3><span class="task-id">P7.3</span>Complete script lifecycle and isolation</h3><p>Provide script registration, attachment, attributes, initialization/update/cleanup, compilation/runtime error reporting, save/load, and export. Run generated code without editor privilege or credentials. Have AI patch scripts with revision checks and validate them before activating.</p></article>
+<article class="task" id="p7-4"><h3><span class="task-id">P7.4</span>Resolve graph tools honestly</h3><p>Decide which visual flow, shader and animation graph capabilities ship. Supported graphs need saved node/edge data, schema validation, deterministic execution/compilation, live preview and export parity. A canvas of nodes that does not control runtime behavior must not be offered as a finished blueprint or shader engine.</p></article>
+<article class="task" id="p7-5"><h3><span class="task-id">P7.5</span>Complete reusable content workflows</h3><p>Support versioned prefabs with stable references, material and texture persistence, terrain persistence, animated asset loading, animation state configuration, sound source/slot restoration and deterministic scene transitions. Make missing-resource diagnostics comprehensible in Simple mode.</p></article>
+<article class="task" id="p7-6"><h3><span class="task-id">P7.6</span>Build tested genre starters</h3><p>Ship compact third-person collection/adventure, first-person arena, and platformer starters using certified components. Each starter includes menus/help, appropriate input, objectives, failure/restart, HUD, coherent presentation and portable assets. Use these as constrained building blocks, not canned outputs for every prompt.</p></article>
+<article class="task" id="p7-7"><h3><span class="task-id">P7.7</span>Define 2D scope explicitly</h3><p>For the first release, declare whether platformers are 3D or 2.5D. If native 2D games are included, add orthographic setup, sprites/atlases, 2D input/physics conventions, layered UI and suitable templates as a separate tested workstream. Do not imply every HTML game genre is covered by the 3D toolset.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>Every release-visible capability has an explicit support status and passes save/open, preview and export scenarios; all three starters are complete playable games.</p></div></section>
+<section id="p8"><div class="phase-head"><h2>P8 · Ship portable exports &amp; genuine sharing</h2><span class="badge">High · delivery</span></div><p class="muted"><strong>Dependencies:</strong> P1 asset packaging, P2 shared runtime and P6 delivery checks. Hosting is a separate service dependency.</p>
+<article class="task" id="p8-1"><h3><span class="task-id">P8.1</span>Define export targets</h3><p>Support a portable folder/ZIP with a pinned runtime and assets as the reliable baseline. Offer a single embedded HTML option only for assets and sizes the exporter truly supports. Record any remaining network dependency explicitly. Keep editable project packages distinct from playable exports.</p></article>
+<article class="task" id="p8-2"><h3><span class="task-id">P8.2</span>Implement dependency collection</h3><p>Traverse every scene, script, model, texture, sound, animation and runtime dependency. Resolve local/blob/remote references into durable packaged locations, include licenses, rewrite URLs, and report missing or disallowed dependencies before completion. Bundle engine and physics consistently with preview.</p></article>
+<article class="task" id="p8-3"><h3><span class="task-id">P8.3</span>Test portability and offline behavior</h3><p>Run the delivered artifact from a clean location with network disabled for offline claims. Test browser file restrictions and provide a clear local-server path for folder exports where required. Verify loading, gameplay, win/lose/restart and scene transitions outside the editor.</p></article>
+<article class="task" id="p8-4"><h3><span class="task-id">P8.4</span>Implement actual publishing</h3><p>Build or connect a hosting API with authentication, upload progress, project ownership, validation, game revisions, quotas and error handling. Return a public URL only after upload and an independent fetch confirms availability. Support update, unpublish/delete and cache invalidation. Do not use invented public URLs.</p></article>
+<article class="task" id="p8-5"><h3><span class="task-id">P8.5</span>Keep private work private</h3><p>Local save/export should work without an account or publication. Clearly separate Export from Publish, show what will be uploaded, and preserve user authorization for the specific publishing action. Exclude keys, internal logs, private prompts and editor-only metadata from playable games.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>An exported supported game plays on a clean target without editor files; offline claims pass offline tests; publishing returns an actually reachable revision with ownership and removal controls.</p></div></section>
+<section id="p9"><div class="phase-head"><h2>P9 · Harden performance, compatibility &amp; desktop delivery</h2><span class="badge">High · release readiness</span></div><p class="muted"><strong>Dependencies:</strong> P3 interface, P5/P6 automation and P8 exported artifacts.</p>
+<article class="task" id="p9-1"><h3><span class="task-id">P9.1</span>Declare and test a support matrix</h3><p>Choose initial desktop/browser targets and minimum GPU/memory requirements. Prioritize Linux desktop and supported Chromium/Firefox browser versions before claiming universal platforms. Add Windows/macOS builds only with real installation and workflow validation.</p></article>
+<article class="task" id="p9-2"><h3><span class="task-id">P9.2</span>Measure and optimize loading</h3><p>Use dynamic loading for advanced Pro tools and optional modules. Reduce the initial application bundle, avoid loading unnecessary model libraries, cache assets safely, and show real progress. Establish budgets from reference hardware and enforce measured regressions rather than marketing estimates.</p></article>
+<article class="task" id="p9-3"><h3><span class="task-id">P9.3</span>Test mobile exports deliberately</h3><p>Provide touch controls, responsive HUD, safe-area handling, audio unlock, orientation behavior, memory/texture limits and representative mobile performance. Distinguish mobile-playable exports from a mobile authoring editor; neither is automatic.</p></article>
+<article class="task" id="p9-4"><h3><span class="task-id">P9.4</span>Exercise long sessions and recovery</h3><p>Repeatedly open/close projects, enter/exit play, import/remove assets, build/cancel AI runs and switch scenes. Check memory/GPU/audio/listener cleanup, input focus, crashes, context loss, offline provider failure and suspended/resumed applications.</p></article>
+<article class="task" id="p9-5"><h3><span class="task-id">P9.5</span>Make releases reproducible</h3><p>Document development versus packaged launch, enforce artifact contents, verify desktop integrations and clean-machine installation, preserve user projects across updates, and define update/rollback handling. Keep build artifacts out of git; publish binaries through a separate release channel.</p></article>
+<article class="task" id="p9-6"><h3><span class="task-id">P9.6</span>Add actionable support diagnostics</h3><p>Offer opt-in redacted diagnostic export with app/runtime version, platform, failed task IDs and errors. Explain local storage, AI provider configuration and offline limitations. Add a brief first-game guide matching the finished interface.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>The declared support matrix passes installation and end-to-end workflows, repeat-session resource checks, measured performance budgets and interruption/recovery scenarios.</p></div></section>
+<section id="p10"><div class="phase-head"><h2>P10 · Prove the product with benchmarks &amp; beta users</h2><span class="badge">Release gate</span></div><p class="muted"><strong>Dependencies:</strong> All preceding release-scope phases. Optional deferred capabilities do not block if removed from release claims and UI.</p>
+<article class="task" id="p10-1"><h3><span class="task-id">P10.1</span>Create a fixed prompt benchmark</h3><p>Use at least 20 supported prompts across the three starter families, including modifications to an existing project. Version prompts, random seeds, asset packs, provider/model settings and expected checks. Include failed provider calls, missing assets, conflicting edits and resume-after-restart cases.</p></article>
+<article class="task" id="p10-2"><h3><span class="task-id">P10.2</span>Measure completion honestly</h3><p>Track end-to-end completion rate, export success, median and slow-tail duration, repair count, manual interventions, provider cost where measurable and visual/usability feedback. Proposed beta target: at least 18 of 20 supported prompts pass required checks without manual scene repair, with all failures reported accurately. Freeze thresholds before running; report sample size and model variability.</p></article>
+<article class="task" id="p10-3"><h3><span class="task-id">P10.3</span>Run novice and Pro usability sessions</h3><p>Observe novices using only Simple mode and experienced users using Pro mode. Record abandoned flows, unclear controls, trust in saving/undo, quality of AI changes and successful delivery. Fix blockers before adding optional features. Recruit outside the development workflow so hidden assumptions become visible.</p></article>
+<article class="task" id="p10-4"><h3><span class="task-id">P10.4</span>Close release blockers</h3><p>Zero known critical credential exposure or project-loss issues. Required checks pass for reference games. No fabricated publishing/completion statuses. Complete recovery, packaging, attribution and accurate release notes. Track deferred features explicitly rather than claiming them as complete.</p></article>
+<article class="task" id="p10-5"><h3><span class="task-id">P10.5</span>Release a scoped version and keep improving</h3><p>Publish the supported capability list, tested platforms, known limitations, benchmark results and upgrade guidance. Keep a regression corpus from real user failures. Expand genres, advanced mechanics and model support only after the existing completion rate stays stable.</p></article>
+<div class="gate"><strong>Exit gate</strong><p>All release gates pass on a tagged candidate, novice users finish the intended workflow, benchmark evidence is retained, and the supported scope matches actual behavior.</p></div></section>
+<section id="verification"><h2>Verification matrix: prove the whole journey</h2><p>Keep the existing unit tests, but add tests that fail when the product promise fails. Use the smallest suitable check for each layer; do not replace real gameplay checks with assertions that a behavior name appears in HTML.</p><div class="table-wrap"><table><thead><tr><th>Layer</th><th>Required scenarios</th><th>Evidence</th></tr></thead><tbody><tr><td>Project integrity</td><td>Save/open all scenes, nested transforms, model assets, textures, scripts, physics, audio, graph data and prefabs; migration/corrupt input; interrupted save.</td><td>Semantic round-trip comparisons, fixture manifests, recovery results.</td></tr><tr><td>Commands</td><td>Manual/AI parity, grouped undo/redo, async failure, cancellation, duplicate retries, stale revisions.</td><td>State comparisons and action journal with no leaked resources.</td></tr><tr><td>Runtime</td><td>Clean play startup, physics ready, controls, behavior interactions, camera, win/lose/restart, multi-scene transitions.</td><td>Scripted input tests, runtime events and error-free sessions.</td></tr><tr><td>AI workflow</td><td>Prompt to brief to completion, edits to existing games, pause/resume, provider errors, repair exhaustion, user changes during a run.</td><td>Persisted task graph, checkpoints, actual tool results and validation reports.</td></tr><tr><td>Export</td><td>Clean location, no editor resources, pinned runtime, offline where claimed, asset attribution, same game outcomes.</td><td>Automated artifact launch with network policy, hashes and check results.</td></tr><tr><td>Security</td><td>Untrusted AI text, hostile imported content, script isolation, credential endpoint access, unsupported external protocols.</td><td>Negative tests and redacted diagnostics; no real secret values in fixtures.</td></tr><tr><td>Experience</td><td>Novice-only Simple journey, Pro/Simple switching, keyboard navigation, smaller screens, accessible errors.</td><td>Observed sessions, reproducible UI checks and screenshots.</td></tr><tr><td>Compatibility</td><td>Declared Linux/browser targets; repeated sessions; mobile exports only if included.</td><td>Target matrix, load/frame/memory measurements and install reports.</td></tr></tbody></table></div><p><strong>Regression rule:</strong> a failed user game becomes a minimized fixture or benchmark scenario. Every bug fix includes the most relevant verification, and every advertised capability has a traceable check.</p></section>
+<section id="backlog"><h2>First implementation backlog: start here</h2><p>These are implementation slices, not completed items. Keep each slice reviewable and independently verifiable.</p><ol><li><strong>B01 · Secure development credential access and AI rendering.</strong> Address P0.2–P0.3; verify malicious content is inert and credentials are not network-readable.</li><li><strong>B02 · Build the capability register.</strong> Map all visible tools and AI actions to actual runtime/export behavior and tag unsupported claims.</li><li><strong>B03 · Define the project schema and migration policy.</strong> Start with stable IDs, all scenes, assets and scripts; create representative fixtures.</li><li><strong>B04 · Repair immediate persistence losses.</strong> Restore scripts and attachments, preserve scene collections and local transforms, then complete component/asset coverage.</li><li><strong>B05 · Implement portable save/open and recovery snapshots.</strong> Exercise restart, missing assets and interrupted writes before polishing the UI.</li><li><strong>B06 · Close command-bus gaps.</strong> Route AI transforms, materials and behavior changes through history; add awaited transactions and one-prompt undo.</li><li><strong>B07 · Extract a minimal shared runtime and isolated preview.</strong> Start with movement, camera, physics, collectible objective and restart.</li><li><strong>B08 · Deliver one complete manual reference game and portable export.</strong> Prove the foundation before asking AI to automate it.</li><li><strong>B09 · Build the Simple chat/preview shell.</strong> Connect real save state, preview lifecycle, checkpoints and errors; hide advanced editor panels.</li><li><strong>B10 · Implement Game Brief, task graph and persistent runner.</strong> Use one supported game family; validated tools, real context, budgets and cancellation.</li><li><strong>B11 · Add automated gameplay checks and bounded repair.</strong> Introduce known defects and prove detection, recovery and truthful failure.</li><li><strong>B12 · Demonstrate the first autonomous vertical slice.</strong> Prompt → build → playtest → repair → polish → export; then modify it, restart the app and resume a paused run.</li></ol><div class="callout"><strong>First major demonstration</strong><p>“Create a small island game where I collect five crystals and reach the exit.” The studio completes it, verifies the objective and restart, saves it, reopens it, exports it, and then handles “make it nighttime and add two guards” without rebuilding or losing the existing game.</p></div></section>
+<section id="risks"><h2>Risks, tradeoffs and decisions to resolve</h2><div class="table-wrap"><table><thead><tr><th>Decision / risk</th><th>Proposed default</th><th>When to resolve</th></tr></thead><tbody><tr><td>Which game types ship first?</td><td>Three compact 3D/2.5D single-player families. Native 2D gets its own explicit scope.</td><td>P0/P4 before templates and benchmark freeze.</td></tr><tr><td>Web versus desktop storage and credentials</td><td>Shared project schema and platform adapters; secure desktop broker; explicit web BYOK/backend design.</td><td>P0/P1.</td></tr><tr><td>Single HTML versus portable folder</td><td>Reliable folder/ZIP first; embedded HTML only when verified and size-appropriate.</td><td>P1 asset design and P8.</td></tr><tr><td>AI variability, costs and stalled runs</td><td>Finite plans, persisted checkpoints, tool validation, explicit budgets, measured provider benchmarks.</td><td>P4/P5.</td></tr><tr><td>Model-generated code and hostile imports</td><td>Isolated runtime with no credential/editor access; schema validation and restricted communication.</td><td>P0/P2 before automation expansion.</td></tr><tr><td>Duplicate runtime implementations</td><td>Extract one tested runtime rather than patching editor and exporter independently.</td><td>P2, before deeper gameplay work.</td></tr><tr><td>Art quality versus automatic correctness</td><td>Coherent curated asset families and measured presentation checks; human beta feedback remains necessary.</td><td>P4/P6/P10.</td></tr><tr><td>Advanced feature backlog</td><td>Hide or label incomplete mechanics and graphs; no new catalog expansion until core gates pass.</td><td>P0/P7.</td></tr><tr><td>Hosting service scope and cost</td><td>Local export remains independent. Ship Publish only with real hosting, ownership and removal.</td><td>Before P8 hosting implementation.</td></tr><tr><td>Performance claims</td><td>Choose reference devices and budgets, measure baselines, then publish realistic targets.</td><td>P0 baseline and P9.</td></tr></tbody></table></div></section>
+<section id="tracking"><h2>How to execute and maintain this roadmap</h2><ul><li><strong>One canonical backlog:</strong> create implementation issues using the IDs above. Each issue records scope, owner, dependencies, acceptance checks, evidence links and status: planned, active, blocked, verifying, or done.</li><li><strong>Done means verified:</strong> code, UI integration where needed, persistence, preview/export compatibility, tests and accurate documentation are complete for the task’s declared scope. A file or menu entry alone is insufficient.</li><li><strong>Review milestone evidence:</strong> demonstrate the user journey at every milestone. Record the exact revision and outstanding defects. Do not mark a phase complete because its subtasks were merely drafted.</li><li><strong>Protect working content:</strong> use project fixtures and reference games as regressions. Changes to schema/runtime require migration and compatibility checks.</li><li><strong>Keep development changes reviewable:</strong> use focused commits, run relevant checks, commit and push completed changes according to repository policy. Never commit credentials, dependency folders, generated distributions or binary releases.</li><li><strong>Update this document:</strong> link completed work and measured results, adjust the scope openly, and preserve unresolved risks. Reassess priorities after every milestone rather than adding unchecked features.</li></ul><div class="gate"><strong>Final release checklist</strong><ul><li>Project save/open/recovery and undo are trustworthy.</li><li>Simple mode delivers the chat-and-preview journey without advanced editing.</li><li>Pro mode uses the same reliable project, commands and runtime.</li><li>AI runs persist, continue across tasks, test results and repair within limits.</li><li>Required game outcomes and restart pass for supported genres.</li><li>Portable exports run outside the editor; real hosting exists if advertised.</li><li>No critical known credential exposure or project-loss defects remain.</li><li>Benchmark, usability, compatibility and performance evidence supports release claims.</li></ul></div></section>
+<footer>MakuluLinux Game Studio · Completion Roadmap · 31 October 2026<br>Offline-friendly planning document. No external fonts, scripts, tracking or network dependencies.</footer></main></div><script>document.getElementById("print-roadmap").addEventListener("click", function () { window.print(); });</script></body></html>
