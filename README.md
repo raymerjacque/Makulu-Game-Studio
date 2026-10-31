@@ -932,4 +932,9 @@ Chromium with external connections blocked. Run `npm test`,
 The runtime manifest pins engine, physics and license hashes; builds and exports
 fail on mismatches. See [runtime provenance](editor/vendor/ammo/README.md).
 Physics initializes before the editor, pauses during authoring and advances during
-Play. Exact editing-state restoration on Stop remains the next milestone.
+Play. Play now runs disposable scene copies and Stop restores the supported editing state, selection and undo history. A separate preview security context remains pending.
+
+
+Run `npm run test:play-browser` from `editor/` for actual Play/Stop button checks
+with real physics and a loaded GLB. See [Play/Stop scope and remaining isolation
+work](docs/project-format.md#disposable-playstop-scene-copies-31-october-2026).

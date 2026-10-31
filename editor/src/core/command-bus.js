@@ -60,6 +60,7 @@ export class CommandBus {
   execute(command) {
     try {
       const result = command.execute();
+      if (this.editor.isPlaying) return result;
       this.undoStack.push(command);
       if (this.undoStack.length > this.maxHistory) {
         this.undoStack.shift();
@@ -77,6 +78,7 @@ export class CommandBus {
    * Undo last command
    */
   undo() {
+    if (this.editor.isPlaying) return null;
     if (!this.canUndo()) return null;
     const command = this.undoStack.pop();
     try {
@@ -94,6 +96,7 @@ export class CommandBus {
    * Redo previously undone command
    */
   redo() {
+    if (this.editor.isPlaying) return null;
     if (!this.canRedo()) return null;
     const command = this.redoStack.pop();
     try {
@@ -108,6 +111,7 @@ export class CommandBus {
   }
 
   clear() {
+    if (this.editor.isPlaying) return;
     this.undoStack = [];
     this.redoStack = [];
     this.notify('clear', null);

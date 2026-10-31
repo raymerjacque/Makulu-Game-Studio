@@ -71,7 +71,7 @@
         "editor/src/engine/pc-app.js",
         "editor/src/ui/hierarchy.js"
       ],
-      "proof": "Nested transforms and generated-game reconstruction pass; native tag handling and resource duplication are tested without blank-entity fallback."
+      "proof": "Nested transforms and generated-game reconstruction pass; native tag handling and resource duplication are tested without blank-entity fallback. Explicit editor-only helpers are excluded from saved content and survive scene replacement."
     },
     {
       "id": "modes",
@@ -151,16 +151,19 @@
       "id": "play",
       "name": "Isolated play sessions",
       "status": "partial",
-      "editor": "Play toggles behavior execution and UI, and blocks startup while restored scene resources are loading or failed. Real Ammo advances only during Play and freezes on Stop; exact restoration remains pending.",
-      "persistence": "No complete snapshot restoration in play/stop path.",
+      "editor": "Editor-owned Play/Stop runs disposable same-application scene copies; original scene objects, selection, camera orbit and history are restored on Stop.",
+      "persistence": "Editable saves and scene replacement are blocked during Play; runtime changes do not enter authoring history or recovery.",
       "export": "Separate runtime implementation.",
-      "next": "Clone/isolate runtime and restore editing state exactly.",
+      "next": "Separate preview application/security context; configured game camera/input, shared gameplay runtime and arbitrary code/resource isolation.",
       "evidence": [
         "editor/src/ui/topbar.js",
         "editor/src/core/behaviors.js",
-        "editor/src/engine/pc-app.js"
+        "editor/src/engine/pc-app.js",
+        "editor/src/runtime/play-session.js",
+        "editor/tests/play-session.test.js",
+        "editor/scripts/test-play-session-browser.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Eight controller/real-engine regressions and fourteen real-browser button/Ammo/GLB assertions cover the declared restoration scope."
     },
     {
       "id": "models",
@@ -227,7 +230,7 @@
       "id": "physics",
       "name": "Physics and joints",
       "status": "partial",
-      "editor": "Pinned Ammo initializes before application creation; physics pauses during authoring and advances in Play.",
+      "editor": "Pinned Ammo initializes before application creation; physics pauses during authoring and advances in Play. Play uses disposable bodies; Stop restores the original scene.",
       "persistence": "Collision half-extents and zero mass/friction/restitution now round-trip; complete joint fields and semantics remain unverified.",
       "export": "File-menu HTML embeds the same pinned Ammo source and engine, with integrity checks and licenses.",
       "next": "Restore pre-play state exactly; verify constraints, terrain traversal and supported gameplay scenarios.",
@@ -518,7 +521,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 809
+          "line": 807
         }
       ],
       "exportedRuntimeBranches": [
@@ -546,7 +549,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1301
+          "line": 1299
         }
       ],
       "exportedRuntimeBranches": [
@@ -574,7 +577,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1041
+          "line": 1039
         }
       ],
       "exportedRuntimeBranches": [
@@ -602,7 +605,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 536
+          "line": 534
         }
       ],
       "exportedRuntimeBranches": [
@@ -627,7 +630,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 229
+          "line": 227
         }
       ],
       "exportedRuntimeBranches": [
@@ -655,7 +658,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 815
+          "line": 813
         }
       ],
       "exportedRuntimeBranches": [
@@ -688,7 +691,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2192
+          "line": 2190
         }
       ],
       "exportedRuntimeBranches": [
@@ -716,7 +719,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1369
+          "line": 1367
         }
       ],
       "exportedRuntimeBranches": [
@@ -748,7 +751,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 257
+          "line": 255
         }
       ],
       "exportedRuntimeBranches": [
@@ -773,7 +776,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 950
+          "line": 948
         }
       ],
       "exportedRuntimeBranches": [
@@ -799,7 +802,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1826
+          "line": 1824
         }
       ],
       "exportedRuntimeBranches": [
@@ -828,7 +831,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 928
+          "line": 926
         }
       ],
       "exportedRuntimeBranches": [
@@ -854,7 +857,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1231
+          "line": 1229
         }
       ],
       "exportedRuntimeBranches": [
@@ -882,7 +885,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1496
+          "line": 1494
         }
       ],
       "exportedRuntimeBranches": [
@@ -910,7 +913,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 588
+          "line": 586
         }
       ],
       "exportedRuntimeBranches": [
@@ -939,11 +942,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 267
+          "line": 265
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1352
+          "line": 1350
         }
       ],
       "exportedRuntimeBranches": [
@@ -975,7 +978,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1493
+          "line": 1491
         }
       ],
       "exportedRuntimeBranches": [
@@ -1002,7 +1005,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1401
+          "line": 1399
         }
       ],
       "exportedRuntimeBranches": [
@@ -1030,7 +1033,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 941
+          "line": 939
         }
       ],
       "exportedRuntimeBranches": [
@@ -1057,11 +1060,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1161
+          "line": 1159
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2261
+          "line": 2259
         }
       ],
       "exportedRuntimeBranches": [
@@ -1092,7 +1095,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1672
+          "line": 1670
         }
       ],
       "exportedRuntimeBranches": [
@@ -1118,7 +1121,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 281
+          "line": 279
         }
       ],
       "exportedRuntimeBranches": [
@@ -1145,11 +1148,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1222
+          "line": 1220
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2288
+          "line": 2286
         }
       ],
       "exportedRuntimeBranches": [
@@ -1177,7 +1180,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1397
+          "line": 1395
         }
       ],
       "exportedRuntimeBranches": [
@@ -1205,7 +1208,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 629
+          "line": 627
         }
       ],
       "exportedRuntimeBranches": [
@@ -1232,7 +1235,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 663
+          "line": 661
         }
       ],
       "exportedRuntimeBranches": [
@@ -1258,7 +1261,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1256
+          "line": 1254
         }
       ],
       "exportedRuntimeBranches": [
@@ -1285,7 +1288,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1297
+          "line": 1295
         }
       ],
       "exportedRuntimeBranches": [
@@ -1313,7 +1316,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1920
+          "line": 1918
         }
       ],
       "exportedRuntimeBranches": [
@@ -1341,7 +1344,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 903
+          "line": 901
         }
       ],
       "exportedRuntimeBranches": [
@@ -1367,7 +1370,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1137
+          "line": 1135
         }
       ],
       "exportedRuntimeBranches": [
@@ -1392,7 +1395,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1515
+          "line": 1513
         }
       ],
       "exportedRuntimeBranches": [
@@ -1420,7 +1423,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2183
+          "line": 2181
         }
       ],
       "exportedRuntimeBranches": [
@@ -1448,7 +1451,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1913
+          "line": 1911
         }
       ],
       "exportedRuntimeBranches": [
@@ -1476,7 +1479,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1456
+          "line": 1454
         }
       ],
       "exportedRuntimeBranches": [
@@ -1505,7 +1508,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 313
+          "line": 311
         }
       ],
       "exportedRuntimeBranches": [
@@ -1533,7 +1536,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1731
+          "line": 1729
         }
       ],
       "exportedRuntimeBranches": [
@@ -1560,7 +1563,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1771
+          "line": 1769
         }
       ],
       "exportedRuntimeBranches": [
@@ -1587,7 +1590,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1938
+          "line": 1936
         }
       ],
       "exportedRuntimeBranches": [
@@ -1614,7 +1617,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 209
+          "line": 207
         }
       ],
       "exportedRuntimeBranches": [
@@ -1642,7 +1645,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1025
+          "line": 1023
         }
       ],
       "exportedRuntimeBranches": [
@@ -1670,7 +1673,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 422
+          "line": 420
         }
       ],
       "exportedRuntimeBranches": [
@@ -1695,7 +1698,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 789
+          "line": 787
         }
       ],
       "exportedRuntimeBranches": [
@@ -1723,7 +1726,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1278
+          "line": 1276
         }
       ],
       "exportedRuntimeBranches": [
@@ -1751,7 +1754,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1319
+          "line": 1317
         }
       ],
       "exportedRuntimeBranches": [
@@ -1779,7 +1782,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1309
+          "line": 1307
         }
       ],
       "exportedRuntimeBranches": [
@@ -1807,15 +1810,15 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1058
+          "line": 1056
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1693
+          "line": 1691
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1706
+          "line": 1704
         }
       ],
       "exportedRuntimeBranches": [
@@ -1849,7 +1852,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1760
+          "line": 1758
         }
       ],
       "exportedRuntimeBranches": [
@@ -1881,7 +1884,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1692
+          "line": 1690
         }
       ],
       "exportedRuntimeBranches": [
@@ -1907,7 +1910,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1409
+          "line": 1407
         }
       ],
       "exportedRuntimeBranches": [
@@ -1935,7 +1938,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1085
+          "line": 1083
         }
       ],
       "exportedRuntimeBranches": [
@@ -1962,7 +1965,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2072
+          "line": 2070
         }
       ],
       "exportedRuntimeBranches": [
@@ -1991,7 +1994,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1259
+          "line": 1257
         }
       ],
       "exportedRuntimeBranches": [
@@ -2019,43 +2022,43 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 277
+          "line": 275
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 289
+          "line": 287
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 304
+          "line": 302
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 579
+          "line": 577
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 653
+          "line": 651
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1034
+          "line": 1032
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1338
+          "line": 1336
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1743
+          "line": 1741
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2148
+          "line": 2146
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2298
+          "line": 2296
         }
       ],
       "exportedRuntimeBranches": [
@@ -2134,7 +2137,8 @@
       "notes": "Source inventoried; behavior semantics, combinations, reset, save/open and delivered gameplay require certification.",
       "testMentions": [
         "editor/tests/aaa-behaviors-and-ai.test.js",
-        "editor/tests/editor.test.js"
+        "editor/tests/editor.test.js",
+        "editor/tests/play-session.test.js"
       ]
     },
     {
@@ -2148,11 +2152,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 296
+          "line": 294
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1352
+          "line": 1350
         }
       ],
       "exportedRuntimeBranches": [
@@ -2182,7 +2186,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 647
+          "line": 645
         }
       ],
       "exportedRuntimeBranches": [
@@ -2211,7 +2215,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2101
+          "line": 2099
         }
       ],
       "exportedRuntimeBranches": [
@@ -2238,7 +2242,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1949
+          "line": 1947
         }
       ],
       "exportedRuntimeBranches": [
@@ -2266,7 +2270,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 189
+          "line": 187
         }
       ],
       "exportedRuntimeBranches": [
@@ -2294,7 +2298,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1789
+          "line": 1787
         }
       ],
       "exportedRuntimeBranches": [
@@ -2322,7 +2326,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1834
+          "line": 1832
         }
       ],
       "exportedRuntimeBranches": [
@@ -2350,7 +2354,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2138
+          "line": 2136
         }
       ],
       "exportedRuntimeBranches": [
@@ -2377,7 +2381,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1128
+          "line": 1126
         }
       ],
       "exportedRuntimeBranches": [
@@ -2403,7 +2407,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1299
+          "line": 1297
         }
       ],
       "exportedRuntimeBranches": [
@@ -2430,7 +2434,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1884
+          "line": 1882
         }
       ],
       "exportedRuntimeBranches": [
@@ -2458,7 +2462,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1344
+          "line": 1342
         }
       ],
       "exportedRuntimeBranches": [
@@ -2487,7 +2491,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 507
+          "line": 505
         }
       ],
       "exportedRuntimeBranches": [
@@ -2515,7 +2519,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1954
+          "line": 1952
         }
       ],
       "exportedRuntimeBranches": [
@@ -2543,11 +2547,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 462
+          "line": 460
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1352
+          "line": 1350
         }
       ],
       "exportedRuntimeBranches": [
@@ -2579,7 +2583,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1977
+          "line": 1975
         }
       ],
       "exportedRuntimeBranches": [
@@ -2607,7 +2611,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 571
+          "line": 569
         }
       ],
       "exportedRuntimeBranches": [
@@ -2636,7 +2640,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 522
+          "line": 520
         }
       ],
       "exportedRuntimeBranches": [
@@ -2663,7 +2667,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 596
+          "line": 594
         }
       ],
       "exportedRuntimeBranches": [
@@ -2693,7 +2697,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 141
+          "line": 139
         }
       ],
       "exportedRuntimeBranches": [
@@ -2719,7 +2723,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 476
+          "line": 474
         }
       ],
       "exportedRuntimeBranches": [
@@ -2751,7 +2755,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1465
+          "line": 1463
         }
       ],
       "exportedRuntimeBranches": [
@@ -2778,7 +2782,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2067
+          "line": 2065
         }
       ],
       "exportedRuntimeBranches": [
@@ -2806,7 +2810,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1606
+          "line": 1604
         }
       ],
       "exportedRuntimeBranches": [
@@ -2834,7 +2838,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1473
+          "line": 1471
         }
       ],
       "exportedRuntimeBranches": [
@@ -2862,7 +2866,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1394
+          "line": 1392
         }
       ],
       "exportedRuntimeBranches": [
@@ -2889,7 +2893,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1159
+          "line": 1157
         }
       ],
       "exportedRuntimeBranches": [
@@ -2914,7 +2918,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 567
+          "line": 565
         }
       ],
       "exportedRuntimeBranches": [
@@ -2943,7 +2947,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 167
+          "line": 165
         }
       ],
       "exportedRuntimeBranches": [
@@ -2971,7 +2975,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1518
+          "line": 1516
         }
       ],
       "exportedRuntimeBranches": [
@@ -2999,7 +3003,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 244
+          "line": 242
         }
       ],
       "exportedRuntimeBranches": [
@@ -3026,7 +3030,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1506
+          "line": 1504
         }
       ],
       "exportedRuntimeBranches": [
@@ -3051,7 +3055,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 800
+          "line": 798
         }
       ],
       "exportedRuntimeBranches": [
@@ -3079,7 +3083,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 153
+          "line": 151
         }
       ],
       "exportedRuntimeBranches": [
@@ -3104,7 +3108,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 148
+          "line": 146
         }
       ],
       "exportedRuntimeBranches": [
@@ -3129,7 +3133,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2159
+          "line": 2157
         }
       ],
       "exportedRuntimeBranches": [
@@ -3157,7 +3161,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1424
+          "line": 1422
         }
       ],
       "exportedRuntimeBranches": [
@@ -3185,7 +3189,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 551
+          "line": 549
         }
       ],
       "exportedRuntimeBranches": [
@@ -3212,7 +3216,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 725
+          "line": 723
         }
       ],
       "exportedRuntimeBranches": [
@@ -3240,7 +3244,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2188
+          "line": 2186
         }
       ],
       "exportedRuntimeBranches": [
@@ -3268,7 +3272,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1820
+          "line": 1818
         }
       ],
       "exportedRuntimeBranches": [
@@ -3296,7 +3300,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1588
+          "line": 1586
         }
       ],
       "exportedRuntimeBranches": [
@@ -3323,7 +3327,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1893
+          "line": 1891
         }
       ],
       "exportedRuntimeBranches": [
@@ -3351,7 +3355,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1554
+          "line": 1552
         }
       ],
       "exportedRuntimeBranches": [
@@ -3379,7 +3383,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1780
+          "line": 1778
         }
       ],
       "exportedRuntimeBranches": [
@@ -3407,7 +3411,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1721
+          "line": 1719
         }
       ],
       "exportedRuntimeBranches": [
@@ -3434,7 +3438,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 346
+          "line": 344
         }
       ],
       "exportedRuntimeBranches": [
@@ -3461,7 +3465,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1873
+          "line": 1871
         }
       ],
       "exportedRuntimeBranches": [
@@ -3490,7 +3494,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1151
+          "line": 1149
         }
       ],
       "exportedRuntimeBranches": [
@@ -3515,11 +3519,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1164
+          "line": 1162
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2305
+          "line": 2303
         }
       ],
       "exportedRuntimeBranches": [
@@ -3548,7 +3552,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1807
+          "line": 1805
         }
       ],
       "exportedRuntimeBranches": [
@@ -3577,7 +3581,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1326
+          "line": 1324
         }
       ],
       "exportedRuntimeBranches": [
@@ -3604,7 +3608,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1391
+          "line": 1389
         }
       ],
       "exportedRuntimeBranches": [
@@ -3632,7 +3636,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1740
+          "line": 1738
         }
       ],
       "exportedRuntimeBranches": [
@@ -3658,7 +3662,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1014
+          "line": 1012
         }
       ],
       "exportedRuntimeBranches": [
@@ -3686,7 +3690,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1785
+          "line": 1783
         }
       ],
       "exportedRuntimeBranches": [
@@ -3713,7 +3717,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1907
+          "line": 1905
         }
       ],
       "exportedRuntimeBranches": [
@@ -3741,7 +3745,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2001
+          "line": 1999
         }
       ],
       "exportedRuntimeBranches": [
@@ -3770,11 +3774,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 995
+          "line": 993
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2269
+          "line": 2267
         }
       ],
       "exportedRuntimeBranches": [
@@ -3810,7 +3814,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 235
+          "line": 233
         }
       ],
       "exportedRuntimeBranches": [
@@ -3837,7 +3841,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2168
+          "line": 2166
         }
       ],
       "exportedRuntimeBranches": [
@@ -3865,7 +3869,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1247
+          "line": 1245
         }
       ],
       "exportedRuntimeBranches": [
@@ -3893,7 +3897,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 134
+          "line": 132
         }
       ],
       "exportedRuntimeBranches": [
@@ -3919,7 +3923,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1009
+          "line": 1007
         }
       ],
       "exportedRuntimeBranches": [
@@ -3947,7 +3951,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 666
+          "line": 664
         }
       ],
       "exportedRuntimeBranches": [
@@ -3977,11 +3981,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1179
+          "line": 1177
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1206
+          "line": 1204
         }
       ],
       "exportedRuntimeBranches": [
@@ -4014,7 +4018,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 846
+          "line": 844
         }
       ],
       "exportedRuntimeBranches": [
@@ -4039,7 +4043,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2033
+          "line": 2031
         }
       ],
       "exportedRuntimeBranches": [
@@ -4067,7 +4071,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1630
+          "line": 1628
         }
       ],
       "exportedRuntimeBranches": [
@@ -4094,7 +4098,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1622
+          "line": 1620
         }
       ],
       "exportedRuntimeBranches": [
@@ -4122,7 +4126,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1003
+          "line": 1001
         }
       ],
       "exportedRuntimeBranches": [
@@ -4151,7 +4155,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1444
+          "line": 1442
         }
       ],
       "exportedRuntimeBranches": [
@@ -4180,23 +4184,23 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 395
+          "line": 393
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 454
+          "line": 452
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 653
+          "line": 651
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1743
+          "line": 1741
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2298
+          "line": 2296
         }
       ],
       "exportedRuntimeBranches": [
@@ -4243,7 +4247,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 672
+          "line": 670
         }
       ],
       "exportedRuntimeBranches": [
@@ -4269,7 +4273,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1535
+          "line": 1533
         }
       ],
       "exportedRuntimeBranches": [
@@ -4297,7 +4301,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 748
+          "line": 746
         }
       ],
       "exportedRuntimeBranches": [
@@ -4324,7 +4328,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1653
+          "line": 1651
         }
       ],
       "exportedRuntimeBranches": [
@@ -4354,7 +4358,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1166
+          "line": 1164
         }
       ],
       "exportedRuntimeBranches": [
@@ -4383,7 +4387,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2046
+          "line": 2044
         }
       ],
       "exportedRuntimeBranches": [
@@ -4410,7 +4414,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1565
+          "line": 1563
         }
       ],
       "exportedRuntimeBranches": [
@@ -4439,7 +4443,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 680
+          "line": 678
         }
       ],
       "exportedRuntimeBranches": [
@@ -4471,7 +4475,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1361
+          "line": 1359
         }
       ],
       "exportedRuntimeBranches": [
@@ -4500,7 +4504,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 873
+          "line": 871
         }
       ],
       "exportedRuntimeBranches": [
@@ -4528,7 +4532,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1814
+          "line": 1812
         }
       ],
       "exportedRuntimeBranches": [
@@ -4556,7 +4560,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1801
+          "line": 1799
         }
       ],
       "exportedRuntimeBranches": [
@@ -4585,7 +4589,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1048
+          "line": 1046
         }
       ],
       "exportedRuntimeBranches": [
@@ -4610,7 +4614,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 93
+          "line": 91
         }
       ],
       "exportedRuntimeBranches": [
@@ -4643,7 +4647,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 774
+          "line": 772
         }
       ],
       "exportedRuntimeBranches": [
@@ -4671,7 +4675,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1287
+          "line": 1285
         }
       ],
       "exportedRuntimeBranches": [
@@ -4698,7 +4702,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 606
+          "line": 604
         }
       ],
       "exportedRuntimeBranches": [
@@ -4727,11 +4731,11 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 227
+          "line": 225
         },
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 355
+          "line": 353
         }
       ],
       "exportedRuntimeBranches": [
@@ -4763,7 +4767,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1854
+          "line": 1852
         }
       ],
       "exportedRuntimeBranches": [
@@ -4791,7 +4795,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1663
+          "line": 1661
         }
       ],
       "exportedRuntimeBranches": [
@@ -4819,7 +4823,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 965
+          "line": 963
         }
       ],
       "exportedRuntimeBranches": [
@@ -4847,7 +4851,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 1295
+          "line": 1293
         }
       ],
       "exportedRuntimeBranches": [
@@ -4875,7 +4879,7 @@
       "editorRuntimeBranches": [
         {
           "file": "editor/src/core/behaviors.js",
-          "line": 2022
+          "line": 2020
         }
       ],
       "exportedRuntimeBranches": [
@@ -6595,7 +6599,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/hierarchy.js",
-            "line": 20
+            "line": 21
           },
           "verification": "template-declaration-only"
         },
@@ -6606,7 +6610,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/hierarchy.js",
-            "line": 26
+            "line": 27
           },
           "verification": "template-declaration-only"
         }

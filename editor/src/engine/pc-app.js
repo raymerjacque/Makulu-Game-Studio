@@ -360,6 +360,7 @@ export class EditorCameraController {
     this.yaw = -45;
 
     this.entity = new pc.Entity('EditorCamera');
+    this.entity._studioEditorOnly = true;
     this.entity.addComponent('camera', {
       clearColor: new pc.Color(0.08, 0.1, 0.13),
       fov: 55,
@@ -578,6 +579,7 @@ export class EditorGrid {
     this.app = app;
     this.visible = true;
     this.entity = new pc.Entity('EditorGrid');
+    this.entity._studioEditorOnly = true;
     this.createGridMesh();
     this.app.root.addChild(this.entity);
   }
@@ -669,6 +671,7 @@ export class GizmoManager {
 
     // Configure all gizmos: detach on boot, set default space and snap
     Object.values(this.gizmos).forEach(gizmo => {
+      gizmo.root._studioEditorOnly = true;
       // Only permit Left Click (button 0) to manipulate gizmos
       if (gizmo.mouseButtons) {
         gizmo.mouseButtons[0] = true;
@@ -781,6 +784,7 @@ export class SelectionHighlighter {
     this.editor = editor;
 
     this.entity = new pc.Entity('SelectionOutline');
+    this.entity._studioEditorOnly = true;
     this.entity.enabled = false;
     this.app.root.addChild(this.entity);
 
@@ -819,6 +823,7 @@ export class ComponentVisualHelpers {
     this.physicsDebugAll = false;
 
     this.helperEntity = new pc.Entity('ComponentVisualHelpers');
+    this.helperEntity._studioEditorOnly = true;
     this.helperEntity.enabled = false;
     this.app.root.addChild(this.helperEntity);
 

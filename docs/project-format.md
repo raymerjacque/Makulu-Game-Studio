@@ -347,3 +347,39 @@ audible output or every behavior. Custom scripts can still introduce network
 requests; unsupported compressed models are rejected by asset packaging. The
 File-menu export is currently active-scene only. Low-level synchronous bundler
 callers must supply the verified runtime bundle to avoid the legacy CDN path.
+
+
+## Disposable Play/Stop scene copies (31 October 2026)
+
+The Play button now calls the editor-owned play-session controller. It retains
+original scene objects in an inactive detached hierarchy and clones the scene
+as one graph into the current application. Native entity references within that
+graph can remap together. Mutable preview materials and authored behavior
+parameters are copied; HUD, triggers, settings and script/prefab records use
+session copies. Original selection and undo closures keep their entity identities.
+
+Stop freezes physics/audio/behaviors, destroys tracked preview objects (including
+objects removed from the hierarchy), clears session-owned delays and restores
+original objects, local enabled flags, root ordering, selection, camera orbit,
+gravity and scene settings. Preview commands do not enter authoring history;
+authoring Undo/Redo and scene replacement are blocked while playing. Editable
+project saves and the legacy scene-save shortcut require Stop first. Recovery
+ignores runtime changes and retains the prior file baseline.
+
+Editor-owned camera/grid/outline/visual-helper/gizmo roots are explicitly marked
+and omitted from project serialization and preview copies. Scene replacement
+preserves those live helpers. This also fixes helper geometry polluting saves.
+
+This is a same-application authoring-protection foundation, **not a security
+boundary**. Meshes/textures and engine asset resources remain shared; arbitrary
+native/generated code can retain privileged references or mutate shared GPU
+resources. A separate preview application/context, game-camera/input ownership,
+complete asynchronous import/resource lifecycle and script isolation remain open.
+There is no automatic apply-back of gameplay changes.
+
+Eight regression scenarios cover destructive edits, exact saved-content equality,
+undo/selection identity, repeated real Ammo runs, readiness/start/stop failures,
+clean recovery state, terrain resources, helper exclusion and delayed cleanup.
+`npm run test:play-browser` checks the actual editor runtime and Play/Stop buttons
+in a fresh Chromium profile, including loaded GLB resource survival and real
+physics across two sessions (fourteen assertions).

@@ -37,14 +37,12 @@ export class BehaviorManager {
 
     this.editor.events.on('game:play', () => {
       this.isPlaying = true;
-      this.editor.isPlaying = true;
       this.keys = {};
       this.bindUpdateLoop();
     });
 
     this.editor.events.on('game:stop', () => {
       this.isPlaying = false;
-      this.editor.isPlaying = false;
       this.keys = {};
     });
 
@@ -919,7 +917,7 @@ export class BehaviorManager {
                 mat.update();
                 chunk.addComponent('render', { type: 'box', material: mat });
                 app.root.addChild(chunk);
-                setTimeout(() => {
+                this.editor.playSession.defer(() => {
                   try { chunk.destroy(); } catch (e) {}
                 }, 3000);
               }

@@ -20,7 +20,8 @@
     "audit:capabilities": "node scripts/capability-audit.js",
     "audit:capabilities:check": "node scripts/capability-audit.js --check",
     "test:recovery-browser": "node scripts/test-recovery-browser.js",
-    "test:offline-export": "node scripts/test-offline-export.js"
+    "test:offline-export": "node scripts/test-offline-export.js",
+    "test:play-browser": "node scripts/test-play-session-browser.js"
   },
   "dependencies": {
     "playcanvas": "^2.23.3"

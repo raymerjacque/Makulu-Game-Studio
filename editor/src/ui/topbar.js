@@ -888,12 +888,19 @@ export class TopBar {
     if (!playBtn) return;
 
     playBtn.addEventListener('click', () => {
-      if (!this.isPlaying && this.editor.sceneResourceStatus && this.editor.sceneResourceStatus.status !== 'ready') {
+      if (!this.editor.isPlaying && this.editor.sceneResourceStatus && this.editor.sceneResourceStatus.status !== 'ready') {
         showToast('Wait for scene resources or retry missing assets before playing.', 'warn');
         return;
       }
-      this.isPlaying = !this.isPlaying;
-      this.editor.isPlaying = this.isPlaying;
+      let sessionError = false;
+      try {
+        if (this.editor.isPlaying) this.editor.stopPlay();
+        else this.editor.startPlay();
+      } catch {
+        sessionError = true;
+        showToast('Play could not complete. Check scene resources and try again.', 'error');
+      }
+      this.isPlaying = Boolean(this.editor.isPlaying);
       let banner = document.getElementById('simulation-banner');
 
       if (this.isPlaying) {
@@ -940,8 +947,7 @@ export class TopBar {
           this.editor.runtime.canvas.focus();
         }
 
-        this.editor.events.emit('game:play');
-        showToast('▶ Game Simulation Active! Use WASD to control objects.', 'success');
+        if (!sessionError) showToast('▶ Game Simulation Active! Use WASD to control objects.', 'success');
       } else {
         playBtn.style.background = 'var(--accent-orange)';
         playBtn.style.borderColor = 'var(--accent-orange)';
@@ -950,14 +956,13 @@ export class TopBar {
 
         if (banner) banner.remove();
 
-        this.editor.events.emit('game:stop');
 
         // Restore gizmo visibility after simulation
         if (this.editor.runtime && this.editor.runtime.gizmoManager) {
           this.editor.runtime.gizmoManager.updateGizmoVisibility();
         }
 
-        showToast('⏹ Simulation Stopped. Back to Editor mode.', 'info');
+        if (!sessionError) showToast('⏹ Simulation stopped. Your editing scene has been restored.', 'info');
       }
     });
   }

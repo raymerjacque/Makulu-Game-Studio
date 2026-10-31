@@ -1,3 +1,5 @@
+import { isEditorOnlyNode } from '../engine/editor-only.js';
+import { PlaySession } from '../runtime/play-session.js';
 import { serializeSoundComponent, queueSoundSlots, validateSoundData } from '../engine/sound-data.js';
 import * as pc from 'playcanvas';
 import { CommandBus, Command } from './command-bus.js';
@@ -70,9 +72,14 @@ export class Editor {
       jetpack: { enabled: true }
     };
     this.defaultHudConfig = JSON.parse(JSON.stringify(this.hudConfig));
+    this.playSession = new PlaySession(this);
     this.events.on('game:play', () => this.playSceneAudio());
     this.events.on('game:stop', () => this.getApp()?.root.forEach(node => node.sound?.stop?.()));
   }
+
+  startPlay() { return this.playSession.start(); }
+
+  stopPlay() { return this.playSession.stop(); }
 
   setRuntime(runtime) {
     this.runtime = runtime;
@@ -776,7 +783,7 @@ export class Editor {
       }
 
       node.children.forEach(child => {
-        if (child.name !== 'EditorGrid' && child.name !== 'EditorCamera' && !child._studioModelInstance) {
+        if (!isEditorOnlyNode(child) && !child._studioModelInstance) {
           data.children.push(serializeNode(child));
         }
       });
@@ -823,6 +830,7 @@ export class Editor {
    * Import and Deserialize Scene JSON
    */
   loadSceneJSON(jsonData, { restoreScripts = true, restoreProjectName = true, assetTimeoutMs = 30000 } = {}) {
+    if (this.isPlaying) { this.lastProjectError = 'Stop play before replacing the scene.'; return false; }
     const staging = new pc.Entity('SceneImportStaging');
     let session;
     try {
@@ -1021,7 +1029,7 @@ export class Editor {
       // Commit only after the complete hierarchy has been constructed successfully.
       this.sceneResourceSession?.cancel();
       this.sceneResourceSession = session;
-      const toRemove = appRoot.children.filter(c => c.name !== 'EditorGrid' && c.name !== 'EditorCamera');
+      const toRemove = appRoot.children.filter(c => !isEditorOnlyNode(c));
       const forgetBehaviors = node => {
         this.behaviors?.activeBehaviors?.delete(node);
         node.children.forEach(forgetBehaviors);
@@ -1080,6 +1088,7 @@ export class Editor {
    * Switch between multi-scenes, automatically saving current state and restoring target scene
    */
   switchScene(sceneName) {
+    if (this.isPlaying) return false;
     if (!sceneName || sceneName === this.activeSceneName) return;
     const outgoing = this.exportSceneJSON();
     const destination = this.scenes.get(sceneName) || JSON.stringify({
@@ -1104,6 +1113,7 @@ export class Editor {
    * Delete scene by name
    */
   deleteScene(sceneName) {
+    if (this.isPlaying) return false;
     if (!sceneName || this.scenes.size <= 1 || !this.scenes.has(sceneName)) return false;
     if (this.activeSceneName === sceneName) {
       const nextScene = [...this.scenes.keys()].find(name => name !== sceneName);
@@ -1124,6 +1134,7 @@ export class Editor {
    * Rename scene
    */
   renameScene(oldName, newName) {
+    if (this.isPlaying) return false;
     if (!oldName || !newName || oldName === newName) return false;
     if (!this.scenes.has(oldName) || this.scenes.has(newName)) return false;
 
@@ -1146,6 +1157,7 @@ export class Editor {
    * Duplicate scene
    */
   duplicateScene(sceneName) {
+    if (this.isPlaying) return false;
     const target = sceneName || this.activeSceneName;
     if (!this.scenes.has(target)) return null;
     const json = (target === this.activeSceneName) ? this.exportSceneJSON() : (this.scenes.get(target) || '{}');

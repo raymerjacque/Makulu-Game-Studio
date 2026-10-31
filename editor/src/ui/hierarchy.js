@@ -1,3 +1,4 @@
+import { showToast } from './toast.js';
 import * as pc from 'playcanvas';
 
 /**
@@ -139,6 +140,7 @@ export class HierarchyPanel {
 
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
           e.preventDefault();
+          if (this.editor.isPlaying) { showToast('Stop play before saving the editing scene.', 'warn'); return; }
           const json = this.editor.exportSceneJSON();
           const blob = new Blob([json], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
