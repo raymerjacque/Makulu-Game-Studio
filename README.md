@@ -115,9 +115,10 @@ The AI Executor translates natural language intent into direct engine modificati
 * **Scene & Level Management:** Create, duplicate, rename, delete, switch (`switch_scene`), audit, and auto-repair scenes (`audit_scene`).
 * **Transform & Camera Framing:** Translate, rotate (Euler angles), scale, select (`select_entity`), and frame target entities in the 3D viewport (`frame_entity`).
 * **Material Engineering & Presets:** Generate custom PBR materials or apply instant presets (`gold`, `neon`, `lava`, `wood`, `metal`, `emerald`, `glass`) via `apply_material_preset`.
-* **Behavior Injection:** Attach any of the **135 interactive No-Code gameplay behaviors** (`visual_flow_graph`, `reflection_probe_cubemap`, `vehicle_suspension_physics`, `procedural_chain_rope_physics`, `cinematic_camera_rail`, `interactive_switch_toggle`, `weapon_overheat_system`, `quest_journal_tracker`, `inventory_quick_slot_bar`, `grappling_hook_physics_swing`, `enemy_boss_phase_transition`, `procedural_spline_mesh_deformer`, `screen_space_impact_vfx`, `interactive_inventory_chest`, `wall_run_controller`, `third_person_controller`, `navmesh_agent`, `crouch_stealth_mechanic`, `grappling_hook_rope_beam`, `procedural_water_ripple`, `enemy_boss_healthbar_hud`, `screen_blood_vignette`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
+* **Behavior Injection:** Attach any of the **150 interactive No-Code gameplay behaviors** (`jump_pad_launch_booster`, `laser_security_tripwire`, `shield_bubble_barrier`, `zipline_traversal_slide`, `stealth_grass_hiding_bush`, `time_bomb_countdown`, `grav_repulsor_shockwave`, `heat_seeking_homing_missile`, `interactive_vending_machine`, `portal_gun_spatial_pair`, `slow_motion_dodge_roll`, `boss_phase3_meteor_rain`, `visual_flow_graph`, `reflection_probe_cubemap`, `vehicle_suspension_physics`, `procedural_chain_rope_physics`, `cinematic_camera_rail`, `interactive_switch_toggle`, `weapon_overheat_system`, `quest_journal_tracker`, `inventory_quick_slot_bar`, `grappling_hook_physics_swing`, `enemy_boss_phase_transition`, `procedural_spline_mesh_deformer`, `screen_space_impact_vfx`, `interactive_inventory_chest`, `wall_run_controller`, `third_person_controller`, `navmesh_agent`, `crouch_stealth_mechanic`, `grappling_hook_rope_beam`, `procedural_water_ripple`, `enemy_boss_healthbar_hud`, `screen_blood_vignette`, `telekinesis_gravity_lift`, `procedural_ik_footing`, `time_rewind_effect`, `stealth_invisibility_cloak`, `thermal_night_vision_toggle`, `stamina_system`, `footstep_audio`, `item_magnet`, `turret_laser_sight`, `grappling_rope_physics`, `portal_teleport_pair`, `tactical_time_dilation`, `dynamic_weather_storm`, `loot_box_gacha`, `magnetic_shield`, `grappling_hook`, `grav_gun_physicshandler`, `gravity_well_attractor`, `flashlight_battery`, `waypoint_flight_path`, `boss_ai`, `cover_system`, `quest_tracker`, `sway_foliage`, `exploding_barrel`, `damage_flash`, `slow_motion_zone`, etc.).
 * **Visual Shader & Flow Node Graphing:** Create and apply procedural node-based materials via `create_shader_graph`, or author event logic flow graphs via `create_flow_graph`.
 * **HDRI, Terrain Sculpting & Joint Rigging:** Configure 360° environment lighting via `set_hdri_skybox`, sculpt heightmaps via `sculpt_terrain_heightmap`, configure physics joint linkages via `configure_joint`, or launch any studio editor modal via `open_tool_modal`.
+* **Procedural Level Prefabs & Combat FX:** Spawn reactive bounce pads (`create_jump_pad`), security alarm beams (`create_security_tripwire`), protective forcefields (`create_shield_bubble`), aerial traverse lines (`create_zipline`), timed explosives (`create_time_bomb`), or trigger dynamic radial shockwaves (`trigger_radial_shockwave`).
 * **HUD & Atmosphere Control:** Configure 2D HUD screens via `set_hud_config`, switch sky presets (Day, Sunset, Cyberpunk, Foggy, Night) or adjust exposure, fog density, and fog color via `set_postfx`.
 * **Instant Particle & Light Generation:** Procedurally generate pre-tuned particle systems (`create_particle_preset`) or styled physical light fixtures (`create_light_fixture`).
 * **Environmental Volumes:** Procedurally spawn buoyant water volumes (`create_water_volume`) or hazardous lava/acid zones (`create_hazard_zone`).
@@ -487,13 +488,43 @@ Add interactive gameplay logic without writing a single line of JavaScript:
     Boss enrage trigger activating combat speed multipliers, visual aura glows, and earthquake shockwaves.
 135. **🗺️ HUD Floating Minimap Surveillance:**
     Screen HUD radar scanner tracking player location, enemy blips, and collectible markers.
+136. **🚀 Jump Pad Launch Booster:**
+    Springboard bounce pad applying explosive vertical impulse velocity with procedural launch audio.
+137. **🚨 Laser Security Tripwire:**
+    Infrared security beam triggering alarm sirens, flashing red alert lighting, and proximity damage on intrusion.
+138. **🛡️ Shield Bubble Barrier:**
+    Hemispherical energy shield forcefield blocking hostile projectiles with particle deflection impact rings.
+139. **🚡 Zipline Traversal Slide:**
+    High-speed aerial cable slide transporting the player smoothly along an overhead vector with dynamic camera lean.
+140. **🌾 Stealth Grass Hiding Bush:**
+    Dense environmental vegetation providing invisibility concealment and lowering enemy awareness radii.
+141. **💣 Time Bomb Countdown Detonator:**
+    Ticking explosive device with audible interval beeps, blinking warning LED, and catastrophic radial fragmentation.
+142. **🧲 Magnetic Boots Surface Walker:**
+    Inverted gravity foot clamps applying surface stick force for traversing vertical walls and inverted ceilings.
+143. **💥 Grav Repulsor Shockwave ('Q'):**
+    Kinetic radial energy blast knocking back nearby physics props and enemies with screen trauma shake.
+144. **🚀 Heat-Seeking Homing Missile:**
+    Self-guided ballistic missile with continuous proportional navigation towards the nearest enemy target.
+145. **🥫 Interactive Vending Machine ('E'):**
+    Proximity dispenser station exchanging collectible currency for health replenishment with audio dispenser feedback.
+146. **🌀 Portal Gun Spatial Pair:**
+    Dual-aperture spatial gateway system enabling instantaneous position-conserving teleportation between blue and orange rifts.
+147. **🏃 Slow Motion Dodge Roll ('Alt'):**
+    Tactical evasion roll granting temporary invincibility frames and brief local time dilation.
+148. **📳 Dynamic Camera Cinematic Shake:**
+    Trauma-based decaying camera rumble responding dynamically to heavy explosions and environmental tremors.
+149. **✨ Procedural Ambient Dust Motes:**
+    Floating atmospheric particle motes suspended in the local volume catching directional sunlight.
+150. **☄️ Boss Phase 3 Meteor Rain:**
+    Cataclysmic end-phase boss mechanic spawning raining celestial fireballs with radial impact craters.
 
 ---
 
 ## 🎵 Built-in Procedural Audio Synthesizer Studio
 
 MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthesizer Studio** accessible from the TopBar (`Tools ▾ -> 🔊 Procedural Audio Synth Studio`):
-* **Live Audio Synthesis:** Synthesizes sound effects on the fly without needing external audio files, featuring **28 distinct presets**:
+* **Live Audio Synthesis:** Synthesizes sound effects on the fly without needing external audio files, featuring **33 distinct presets**:
   * **🔫 Laser / Shoot:** Rapid frequency sweep for projectile weapons and plasma blasters.
   * **💥 Explosion & Impact:** Filtered low-pass noise burst for bullet hits, destructible targets, and hazards.
   * **🪙 Coin & Pickup:** Dual-tone sine chime for collectibles, powerups, and score pickups.
@@ -522,6 +553,11 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
   * **🎒 Equip Item:** Crisp dual-pitch tone for inventory management and hotbar equipping.
   * **❤️ Low HP Heartbeat:** Low-frequency thumping pulse for critical health states.
   * **🔘 Tactile Click:** Micro-duration square-wave click for UI buttons and switches.
+  * **🚀 Jump Pad Boing:** Frequency ramp spring launch sound.
+  * **🚨 Alarm Siren:** Modulated oscillating dual-frequency siren tone.
+  * **⏱️ Countdown Beep:** Crisp high-pitch metronome timer interval tick.
+  * **🚀 Missile Launch:** Propulsive thrust ignition sweep with noise hiss.
+  * **🥫 Vending Drop:** Mechanical coin latch followed by metallic item drop impact.
 * **📈 Real-Time Audio Waveform Visualizer:** Live canvas oscilloscope rendering frequency harmonics and audio waveforms during sound playback and synthesis.
 * **🎛️ Custom ADSR Envelope & Waveform Synthesizer:** Full sound design suite with selectable waveforms (**Sine**, **Square**, **Sawtooth**, **Triangle**, and **White Noise**), start/end frequency sweep sliders, and four-stage **ADSR Envelope** (Attack, Decay, Sustain, Release) shaping.
 * **1-Click 16-Bit PCM WAV Exporting:** Generates authentic 16-bit PCM WAV Base64 Data URLs and exports them directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
