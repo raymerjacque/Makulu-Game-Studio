@@ -177,25 +177,16 @@ export class AISettingsManager {
     let auth = null;
 
     // 1. Check Electron desktop IPC bridge
-    if (window.makuluDesktop && typeof window.makuluDesktop.getElectraAuth === 'function') {
+    if (typeof window !== 'undefined' && window.makuluDesktop && typeof window.makuluDesktop.getElectraAuth === 'function') {
       try {
         auth = await window.makuluDesktop.getElectraAuth();
       } catch (err) {
-        console.warn('Error fetching system electra auth from electron:', err);
+        console.warn('System Electra authentication is unavailable.');
       }
     }
 
-    // 2. Check dev server endpoint fallback
-    if (!auth) {
-      try {
-        const res = await fetch('/api/electra-auth');
-        if (res.ok) {
-          auth = await res.json();
-        }
-      } catch (e) {
-        // Not running via dev server
-      }
-    }
+    // Browser users configure their own provider in AI Settings.
+    // Never expose operating-system credentials through an HTTP endpoint.
 
     if (auth && auth.apiKey) {
       this.systemAuth = auth;

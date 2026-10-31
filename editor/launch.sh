@@ -19,7 +19,7 @@ fi
 # Launch mode check
 if [ "$1" == "--browser" ]; then
     echo "Opening MakuluLinux Game Studio in web browser..."
-    xdg-open "http://localhost:3000"
+    xdg-open "http://127.0.0.1:3000"
 else
     echo "Launching MakuluLinux Game Studio Desktop (Electron)..."
     npx electron electron.cjs

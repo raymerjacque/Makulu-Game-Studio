@@ -2,9 +2,14 @@ const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const { isTrustedDocument, isTrustedAuthSender, isSafeExternalUrl, packagedEntryUrl } = require('./desktop-security.cjs');
+
+let studioWindow = null;
+let trustedEntryUrl = null;
 
 // IPC handler to read ~/.config/ai_terminal/electra_auth.json on MakuluLinux OS
-ipcMain.handle('get-system-electra-auth', () => {
+ipcMain.handle('get-system-electra-auth', (event) => {
+  if (!isTrustedAuthSender(event, studioWindow, trustedEntryUrl)) return null;
   try {
     const authPath = path.join(os.homedir(), '.config', 'ai_terminal', 'electra_auth.json');
     if (fs.existsSync(authPath)) {
@@ -20,7 +25,7 @@ ipcMain.handle('get-system-electra-auth', () => {
       }
     }
   } catch (err) {
-    console.warn('Could not read ~/.config/ai_terminal/electra_auth.json:', err.message);
+    console.warn('System Electra authentication is unavailable.');
   }
   return null;
 });
@@ -46,6 +51,25 @@ function createWindow() {
     }
   });
 
+  studioWindow = mainWindow;
+  const packagedUrl = packagedEntryUrl(path.join(__dirname, 'dist', 'index.html'));
+  const developmentUrl = 'http://127.0.0.1:3000/';
+  trustedEntryUrl = (app.isPackaged || process.env.NODE_ENV === 'production') ? packagedUrl : developmentUrl;
+
+  // Keep untrusted documents away from the credential-bearing preload bridge.
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!isTrustedDocument(url, trustedEntryUrl)) event.preventDefault();
+  });
+  mainWindow.webContents.on('will-redirect', (event, url) => {
+    if (!isTrustedDocument(url, trustedEntryUrl)) event.preventDefault();
+  });
+  mainWindow.on('closed', () => {
+    if (studioWindow === mainWindow) {
+      studioWindow = null;
+      trustedEntryUrl = null;
+    }
+  });
+
   // Remove default menu bar for modern editor feel
   mainWindow.setMenuBarVisibility(false);
 
@@ -64,14 +88,17 @@ function createWindow() {
   if (app.isPackaged || process.env.NODE_ENV === 'production') {
     mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
   } else {
-    mainWindow.loadURL('http://localhost:3000').catch(() => {
+    mainWindow.loadURL(developmentUrl).catch(() => {
+      trustedEntryUrl = packagedUrl;
       mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
     });
   }
 
   // Open external links in default system browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    if (isSafeExternalUrl(url)) {
+      shell.openExternal(url).catch(() => console.warn('External link could not be opened.'));
+    }
     return { action: 'deny' };
   });
 }

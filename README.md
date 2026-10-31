@@ -771,7 +771,7 @@ npm test
 
 ### 4. Launch Development Server
 ```bash
-# Start Vite local development server (runs on http://localhost:3000)
+# Start Vite local development server (runs on http://127.0.0.1:3000)
 npm run dev
 ```
 
@@ -800,3 +800,19 @@ Output binaries will be generated in `editor/release/`:
 * **MakuluLinux Game Studio** is open source software licensed under the **[MIT License](LICENSE)**.
 * **PlayCanvas Engine:** Forked and built upon the open-source [PlayCanvas Engine](https://github.com/playcanvas/engine) (MIT License).
 * Built by the **MakuluLinux Team** for creators worldwide.
+
+
+## Security foundation update — 31 October 2026
+
+Development and preview servers bind to `127.0.0.1` by default. OS Electra
+authentication is available only through the desktop bridge, which checks the
+requesting window, main frame, and exact application document. The browser
+development server no longer serves OS credentials; browser users configure
+their own provider in AI Settings. Existing provider keys are unchanged.
+
+AI conversation text, action summaries, team messages, audit messages and errors
+are escaped before display. Desktop navigation is restricted to the application
+document, and external links accept only HTTP/HTTPS URLs. These changes do not
+complete generated-script isolation, import validation or the full P0 security
+phase; see [the roadmap](roadmap.html#progress) for verified progress and remaining
+work. Run the editor regression suite with `cd editor && npm test`.

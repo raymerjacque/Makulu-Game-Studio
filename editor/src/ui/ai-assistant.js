@@ -129,11 +129,11 @@ export class AIAssistantUI {
               ${this.escapeHTML(msg.from)}
             </span>
             <span style="font-size: 9.5px; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase;">
-              ${msg.type}
+              ${this.escapeHTML(msg.type)}
             </span>
           </div>
           <div style="font-size: 11.5px; line-height: 1.45; color: var(--text-secondary);">
-            ${msg.content.replace(/\n/g, '<br>')}
+            ${this.escapeHTML(msg.content).replace(/\n/g, '<br>')}
           </div>
         </div>
       `;
@@ -240,7 +240,7 @@ export class AIAssistantUI {
         <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
           ${issues.map(iss => `
             <div style="font-size: 11px; color: ${iss.type === 'error' ? '#fca5a5' : '#fde047'};">
-              ${iss.type === 'error' ? '🔴' : '🟡'} ${iss.msg}
+              ${iss.type === 'error' ? '🔴' : '🟡'} ${this.escapeHTML(iss.msg)}
             </div>
           `).join('')}
           <button id="btn-fix-all-audit" class="btn btn-primary" style="margin-top: 6px; font-size: 11px; padding: 4px 8px;">
@@ -301,7 +301,7 @@ export class AIAssistantUI {
         errMsg.className = 'ai-message assistant';
         errMsg.innerHTML = `
           <div class="ai-bubble" style="border-color: #ef4444; color: #fca5a5;">
-            ⚠️ AI Swarm Error: ${err.message}.
+            ⚠️ AI Swarm Error: ${this.escapeHTML(err.message)}.
           </div>
         `;
         chatBody.appendChild(errMsg);
@@ -327,7 +327,7 @@ export class AIAssistantUI {
         actionCardHTML = `
           <div class="ai-action-card">
             <div class="ai-action-header">⚡ Executed ${executed.length} Scene Action(s)</div>
-            <div class="ai-action-preview">${executed.map(e => `✓ ${e.action}: ${e.target || e.script}`).join('\n')}</div>
+            <div class="ai-action-preview">${executed.map(e => `✓ ${this.escapeHTML(e.action)}: ${this.escapeHTML(e.target || e.script)}`).join('\n')}</div>
           </div>
         `;
       }
@@ -339,7 +339,7 @@ export class AIAssistantUI {
       assistantMsg.className = 'ai-message assistant';
       assistantMsg.innerHTML = `
         <div class="ai-bubble">
-          ${cleanText ? cleanText.replace(/\n/g, '<br>') : 'I have created the requested scene setup!'}
+          ${cleanText ? this.escapeHTML(cleanText).replace(/\n/g, '<br>') : 'I have created the requested scene setup!'}
           ${actionCardHTML}
         </div>
       `;
@@ -349,7 +349,7 @@ export class AIAssistantUI {
       errMsg.className = 'ai-message assistant';
       errMsg.innerHTML = `
         <div class="ai-bubble" style="border-color: #ef4444; color: #fca5a5;">
-          ⚠️ AI Request Error: ${err.message}. Please check your connection to the MakuluLinux AI server.
+          ⚠️ AI Request Error: ${this.escapeHTML(err.message)}. Please check your connection to the MakuluLinux AI server.
         </div>
       `;
       chatBody.appendChild(errMsg);
@@ -514,6 +514,7 @@ export class AIAssistantUI {
   }
 
   escapeHTML(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 }

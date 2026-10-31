@@ -36,6 +36,7 @@
       "dist/**/*",
       "electron.cjs",
       "preload.cjs",
+      "desktop-security.cjs",
       "package.json",
       "public/**/*"
     ],
