@@ -1,3 +1,4 @@
+import { RUNTIME_ASSET_CODE } from '../runtime/runtime-assets.js';
 import { resolvePortableReferences } from '../project/project-document.js';
 import { SOUND_RUNTIME_CODE } from '../engine/sound-data.js';
 import { TERRAIN_RUNTIME_CODE } from '../engine/terrain-data.js';
@@ -396,7 +397,7 @@ export class GameBundler {
     <button class="btn-win-restart" onclick="window.location.reload()">🎮 Play Again</button>
   </div>
 
-  <button id="ui-fullscreen" onclick="document.documentElement.requestFullscreen()">⛶ Fullscreen</button>
+  <button id="ui-fullscreen" onclick="document.documentElement.requestFullscreen?.()?.catch(() => {})">⛶ Fullscreen</button>
   <canvas id="game-canvas"></canvas>
 
   <script id="makulu-export-manifest" type="application/json">${JSON.stringify(exportManifest).replace(/</g, '\\u003c')}</script>
@@ -571,6 +572,10 @@ export class GameBundler {
     ${SOUND_RUNTIME_CODE}
 
     // Build Scene Graph from Exported Data
+    ${RUNTIME_ASSET_CODE}
+    const runtimeAssets = createRuntimeAssetLoader(app);
+    app.systems.rigidbody.timeScale = 0;
+
     function buildNode(data, parent) {
       const ent = new pc.Entity(data.name);
       parent.addChild(ent);
@@ -588,7 +593,7 @@ export class GameBundler {
         const embedded = EMBEDDED_ASSETS.find(a => a.name === data.modelUrl || a.dataUrl === data.modelUrl);
         const urlToLoad = embedded ? embedded.dataUrl : data.modelUrl;
 
-        app.assets.loadFromUrl(urlToLoad, 'container', (err, asset) => {
+        runtimeAssets.load(urlToLoad, 'container', (err, asset) => {
           if (!err && asset && asset.resource) {
             const modelEntity = asset.resource.instantiateRenderEntity({
               castShadows: true,
@@ -668,7 +673,7 @@ export class GameBundler {
             const embedded = EMBEDDED_ASSETS.find(a => a.name === m[field] || a.dataUrl === m[field]);
             const urlToLoad = embedded ? embedded.dataUrl : m[field];
             mat['_' + field] = m[field];
-            app.assets.loadFromUrl(urlToLoad, 'texture', (err, texAsset) => {
+            runtimeAssets.load(urlToLoad, 'texture', (err, texAsset) => {
               if (!err && texAsset && texAsset.resource) {
                 mat[property] = texAsset.resource;
                 if (field === 'roughnessMapUrl') { mat.glossInvert = true; mat.gloss = 1; }
@@ -696,6 +701,7 @@ export class GameBundler {
       // Camera Component
       if (data.components && data.components.camera) {
         ent.addComponent('camera', {
+          enabled: data.components.camera.enabled !== false,
           fov: data.components.camera.fov || 60,
           nearClip: data.components.camera.nearClip || 0.1,
           farClip: data.components.camera.farClip || 1000,
@@ -757,8 +763,8 @@ export class GameBundler {
           applySoundSlot(ent.sound, slot, null, false);
           if (!slot.url) return;
           const embedded = EMBEDDED_ASSETS.find(asset => asset.name === slot.url || asset.dataUrl === slot.url);
-          app.assets.loadFromUrl(embedded ? embedded.dataUrl : slot.url, 'audio', (error, asset) => {
-            if (!error && asset && asset.resource) applySoundSlot(ent.sound, slot, asset, true);
+          runtimeAssets.load(embedded ? embedded.dataUrl : slot.url, 'audio', (error, asset) => {
+            if (!error && asset && asset.resource) applySoundSlot(ent.sound, slot, asset, false);
             else console.warn('An audio slot could not be loaded.');
           });
         });
@@ -808,8 +814,12 @@ export class GameBundler {
       SCENE_DATA.root.children.forEach(c => buildNode(c, app.root));
     }
 
+    window.__makuluRuntimeStatus = { state: 'loading-assets' };
+    const resourceCount = await runtimeAssets.wait();
+    app.systems.rigidbody.timeScale = 1;
+
     // Ensure a Camera exists
-    let gameCamera = app.root.findOne(node => node.camera);
+    let gameCamera = app.root.findOne(node => node.enabled && node.camera?.enabled);
     if (!gameCamera) {
       gameCamera = new pc.Entity('Fallback Camera');
       gameCamera.addComponent('camera', {
@@ -821,18 +831,21 @@ export class GameBundler {
       app.root.addChild(gameCamera);
     }
 
+    app.root.findComponents('camera').forEach(camera => { camera.enabled = camera.entity === gameCamera; });
     if (!gameCamera.audiolistener) gameCamera.addComponent('audiolistener');
+    startRuntimeAudio(app);
 
     // WASD Movement Runtime Loop
     const keys = {};
     window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
     window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+    window.addEventListener('blur', () => { for (const key of Object.keys(keys)) delete keys[key]; mouseDeltaX = 0; });
 
     // Mouse Look / Pointer Lock
     let mouseDeltaX = 0;
     canvas.addEventListener('click', () => {
       if (document.pointerLockElement !== canvas) {
-        canvas.requestPointerLock?.();
+        try { canvas.requestPointerLock?.()?.catch?.(() => {}); } catch {}
       }
     });
     document.addEventListener('mousemove', (e) => {
@@ -841,7 +854,7 @@ export class GameBundler {
       }
     });
 
-    const playerEntity = app.root.find(n => n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character') || n.name.toLowerCase().includes('hero') || n.name.toLowerCase().includes('warrior')) || app.root.children[0];
+    const playerEntity = app.root.findOne(n => n.enabled && (n.name.toLowerCase().includes('player') || n.name.toLowerCase().includes('character') || n.name.toLowerCase().includes('hero') || n.name.toLowerCase().includes('warrior')));
 
     // Locomotion handler for standalone games (drives skeletal AnimComponent or procedural limbs)
     const updateLocomotion = (entity, speed, isMoving, dt) => {
@@ -903,6 +916,7 @@ export class GameBundler {
         gameCamera.translateLocal(offsetX, offsetY, 0);
       }
 
+      const playerStart = playerEntity?.getPosition().clone();
       // Execute embedded behaviors
       app.root.forEach(node => {
         if (!node.enabled || !node._behaviors) return;
@@ -1017,7 +1031,7 @@ export class GameBundler {
               document.getElementById('hud-ammo-text').textContent = "🔫 Weapon Active: " + (b.properties?.weaponName || 'Plasma Gun') + " | Ammo: " + (b.properties?.ammo !== undefined ? b.properties.ammo : '∞');
             }
           } else if (b.type === 'billboard') {
-            const cam = app.root.find(c => c.camera);
+            const cam = gameCamera;
             if (cam) {
               node.lookAt(cam.getPosition());
               node.rotateLocal(0, 180, 0);
@@ -1043,7 +1057,7 @@ export class GameBundler {
             const z = b._state.center.z + Math.sin(b._state.angle) * radius;
             node.setPosition(x, node.getPosition().y, z);
           } else if (b.type === 'camera_follow') {
-            const cam = app.root.find(c => c.camera);
+            const cam = gameCamera;
             if (cam) {
               const offset = b.properties?.offset || [0, 4, 8];
               const targetPos = node.getPosition().clone().add(new pc.Vec3(...offset));
@@ -1414,7 +1428,7 @@ export class GameBundler {
           } else if (b.type === 'target_lock_on') {
             const targetName = b.properties?.targetEntity;
             if (targetName) {
-              const target = app.root.findByName(targetName) || app.root.find(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
+              const target = app.root.findByName(targetName) || app.root.findOne(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
               if (target && target.enabled) {
                 node.lookAt(target.getPosition());
               }
@@ -1477,7 +1491,7 @@ export class GameBundler {
                 if (window.playProceduralSFX) window.playProceduralSFX('door');
                 const targetName = b.properties?.targetEntity;
                 if (targetName) {
-                  const target = app.root.findByName(targetName) || app.root.find(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
+                  const target = app.root.findByName(targetName) || app.root.findOne(e => e.name && e.name.toLowerCase().includes(targetName.toLowerCase()));
                   if (target) target.enabled = !target.enabled;
                 }
               } else if (dist >= radius && b._state.pressed) {
@@ -1495,7 +1509,7 @@ export class GameBundler {
                 const destName = b.properties?.destinationEntity;
                 let destPos = new pc.Vec3(0, 2, 0);
                 if (destName) {
-                  const destEnt = app.root.findByName(destName) || app.root.find(e => e.name && e.name.toLowerCase().includes(destName.toLowerCase()));
+                  const destEnt = app.root.findByName(destName) || app.root.findOne(e => e.name && e.name.toLowerCase().includes(destName.toLowerCase()));
                   if (destEnt) destPos = destEnt.getPosition().clone().add(new pc.Vec3(0, 1, 0));
                 } else if (b.properties?.targetPosition) {
                   destPos = new pc.Vec3(...b.properties.targetPosition);
@@ -1531,7 +1545,7 @@ export class GameBundler {
             }
             b._keyWasDown = toggleKey;
           } else if (b.type === 'overhead_healthbar') {
-            const cam = app.root.find(c => c.camera);
+            const cam = gameCamera;
             if (cam) {
               const ePos = node.getPosition();
               const cPos = cam.getPosition();
@@ -2074,7 +2088,7 @@ export class GameBundler {
               }
             }
           } else if (b.type === 'floating_nametag') {
-            const cam = app.root.find(c => c.camera);
+            const cam = gameCamera;
             if (cam) {
               const offset = b.properties?.heightOffset !== undefined ? b.properties.heightOffset : 2.2;
               const pos = node.getPosition().clone().add(new pc.Vec3(0, offset, 0));
@@ -2978,18 +2992,8 @@ export class GameBundler {
       });
 
       if (!playerEntity) return;
-      const move = new pc.Vec3();
-      if (keys['w'] || keys['arrowup']) move.add(playerEntity.forward);
-      if (keys['s'] || keys['arrowdown']) move.sub(playerEntity.forward);
-      if (keys['a'] || keys['arrowleft']) move.sub(playerEntity.right);
-      if (keys['d'] || keys['arrowright']) move.add(playerEntity.right);
-
-      const isPlayerMoving = move.lengthSq() > 0;
-      if (isPlayerMoving) {
-        move.normalize().mulScalar(8 * dt);
-        playerEntity.translate(move);
-      }
-      updateLocomotion(playerEntity, 8.0, isPlayerMoving, dt);
+      // Movement is owned by attached behaviors; never move an arbitrary first scene object.
+      const move = playerEntity.getPosition().clone().sub(playerStart);
 
       // Evaluate Physics Joint Constraints
       app.root.forEach(node => {
@@ -3112,7 +3116,7 @@ export class GameBundler {
       }
     });
 
-    window.__makuluRuntimeStatus = { state: 'running', engineVersion: pc.version, physicsReady: Boolean(app.systems.rigidbody.physicsWorld) };
+    window.__makuluRuntimeStatus = { state: 'running', engineVersion: pc.version, physicsReady: Boolean(app.systems.rigidbody.physicsWorld), cameraName: gameCamera.name, resourceCount };
     console.log('Game runtime initialized.');
     })().catch(() => {
       window.__makuluRuntimeStatus = { state: 'error', message: 'Game startup failed.' };

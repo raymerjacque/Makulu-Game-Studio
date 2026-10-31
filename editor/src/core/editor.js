@@ -714,6 +714,7 @@ export class Editor {
       }
       if (node.camera) {
         data.components.camera = {
+          enabled: node.camera.enabled !== false,
           fov: node.camera.fov,
           nearClip: node.camera.nearClip,
           farClip: node.camera.farClip
@@ -931,6 +932,7 @@ export class Editor {
           }
           if (nodeData.components.camera) {
             ent.addComponent('camera', {
+              enabled: nodeData.components.camera.enabled !== false,
               fov: nodeData.components.camera.fov || 60,
               nearClip: nodeData.components.camera.nearClip || 0.1,
               farClip: nodeData.components.camera.farClip || 1000

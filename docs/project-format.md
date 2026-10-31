@@ -383,3 +383,48 @@ clean recovery state, terrain resources, helper exclusion and delayed cleanup.
 `npm run test:play-browser` checks the actual editor runtime and Play/Stop buttons
 in a fresh Chromium profile, including loaded GLB resource survival and real
 physics across two sessions (fourteen assertions).
+
+
+## Isolated Game Preview and shared delivery preparation (31 October 2026)
+
+The new **Game Preview** toolbar button opens a modal running a captured active
+scene. `prepareGame` is shared by preview and File-menu HTML export: serialize
+once, package declared assets, verify pinned runtime bytes, compile the artifact.
+Restart creates a fresh frame from that artifact; it does not repack later edits.
+Close destroys the frame and ignores late preparation results. The existing
+in-editor Play simulation remains a separate authoring tool.
+
+The frame uses `sandbox="allow-scripts allow-pointer-lock"` without same-origin,
+forms, popups, downloads or top-navigation permissions. Fullscreen and audio
+playback are allowed; denied optional fullscreen/pointer-lock requests are handled
+without failing the game. A CSP restricts resource
+requests to embedded data/blob content and prevents nested frames/objects/base
+URLs. The frame cannot access the editor DOM, its local storage or desktop bridge.
+Only bounded status data is accepted, matching the current frame, opaque origin,
+channel and session token; it cannot request editor actions. Status is useful UI
+feedback, not adversarial-code attestation or proof of game completion. This is
+not a guarantee against all browser networking channels or browser-engine flaws.
+
+The same generated runtime now waits for declared model, texture and audio
+loads, including application of resources, before enabling physics/gameplay.
+Missing, failed, late or timed-out requests cannot count as ready. Arbitrary
+script-created dependencies are outside this loader. Scripts still require a
+complete lifecycle/error policy; they can execute during initial setup.
+
+Runtime camera selection uses the first enabled camera on an enabled entity;
+other cameras are disabled in the game copy, with a visible fallback when absent.
+Camera component enabled flags now persist. Camera-oriented behaviors use the
+chosen game camera. Keyboard events belong to the frame, and blur clears held
+keys and mouse deltas. Movement requires an attached behavior: the previous
+unconditional first-object/player movement path was removed, and entity lookup
+now uses PlayCanvas `findOne`, avoiding array-valued targets. Explicit primary
+camera selection, configurable input maps, scene transitions and broader behavior
+parity remain pending.
+
+`editor/tests/game-preview.test.js` adds seven checks for resource readiness,
+timeouts/late callbacks, safe frame/status configuration, immutable preparation
+and camera persistence. The real-browser suite now makes 37 combined assertions
+across scene-copy restoration and isolated game preview, including actual game
+input/blur, GLB readiness, camera selection, restart/close, blocked parent/storage/
+bridge/external fetch access, late preparation, errors and timeout cleanup. The
+existing offline artifact test remains a separate portability check.

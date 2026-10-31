@@ -108,6 +108,7 @@ test('all supported material texture slots round-trip and wait for application t
     const html = new GameBundler(editor).compileStandaloneHTML();
     const start = html.indexOf('    function buildNode(data, parent)'), end = html.indexOf('    if (SCENE_DATA.root && SCENE_DATA.root.children)', start);
     const context = vm.createContext({ pc, app, EMBEDDED_ASSETS: [] });
+    context.runtimeAssets = { load: (...args) => app.assets.loadFromUrl(...args) };
     vm.runInContext(html.slice(start, end), context);
     requests.length = 0;
     const exported = context.buildNode({ name: 'ExportedSurface', components: { render: { type: 'box', material: saved } } }, app.root);

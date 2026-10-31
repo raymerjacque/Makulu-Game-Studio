@@ -93,19 +93,23 @@
       "id": "play",
       "name": "Isolated play sessions",
       "status": "partial",
-      "editor": "Editor-owned Play/Stop runs disposable same-application scene copies; original scene objects, selection, camera orbit and history are restored on Stop.",
+      "editor": "Editor-owned Play/Stop runs disposable same-application scene copies; original scene objects, selection, camera orbit and history are restored on Stop. New Game Preview uses an opaque-origin restricted frame and the same prepared artifact as HTML export, with Restart/Close and status-only communication.",
       "persistence": "Editable saves and scene replacement are blocked during Play; runtime changes do not enter authoring history or recovery.",
-      "export": "Separate runtime implementation.",
-      "next": "Separate preview application/security context; configured game camera/input, shared gameplay runtime and arbitrary code/resource isolation.",
+      "export": "Preview and File-menu export share prepareGame and the generated artifact runtime; authoring simulation remains separate.",
+      "next": "Extract authoring/runtime parity; explicit game camera/input configuration, multi-scene support and full script/resource lifecycle.",
       "evidence": [
         "editor/src/ui/topbar.js",
         "editor/src/core/behaviors.js",
         "editor/src/engine/pc-app.js",
         "editor/src/runtime/play-session.js",
         "editor/tests/play-session.test.js",
-        "editor/scripts/test-play-session-browser.js"
+        "editor/scripts/test-play-session-browser.js",
+        "editor/src/ui/game-preview.js",
+        "editor/src/runtime/preview-document.js",
+        "editor/src/runtime/prepare-game.js",
+        "editor/tests/game-preview.test.js"
       ],
-      "proof": "Eight controller/real-engine regressions and fourteen real-browser button/Ammo/GLB assertions cover the declared restoration scope."
+      "proof": "Eight restoration scenarios, seven preview/readiness checks and 37 combined browser assertions cover declared scope."
     },
     {
       "id": "models",
@@ -322,7 +326,7 @@
       "status": "partial",
       "editor": "HTML bundler exists.",
       "persistence": "Not an editable full-project format.",
-      "export": "File-menu HTML embeds pinned engine, initialized physics, licenses and active-scene declared media.",
+      "export": "File-menu HTML embeds pinned engine, initialized physics, licenses and active-scene declared media. Shared preview/export preparation and awaited declared-resource startup are implemented.",
       "next": "Build archives, support complete scene transitions and verify objective/restart gameplay.",
       "evidence": [
         "editor/src/compiler/game-bundler.js",
@@ -411,7 +415,7 @@
       "status": "partial",
       "editor": "Awaited open, progress, timeout/failure/cancellation and retry include declared audio slots.",
       "persistence": "Retry retains current scene data, IDs and scripts; four material map references restore.",
-      "export": "Map bindings are tested in exported scene builder; no exported-runtime readiness UI or offline certification.",
+      "export": "Generated artifact and Game Preview await declared model/material/audio loads with bounded failures before gameplay; script-created dependencies remain outside scope.",
       "next": "Complete imported-file workflows, inactive-scene preload and resource ownership/rollback.",
       "evidence": [
         "editor/src/project/resource-load-session.js",

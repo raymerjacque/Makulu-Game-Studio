@@ -19,6 +19,7 @@ function exportedBuilder(editor, app) {
   const html = new GameBundler(editor).compileStandaloneHTML();
   const start = html.indexOf('    function buildNode(data, parent)'), end = html.indexOf('    if (SCENE_DATA.root && SCENE_DATA.root.children)', start);
   const context = vm.createContext({ pc, app, EMBEDDED_ASSETS: [] });
+  context.runtimeAssets = { load: (...args) => app.assets.loadFromUrl(...args) };
   vm.runInContext(TERRAIN_RUNTIME_CODE + '\n' + SOUND_RUNTIME_CODE + '\n' + html.slice(start, end), context);
   return context.buildNode;
 }
@@ -86,7 +87,7 @@ test('audio source/slot settings restore silently, join readiness and bind the c
     assert.equal(saved.slots[0].url, './wind.wav'); assert.equal(saved.slots[0].autoPlay, true); assert.equal(saved.slots[0].duration, 1.5);
     let played = null; entity.sound.play = name => { played = name; }; editor.playSceneAudio(); assert.equal(played, 'main');
     const exported = exportedBuilder(editor, app)({ name: 'DeliveredAudio', components: { sound: saved } }, app.root);
-    requests[1].callback(null, asset); assert.equal(exported.sound.slot('main').asset, asset.id); assert.equal(exported.sound.slot('main').autoPlay, true);
+    requests[1].callback(null, asset); assert.equal(exported.sound.slot('main').asset, asset.id); assert.equal(exported.sound.slot('main').autoPlay, false, 'Audio waits for whole-game readiness');
     exported.sound.stop();
   } finally { editor.sceneResourceSession?.cancel(); app.destroy(); }
 });

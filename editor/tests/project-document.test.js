@@ -95,6 +95,7 @@ test('exported scene builder preserves nested transforms in both new and legacy 
   const end = html.indexOf('    if (SCENE_DATA.root && SCENE_DATA.root.children)', start);
   assert.ok(start > 0 && end > start);
   const context = vm.createContext({ pc });
+  context.runtimeAssets = { load: () => { throw new Error('Unexpected resource in hierarchy-only fixture.'); } };
   vm.runInContext(html.slice(start, end), context);
   const root = new pc.Entity('ExportRoot');
   const data = JSON.parse(e.exportSceneJSON()).root.children[0];

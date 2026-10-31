@@ -1,9 +1,9 @@
-import { loadExportRuntimes } from '../compiler/runtime-bundle.js';
+import { GamePreview } from './game-preview.js';
+import { prepareGame } from '../runtime/prepare-game.js';
 import { AssetPackager } from '../project/asset-packager.js';
 import { resolvePortableReferences } from '../project/project-document.js';
 import { showRecoverySnapshots } from './recovery-modal.js';
 import { showToast } from './toast.js';
-import { GameBundler } from '../compiler/game-bundler.js';
 
 /**
  * Top Navigation Bar with Organized Dropdown Menus
@@ -37,6 +37,7 @@ export class TopBar {
     this.timelinePanel = timelinePanel;
     this.hudModal = hudModal;
     this.extraModals = extraModals || {};
+    this.gamePreview = new GamePreview(editor);
     this.isPlaying = false;
     this.isMenuOpen = false;
 
@@ -280,6 +281,8 @@ export class TopBar {
           <span id="play-icon">▶</span> <span id="play-text">Play</span>
         </button>
 
+        <button id="btn-game-preview" class="btn btn-primary" style="padding:4px 12px;font-size:11px">Game Preview</button>
+
         <!-- Standalone Publish Button -->
         <button id="btn-open-publish" class="btn btn-primary" style="padding: 4px 12px; font-size: 11px; font-weight: 700; background: linear-gradient(135deg, #ff6600, #ff3300); border: none; box-shadow: 0 0 10px rgba(255,102,0,0.4);">🚀 Publish</button>
       </div>
@@ -294,6 +297,7 @@ export class TopBar {
     this.setupSettingsActions();
     this.setupHelpActions();
     this.setupSimulation();
+    this.container.querySelector('#btn-game-preview')?.addEventListener('click', () => { void this.gamePreview.open(); });
     this.setupAIPrompt();
     this.setupModeSwitcher();
     this.setupUndoRedo();
@@ -499,13 +503,9 @@ export class TopBar {
     const exportHtmlItem = this.container.querySelector('#menu-action-export-html');
     if (exportHtmlItem) {
       exportHtmlItem.addEventListener('click', () => this.runPackaging(exportHtmlItem, async packager => {
-        if (this.editor.isPlaying) throw new Error('Stop play before exporting the game.');
-        const source = JSON.parse(this.editor.exportSceneJSON());
-        resolvePortableReferences(source, this.editor.assetsPanel?.assets || this.editor.projectAssets || []);
-        const result = await packager.packageScene(source);
-        const runtimeBundle = await loadExportRuntimes();
-        const html = new GameBundler(this.editor).compileStandaloneHTML({ title: source.project, sceneData: result.scene, embeddedAssets: [], runtimeBundle, assetManifest: result.manifest });
-        this.downloadContent(html, `${(source.project || 'Game').replace(/\s+/g, '_')}_Game.html`, 'text/html');
+        const title = this.editor.projectName || 'Game';
+        const html = await prepareGame(this.editor, { packager });
+        this.downloadContent(html, `${title.replace(/\s+/g, '_')}_Game.html`, 'text/html');
         showToast('Game downloaded with its engine, physics and declared assets built in.', 'success', 7000);
       }));
     }

@@ -823,7 +823,7 @@ work. Run the editor regression suite with `cd editor && npm test`.
 See the [completion roadmap](roadmap.html#progress) for current progress and the
 [capability register](docs/capabilities/README.md) for source-based support
 findings, known limitations and the certification backlog. The baseline covers
-150 behaviors, 52 AI actions, 31 UI modules, 450 literal control templates and
+150 behaviors, 52 AI actions, 32 UI modules, 451 literal control templates and
 30 reviewed feature areas. Presence in a catalog or source branch does not mean
 a feature is verified across save/open, preview and export.
 
@@ -932,9 +932,17 @@ Chromium with external connections blocked. Run `npm test`,
 The runtime manifest pins engine, physics and license hashes; builds and exports
 fail on mismatches. See [runtime provenance](editor/vendor/ammo/README.md).
 Physics initializes before the editor, pauses during authoring and advances during
-Play. Play now runs disposable scene copies and Stop restores the supported editing state, selection and undo history. A separate preview security context remains pending.
+Play. Play now runs disposable scene copies and Stop restores the supported editing state, selection and undo history. The new Game Preview button runs the packaged game in a separate restricted frame.
 
 
 Run `npm run test:play-browser` from `editor/` for actual Play/Stop button checks
 with real physics and a loaded GLB. See [Play/Stop scope and remaining isolation
 work](docs/project-format.md#disposable-playstop-scene-copies-31-october-2026).
+
+
+**Game Preview** uses the same captured artifact/runtime as HTML export and waits
+for declared models, textures and sounds before starting gameplay. Restart resets
+the captured game; Close removes its runtime. The first enabled game camera is
+used, and game controls clear on blur. The browser fixture now checks isolation,
+controls, camera, model loading, restart and failure cleanup as well as Play/Stop.
+See the [preview scope](docs/project-format.md#isolated-game-preview-and-shared-delivery-preparation-31-october-2026).
