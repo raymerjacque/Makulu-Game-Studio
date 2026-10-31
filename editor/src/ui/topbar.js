@@ -1,3 +1,5 @@
+import { AssetPackager } from '../project/asset-packager.js';
+import { resolvePortableReferences } from '../project/project-document.js';
 import { showRecoverySnapshots } from './recovery-modal.js';
 import { showToast } from './toast.js';
 import { GameBundler } from '../compiler/game-bundler.js';
@@ -66,11 +68,14 @@ export class TopBar {
               <div class="topbar-dropdown-item" id="menu-action-export">
                 <span class="item-label">💾 Save Project (JSON)...</span>
               </div>
+              <div class="topbar-dropdown-item" id="menu-action-export-portable">
+                <span class="item-label">📦 Save Portable Project (assets included)...</span>
+              </div>
               <div class="topbar-dropdown-item" id="menu-action-recovery">
                 <span class="item-label">🕘 Local Recovery Snapshots...</span>
               </div>
               <div class="topbar-dropdown-item" id="menu-action-export-html">
-                <span class="item-label">🌐 Export Standalone HTML5 Game...</span>
+                <span class="item-label">🌐 Export HTML Game (assets included)...</span>
               </div>
               <div class="topbar-dropdown-separator"></div>
               <div class="topbar-dropdown-item" id="menu-action-templates">
@@ -390,6 +395,29 @@ export class TopBar {
     });
   }
 
+  async runPackaging(item, operation) {
+    if (this.packagingBusy) { showToast('An asset export is already running.', 'info'); return; }
+    this.packagingBusy = true;
+    const label = item?.querySelector('.item-label'), original = label?.textContent;
+    item?.setAttribute('aria-disabled', 'true');
+    try {
+      showToast('Collecting the project’s required assets…', 'info');
+      const packager = new AssetPackager({ onProgress: progress => {
+        if (label) label.textContent = `Packing assets ${progress.completed}/${progress.discovered}…`;
+      } });
+      await operation(packager);
+    } catch (error) { showToast(error.message || 'Assets could not be packaged. No partial file was downloaded.', 'error', 6000); }
+    finally {
+      this.packagingBusy = false; item?.removeAttribute('aria-disabled');
+      if (label) label.textContent = original;
+    }
+  }
+
+  downloadContent(content, filename, type) {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+  }
+
   /**
    * File Menu Actions
    */
@@ -436,6 +464,15 @@ export class TopBar {
       });
     }
 
+    const portableItem = this.container.querySelector('#menu-action-export-portable');
+    portableItem?.addEventListener('click', () => this.runPackaging(portableItem, async packager => {
+      const source = this.editor.exportProjectJSON(), project = JSON.parse(source);
+      const result = await packager.packageProject(source);
+      this.downloadContent(result.json, `${project.name.replace(/\s+/g, '_')}_portable_project.json`, 'application/json');
+      if (this.editor.projectId === project.id) this.editor.persistence?.markDownloaded(source);
+      showToast('Portable project downloaded with its declared model, texture and audio assets.', 'success');
+    }));
+
     // Export project
     const exportItem = this.container.querySelector('#menu-action-export');
     if (exportItem) {
@@ -460,26 +497,15 @@ export class TopBar {
     // Export Standalone HTML5 Game
     const exportHtmlItem = this.container.querySelector('#menu-action-export-html');
     if (exportHtmlItem) {
-      exportHtmlItem.addEventListener('click', () => {
-        try {
-          const bundler = new GameBundler(this.editor);
-          const html = bundler.compileStandaloneHTML({
-            title: this.editor.projectName || 'MakuluLinux Game',
-            author: 'MakuluLinux Studio Creator'
-          });
-          const blob = new Blob([html], { type: 'text/html' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${(this.editor.projectName || 'Game').replace(/\s+/g, '_')}_Standalone.html`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast('✨ Standalone HTML5 game compiled & downloaded!', 'success');
-        } catch (err) {
-          console.error(err);
-          showToast('Failed to compile standalone HTML5 game', 'error');
-        }
-      });
+      exportHtmlItem.addEventListener('click', () => this.runPackaging(exportHtmlItem, async packager => {
+        if (this.editor.isPlaying) throw new Error('Stop play before exporting the game.');
+        const source = JSON.parse(this.editor.exportSceneJSON());
+        resolvePortableReferences(source, this.editor.assetsPanel?.assets || this.editor.projectAssets || []);
+        const result = await packager.packageScene(source);
+        const html = new GameBundler(this.editor).compileStandaloneHTML({ title: source.project, sceneData: result.scene, embeddedAssets: [] });
+        this.downloadContent(html, `${(source.project || 'Game').replace(/\s+/g, '_')}_Game.html`, 'text/html');
+        showToast('Game exported with its assets. Internet is still needed to start the engine and physics runtime.', 'success', 7000);
+      }));
     }
 
     // Templates Modal

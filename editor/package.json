@@ -41,7 +41,8 @@
       "preload.cjs",
       "desktop-security.cjs",
       "package.json",
-      "public/**/*"
+      "public/**/*",
+      "bundled-assets.cjs"
     ],
     "linux": {
       "target": [

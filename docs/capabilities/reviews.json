@@ -36,7 +36,7 @@
       "status": "partial",
       "editor": "Versioned full-project Save/Open is wired; File open awaits active-scene model and material-texture loads.",
       "persistence": "All scenes, shared script source, IDs, selected settings, asset/prefab records and supported scene data round-trip.",
-      "export": "Editable JSON document; not yet a complete offline dependency archive.",
+      "export": "Optional portable JSON embeds declared media and standard glTF dependencies; complete archive/runtime and arbitrary-script dependencies remain open.",
       "next": "Complete component/resource fields, dependency packaging and atomic native file saving; local recovery foundation now exists.",
       "evidence": [
         "editor/src/core/editor.js",
@@ -319,8 +319,8 @@
       "status": "partial",
       "editor": "HTML bundler exists.",
       "persistence": "Not an editable full-project format.",
-      "export": "Shared terrain/audio reconstruction and completed local-import aliases work; external engine/Ammo and relative/remote dependencies still remain.",
-      "next": "Pinned shared runtime, complete dependency package and clean-target tests.",
+      "export": "File-menu HTML export embeds active-scene declared media; engine/physics remain network dependencies.",
+      "next": "Pin/vendor runtime and decoders, build deduplicated archives and verify clean-target gameplay offline.",
       "evidence": [
         "editor/src/compiler/game-bundler.js"
       ],
@@ -414,6 +414,36 @@
         "editor/tests/resource-readiness.test.js"
       ],
       "proof": "Deferred/failed/cached/late requests, retry, real texture components, exported map bindings and UI/play guards have regression checks."
+    },
+    {
+      "id": "asset-packaging",
+      "name": "Declared project-asset packaging",
+      "status": "partial",
+      "editor": "Portable project save and asset-embedded active-scene HTML export are wired with progress and failure handling.",
+      "persistence": "All project scenes and supported asset/prefab references embed; provided provenance fields and integrity manifest survive.",
+      "export": "Standard GLB/glTF buffers/images plus material/audio payloads embed; engine/physics and unsupported decoder dependencies remain external.",
+      "next": "Pinned runtime/decoder vendoring, ZIP/folder delivery, full script/prefab coverage and packaged desktop smoke checks.",
+      "evidence": [
+        "editor/src/project/asset-packager.js",
+        "editor/bundled-assets.cjs",
+        "editor/src/ui/topbar.js",
+        "editor/tests/asset-packaging.test.js"
+      ],
+      "proof": "Dependency, real GLB, boundary, timeout and no-network reprocessing checks exist; browser transport checks supplement unit tests."
+    },
+    {
+      "id": "production-asset-library",
+      "name": "High-quality preloaded production asset library",
+      "status": "absent",
+      "editor": "Current starter collection is small; the user requested substantially better models/materials and less placeholder-looking characters.",
+      "persistence": "New pack IDs, provenance and discovery metadata are specified in the P7A plan; actual pack acquisition/normalization is pending.",
+      "export": "Redistribution evidence and pack/export certification are required before shipping the official library.",
+      "next": "Execute A01\u2013A10: audit, approve art styles and licenses, acquire/normalize assets, build AI search and previews, certify reference games.",
+      "evidence": [
+        "docs/asset-library-plan.md",
+        "editor/src/store/model-store.js"
+      ],
+      "proof": "P7A is planned, not implemented; no new asset files were imported during this increment."
     }
   ],
   "behaviors": {
@@ -515,7 +545,7 @@
     },
     "topbar": {
       "status": "partial",
-      "notes": "Full-project open, resource status/retry and local recovery/file-state UI exist. Dirty replacement is checkpoint-protected through the File menu; native atomic saves and play isolation remain pending."
+      "notes": "Portable project and asset-embedded HTML file actions supplement JSON save/recovery. HTML engine/physics remain online; native installs and full offline delivery need certification."
     },
     "assets": {
       "status": "partial",

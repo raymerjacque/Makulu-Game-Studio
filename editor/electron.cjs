@@ -2,6 +2,7 @@ const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const { readBundledAsset } = require('./bundled-assets.cjs');
 const { confirmUnsavedClose, isTrustedDocument, isTrustedAuthSender, isSafeExternalUrl, packagedEntryUrl } = require('./desktop-security.cjs');
 
 let studioWindow = null;
@@ -28,6 +29,14 @@ ipcMain.handle('get-system-electra-auth', (event) => {
     console.warn('System Electra authentication is unavailable.');
   }
   return null;
+});
+
+ipcMain.handle('read-bundled-asset', async (event, url) => {
+  if (!isTrustedAuthSender(event, studioWindow, trustedEntryUrl)) return null;
+  try {
+    // The production renderer loads dist/index.html; its bundled media also lives in dist.
+    return await readBundledAsset(path.join(__dirname, 'dist'), url);
+  } catch { return null; }
 });
 
 // Ensure WebGL & GPU hardware acceleration work reliably across all Linux distros

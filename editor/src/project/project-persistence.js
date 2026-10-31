@@ -69,7 +69,7 @@ export class ProjectPersistence {
   markDownloaded(json) {
     this.baseline = json;
     this.state.source = 'downloaded';
-    this.state.dirty = false;
+    try { this.state.dirty = this.capture() !== json; } catch { this.state.dirty = true; }
     this.publish();
     void this.checkpoint({ force: true });
   }

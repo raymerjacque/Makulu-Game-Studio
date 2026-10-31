@@ -263,3 +263,61 @@ instantiation, arbitrary custom meshes, timeline persistence, every material/UV
 property, complete inactive-scene preload, dependency archives, full audio/physics
 playtests and play-session isolation. Recovery includes the newly serialized
 terrain/audio data, but inherits all other version 1 limits.
+
+## Declared-asset packaging update
+
+The File menu now provides **Save Portable Project (assets included)** in addition
+to the lightweight JSON save. It captures the current project revision and embeds
+declared models, material maps, audio, asset-library records and supported prefab
+references across every scene. Standard glTF buffer/image URIs are resolved from
+the model's original URL and embedded recursively. GLB JSON chunks are rewritten
+while existing binary chunks are retained. Completed local imports are reused.
+Provided author/license/attribution/pack metadata survives the project package;
+packaging does not independently verify those rights.
+
+The output includes a versioned asset manifest with SHA-256 hashes, MIME types,
+byte counts and source identifiers. Query strings, URL user credentials and full
+local file paths are not copied into manifest source identifiers. Provider settings,
+script URLs and provenance links are not fetched as media dependencies. Requests
+omit credentials, do not follow redirects and have a 20-second default timeout.
+Limits currently include 32 MiB per downloaded/repacked asset, 64 MiB total input,
+2,048 dependency entries and a bounded single-file JSON output. Missing files,
+blocked/CORS downloads, unresolved blob dependencies, cycles, unsupported model
+compression and size-budget failures stop the operation without downloading a
+partial artifact. Existing project content is not rewritten while packaging.
+
+Desktop file access uses a narrow trusted-renderer IPC route that can read only
+approved media files within the built application's `dist` directory. It rejects
+outside paths, symlink escapes, unsupported extensions and oversized files. It is
+not an arbitrary local-file reader. Actual packaged-desktop packaging still needs
+an installation smoke test; boundary tests cover the helper and unauthorized IPC.
+
+The HTML-game File action now packages the **active scene's declared assets**
+before compiling. It excludes unrelated editor library data and escapes embedded
+scene JSON so source text cannot terminate the surrounding script tag. **Engine
+and physics scripts still load over the internet.** The UI says this explicitly;
+this increment does not deliver a universally offline single HTML game or a
+folder/ZIP export. The synchronous compiler API remains available for tests and
+existing callers; the new File-menu path performs the asynchronous asset collection.
+
+Only schema-defined references are collected. Hard-coded URLs inside custom
+scripts, arbitrary behavior parameters, unsupported prefab/resource structures,
+external decoder packages and runtime-generated downloads are outside this scope.
+Embedded glTF files with missing external origins and Draco/meshopt/Basis models
+are rejected until their dependency/decoder workflows are supported. This is
+asset embedding, not model artistic-quality certification or a complete game
+playtest. Large projects still need a deduplicated archive format.
+
+Async download completion uses the original source revision for dirty tracking,
+so edits made while assets are collected remain unsaved. If the user opens a
+different project during collection, its file baseline is not changed by the old
+operation. Local recovery snapshots continue to use the editable format and do
+not automatically fetch/embed remote dependencies.
+
+Checks: `editor/tests/asset-packaging.test.js` covers multi-scene/dependency
+collection, metadata preservation, unchanged source state, a real bundled GLB's
+binary chunk, failure/timeout/budget cases, network-free reprocessing of embedded
+content, script-tag safety, filesystem boundaries and untrusted IPC. The isolated
+browser suite now adds three transport/embedding/hash checks to the existing ten
+storage/heightmap checks. This verifies that collected asset payloads can be
+reprocessed without network access; it does not establish an offline game runtime.

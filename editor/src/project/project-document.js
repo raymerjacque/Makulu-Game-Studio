@@ -106,7 +106,7 @@ export function parseProjectDocument(input) {
   return JSON.parse(JSON.stringify(project));
 }
 
-const assetFields = ['id', 'name', 'type', 'icon', 'size', 'url', 'base64Data', 'materialData', 'prefabData', 'data'];
+const assetFields = ['id', 'name', 'type', 'icon', 'size', 'url', 'base64Data', 'materialData', 'prefabData', 'data', 'license', 'licenseUrl', 'author', 'sourcePage', 'attribution', 'packId', 'tags', 'style', 'animations'];
 export function serializeAssetRegistry(assets) {
   return assets.map(asset => {
     const result = {};

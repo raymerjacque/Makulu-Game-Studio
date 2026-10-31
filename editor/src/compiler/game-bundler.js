@@ -15,7 +15,7 @@ export class GameBundler {
   }
 
   compileStandaloneHTML(options = {}) {
-    const sceneData = JSON.parse(this.editor.exportSceneJSON());
+    const sceneData = options.sceneData ? JSON.parse(JSON.stringify(options.sceneData)) : JSON.parse(this.editor.exportSceneJSON());
     resolvePortableReferences(sceneData, this.editor.assetsPanel?.assets || this.editor.projectAssets || []);
     const sceneJSON = JSON.stringify(sceneData);
     const title = options.title || this.editor.projectName || 'My MakuluLinux 3D Game';
@@ -23,7 +23,8 @@ export class GameBundler {
 
     // Collect Base64 encoded assets if available
     const assetRegistry = [];
-    if (this.editor.assetsPanel && this.editor.assetsPanel.assets) {
+    if (Array.isArray(options.embeddedAssets)) assetRegistry.push(...options.embeddedAssets);
+    else if (this.editor.assetsPanel && this.editor.assetsPanel.assets) {
       this.editor.assetsPanel.assets.forEach(a => {
         if (a.base64Data) {
           assetRegistry.push({
@@ -394,8 +395,8 @@ export class GameBundler {
 
   <script>
     // Embedded Scene Data & Inlined Base64 Assets
-    const SCENE_DATA = ${sceneJSON};
-    const EMBEDDED_ASSETS = ${JSON.stringify(assetRegistry)};
+    const SCENE_DATA = ${sceneJSON.replace(/</g, '\\u003c')};
+    const EMBEDDED_ASSETS = ${JSON.stringify(assetRegistry).replace(/</g, '\\u003c')};
 
     // Initialize PlayCanvas Runtime
     const canvas = document.getElementById('game-canvas');

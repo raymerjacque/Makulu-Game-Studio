@@ -824,7 +824,7 @@ See the [completion roadmap](roadmap.html#progress) for current progress and the
 [capability register](docs/capabilities/README.md) for source-based support
 findings, known limitations and the certification backlog. The baseline covers
 150 behaviors, 52 AI actions, 31 UI modules, 450 literal control templates and
-28 reviewed feature areas. Presence in a catalog or source branch does not mean
+30 reviewed feature areas. Presence in a catalog or source branch does not mean
 a feature is verified across save/open, preview and export.
 
 To refresh the report after changing editor capabilities:
@@ -907,3 +907,18 @@ Completed local-import references are resolved to existing embedded bytes in
 project and HTML exports; unresolved temporary references fail visibly. This is
 not yet full offline dependency packaging. See the [terrain/audio contract and
 remaining limits](docs/project-format.md#terrain-and-declared-audio-persistence-update).
+
+
+## Production asset library plan and asset packaging
+
+A substantial quality/variety upgrade is now a required roadmap milestone, not
+an imported pack: see [P7A](roadmap.html#p7a) and the [asset-library plan](docs/asset-library-plan.md).
+It covers rigged characters, environments, props, vegetation, vehicles, PBR
+materials and AI-searchable metadata, with a curated core plus optional packs.
+No new models or textures were added in this implementation batch.
+
+File → Save Portable Project embeds declared media across all scenes and standard
+glTF dependencies. The HTML-game action embeds the active scene’s assets, but
+still needs internet for engine/physics startup. Missing/unsupported assets stop
+the export; ordinary JSON saving remains available. See [packaging scope and
+limits](docs/project-format.md#declared-asset-packaging-update).

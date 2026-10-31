@@ -143,3 +143,10 @@ test('replacement protection writes a fresh snapshot even when its earlier ident
   assert.equal(await persistence.protectBeforeReplace(), true); assert.equal(store.rows.length, 1);
   assert.ok(store.rows[0].json.includes('MustKeep')); persistence.dispose();
 });
+
+test('a download of an earlier async-export snapshot cannot mark newer edits clean', async () => {
+  const { editor, persistence } = await setup(); const source = editor.exportProjectJSON();
+  editor.createEntity({ name: 'EditedDuringPackaging' }); persistence.markDownloaded(source);
+  assert.equal(persistence.state.dirty, true); if (persistence.busy) await persistence.busy;
+  assert.equal(persistence.state.dirty, true); persistence.dispose();
+});
