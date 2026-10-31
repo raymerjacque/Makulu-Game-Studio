@@ -76,6 +76,7 @@ export class AIAssistantUI {
       <!-- Input Bar -->
       <div class="ai-input-bar">
         <textarea id="ai-text-input" class="ai-input" rows="2" aria-label="Describe your game or a change" placeholder="Describe your game or a change…"></textarea>
+        <button id="ai-btn-cancel-assets" class="btn" style="display:none" type="button">Cancel loading</button>
         <button id="ai-btn-send" class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;">Send</button>
       </div>
     `;
@@ -211,6 +212,12 @@ export class AIAssistantUI {
     // Input submission
     const input = this.panel.querySelector('#ai-text-input');
     const sendBtn = this.panel.querySelector('#ai-btn-send');
+    const cancelAssets = this.panel.querySelector('#ai-btn-cancel-assets');
+    cancelAssets.addEventListener('click', () => this.executor.cancelPending());
+    this.editor.events.on('ai:resources:state', report => {
+      cancelAssets.style.display = report.status === 'loading' ? 'inline-flex' : 'none';
+      cancelAssets.disabled = report.status !== 'loading';
+    });
 
     const submit = () => {
       const text = input.value.trim();

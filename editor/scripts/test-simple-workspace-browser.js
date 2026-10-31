@@ -108,7 +108,35 @@ try {
   HTMLInputElement.prototype.click = originalClick;
   await simple.refresh(); await wait(() => simple.preview.status.textContent.startsWith('Playing'));
   simple.preview.closeButton.click(); check(!simple.preview.frame, 'Embedded Stop kept runtime alive');
-  persistence.dispose(); runtime.app.destroy(); report = { ok: true, checks };
+  const assetSurface = editor.createEntity({ name: 'AssetSurface', components: [{ type: 'render', properties: { type: 'box' } }] });
+  const beforeAssets = editor.exportProjectJSON(), beforeAssetsHistory = editor.commandBus.undoStack.length;
+  const assetActions = [{ action: 'spawn_model', name: 'AssetDuck', url: '/models/Duck.glb' }, { action: 'create_material', target: 'AssetSurface', diffuseMapUrl: '/__fixture-map.png', normalMapUrl: '/__fixture-map.png', roughnessMapUrl: '/__fixture-map.png', emissiveMapUrl: '/__fixture-map.png' }];
+  ai.client.sendMessage = async () => ticks + 'json:actions\n' + JSON.stringify(assetActions) + '\n' + ticks;
+  await ai.sendUserPrompt('Load a model and texture maps');
+  await wait(() => simple.preview.status?.textContent.startsWith('Playing'));
+  const assetDuck = runtime.app.root.findByName('AssetDuck'), maps = assetSurface.render.material;
+  check(assetDuck?.findComponents('render').length > 0 && maps.diffuseMap?.width === 1 && maps.normalMap?.width === 1 && maps.glossMap?.width === 1 && maps.emissiveMap?.width === 1, 'Real GLB/texture resources were not attached: ' + JSON.stringify({ duck: Boolean(assetDuck), maps: [maps.diffuseMap?.width, maps.normalMap?.width, maps.glossMap?.width, maps.emissiveMap?.width], message: chat.lastElementChild?.textContent?.slice(0, 800) }));
+  check(editor.commandBus.undoStack.length === beforeAssetsHistory + 1 && assetDuck._modelUrl === '/models/Duck.glb', 'Asset response was not a single persistent-model batch');
+  const withAssets = editor.exportProjectJSON();
+  simple.root.querySelector('#simple-undo').click(); check(editor.exportProjectJSON() === beforeAssets, 'Asset Undo did not restore the original project');
+  simple.root.querySelector('#simple-redo').click(); check(editor.exportProjectJSON() === withAssets && runtime.app.root.findByName('AssetDuck') === assetDuck, 'Asset Redo lost the prepared instance or texture state');
+  const reopened = await editor.openProjectJSON(withAssets);
+  const restoredSurface = runtime.app.root.findByName('AssetSurface');
+  check(reopened.status === 'ready' && runtime.app.root.findByName('AssetDuck').findComponents('render').length > 0 && restoredSurface.render.material._diffuseMapUrl === '/__fixture-map.png', 'Saved model/maps did not restore through readiness');
+  const nativeLoad = runtime.app.assets.loadFromUrl.bind(runtime.app.assets), held = [];
+  runtime.app.assets.loadFromUrl = (url, type, done) => { if (url === '/__held-map.png') held.push(done); else nativeLoad(url, type, done); };
+  const beforeCancel = editor.exportProjectJSON(), cancelHistory = editor.commandBus.undoStack.length;
+  ai.client.sendMessage = async () => ticks + 'json:actions\n' + JSON.stringify([{ action: 'modify_entity', name: 'AssetSurface', position: [99, 0, 0] }, { action: 'create_material', target: 'AssetSurface', diffuseMapUrl: '/__held-map.png' }]) + '\n' + ticks;
+  const cancelling = ai.sendUserPrompt('Cancel a pending texture update');
+  const cancelButton = ai.panel.querySelector('#ai-btn-cancel-assets');
+  await wait(() => held.length === 1 && getComputedStyle(cancelButton).display !== 'none');
+  check(editor.exportProjectJSON() === beforeCancel && simple.root.querySelector('#simple-build-state').textContent.startsWith('Loading assets'), 'Scene changed before assets were prepared or progress was missing');
+  cancelButton.click(); await cancelling;
+  check(editor.exportProjectJSON() === beforeCancel && editor.commandBus.undoStack.length === cancelHistory && !ai.isBusy && chat.textContent.includes('cancelled'), 'Cancel loading left partial changes or blocked the chat');
+  held[0](null, { type: 'texture', resource: restoredSurface.render.material.diffuseMap }); await new Promise(resolve => setTimeout(resolve, 50));
+  check(editor.exportProjectJSON() === beforeCancel && getComputedStyle(cancelButton).display === 'none', 'Late cancelled texture changed the project or cancel control stayed visible');
+  runtime.app.assets.loadFromUrl = nativeLoad;
+  simple.preview.close(); persistence.dispose(); runtime.app.destroy(); report = { ok: true, checks };
 } catch (error) { report = { ok: false, checks, error: error.message, stack: error.stack }; }
 await fetch('/__simple-result', { method: 'POST', body: JSON.stringify(report) });
 </script></body></html>`;
@@ -116,6 +144,7 @@ const server = await createServer({ root: fileURLToPath(new URL('../', import.me
   server.middlewares.use((request, response, next) => {
     if (request.url === '/__simple-fixture') { response.setHeader('Content-Type', 'text/html'); response.end(page); }
     else if (request.url === '/__simple-result' && request.method === 'POST') { let body = ''; request.on('data', chunk => { body += chunk; }); request.on('end', () => { try { reportResult(JSON.parse(body)); } catch { reportResult({ ok: false, error: 'Invalid report' }); } response.end('ok'); }); }
+    else if (request.url === '/__fixture-map.png') { response.setHeader('Content-Type', 'image/png'); response.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII=', 'base64')); }
     else next();
   });
 } }] });

@@ -69,6 +69,10 @@ export class SimpleWorkspace {
       for (const selector of ['#simple-new', '[data-file-action="menu-action-import"]', '[data-file-action="menu-action-recovery"]', '#simple-refresh']) this.root.querySelector(selector).disabled = busy;
       if (busy) { this.root.querySelector('.simple-note').textContent = 'AI changes need playtesting. Automatic completion and verification are still being built.'; this.preview.close(); this.showEmpty(); }
     });
+    editor.events.on('ai:resources:state', report => {
+      if (report.status === 'loading') this.root.querySelector('#simple-build-state').textContent = `Loading assets · ${report.loaded}/${report.total}`;
+      else if (report.status === 'ready') this.root.querySelector('#simple-build-state').textContent = 'Assets ready · applying changes';
+    });
     editor.events.on('ai:request:settled', () => { if (this.active) void this.refresh(); });
     this.chatProjectId = editor.projectId;
     editor.events.on('project:loaded', () => {

@@ -83,18 +83,20 @@
       "id": "undo",
       "name": "Universal undo/redo",
       "status": "partial",
-      "editor": "11 synchronous core AI action types have validated, reversible commands grouped into one history entry. Simple exposes Undo/Redo; legacy mixed lists are identified separately.",
+      "editor": "12 core AI action names support one-history-entry batches; model containers and four material-map resources prepare before synchronous commit. Cancellation/timeouts/stale work cannot leave partial edits. Legacy mixed lists are labelled separately.",
       "persistence": "History is not a durable task journal.",
       "export": "Editor-only.",
-      "next": "Awaited resource-aware edits, cancellation, whole-team/prompt grouping, complete UI/tool migration and durable history/resource ownership.",
+      "next": "Audio and legacy tools, whole-team/prompt rollback, durable journals, complete history/cache resource ownership and provider/workflow cancellation.",
       "evidence": [
         "editor/src/core/command-bus.js",
         "editor/src/ai/ai-executor.js",
         "editor/src/ai/action-contract.js",
         "editor/src/ai/transactional-actions.js",
-        "editor/tests/ai-transactions.test.js"
+        "editor/tests/ai-transactions.test.js",
+        "editor/src/ai/prepared-resources.js",
+        "editor/tests/ai-asset-transactions.test.js"
       ],
-      "proof": "Eleven contract/engine/recovery regressions plus real Simple browser multi-action Undo/Redo and failed-response rollback pass; legacy tools remain outside atomic scope."
+      "proof": "Existing core/physics checks plus nine prepared-resource regressions and 37 Simple browser assertions cover real GLB/PNG loading, saved restoration, Undo/Redo and cancellation/late results."
     },
     {
       "id": "play",
@@ -290,7 +292,7 @@
       "id": "ai-chat",
       "name": "AI scene copilot",
       "status": "partial",
-      "editor": "Provider client and real scene-action execution exist. Requests are serialized with busy/settled UI state; Simple refreshes a separate preview after each response. Core action batches are validated, revision-checked and undoable; invalid batches report failure and legacy execution is labelled.",
+      "editor": "Provider client and real scene-action execution exist. Requests are serialized with busy/settled UI state; Simple refreshes a separate preview after each response. Core action batches are validated, revision-checked and undoable; invalid batches report failure and legacy execution is labelled. Cancel loading is available for core model/material preparation; provider and legacy cancellation remain pending.",
       "persistence": "Chat history is not durable project/task memory.",
       "export": "Build results use the same unverified export path.",
       "next": "Full per-tool/behavior contracts, awaited asset transactions, scene context and persistent task runner.",
@@ -422,10 +424,10 @@
       "id": "resource-readiness",
       "name": "Active-scene model, material and declared audio readiness",
       "status": "partial",
-      "editor": "Awaited open, progress, timeout/failure/cancellation and retry include declared audio slots.",
+      "editor": "Awaited open, progress, timeout/failure/cancellation and retry include declared audio slots. Core AI models/material maps now prepare without scene mutation and support cancellation, deadlines and stale revision checks.",
       "persistence": "Retry retains current scene data, IDs and scripts; four material map references restore.",
       "export": "Generated artifact and Game Preview await declared model/material/audio loads with bounded failures before gameplay; script-created dependencies remain outside scope.",
-      "next": "Complete imported-file workflows, inactive-scene preload and resource ownership/rollback.",
+      "next": "Audio/legacy transaction migration, transport/decoder budgets, inactive-scene policies and full cache/history ownership.",
       "evidence": [
         "editor/src/project/resource-load-session.js",
         "editor/src/core/editor.js",

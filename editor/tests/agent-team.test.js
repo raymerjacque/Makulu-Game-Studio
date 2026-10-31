@@ -91,7 +91,7 @@ test('AgentTeam reports an unavailable runtime instead of certifying a headless 
 
   assert.ok(result);
   assert.equal(result.finalStatus, 'error');
-  assert.ok(team.messageBus.getHistory().some(message => message.type === 'error' && message.content.includes('runtime is unavailable')));
+  assert.ok(team.messageBus.getHistory().some(message => message.type === 'error' && /(runtime|asset loader) is unavailable/.test(message.content)));
 
   // Verify inter-agent messages in bus history
   const history = team.messageBus.getHistory();

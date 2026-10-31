@@ -544,3 +544,59 @@ stale revision guards, replay failure, catalog consistency, per-mesh materials
 and real Ammo simulation removal/owned-body cleanup. The Simple browser suite now
 has 29 assertions at desktop and narrow widths, including multi-action single-step
 Undo/Redo and failed-response rollback with the real executor and project UI.
+
+
+## Prepared AI models/textures and cancellation (31 October 2026)
+
+`spawn_model` now joins the core transaction set (12 action names). Material
+creation additionally accepts `diffuseMapUrl`, `normalMapUrl`, `roughnessMapUrl`
+and `emissiveMapUrl`. These resources are prepared before the synchronous command
+journal starts: a missing, wrong-type, changed/unloaded, failed or timed-out asset
+cannot leave earlier transforms, scripts or entities from this batch applied.
+URLs shared by several map slots are loaded once per resource type.
+
+Model instances are created only at commit and bound to the editing application
+even if another preview was opened during loading. They keep their `_modelUrl` and model-child
+markers, and configure available animation data. Undo detaches/disables the
+instance; Redo reuses it without another download. Material map sources are saved
+in the existing schema fields, and roughness maps bind the inverted gloss map.
+Commit failure compensates earlier commands and destroys uniquely owned model
+instances/new materials. Cached model/container/texture assets are borrowed and
+are never unloaded or destroyed by cancellation/rollback. Material targeting is
+still an explicit render entity; wrapper-wide model material overrides are not
+implemented by this increment.
+
+Each prepared request has a 30-second default deadline. `executeActions` accepts
+`assetTimeoutMs` and `signal`; one executor refuses overlapping batches. The
+existing pre-edit checkpoint and project/selection revision checks cover the full
+wait, including a project edited or replaced while loading. The editor graph is
+not locked during loading: changed work is kept and the stale batch is refused.
+
+Chat shows **Cancel loading** only during the supported preparation stage, plus
+actual resource counts in Simple mode. Cancellation before synchronous commit
+prevents every edit from that batch and releases request UI state. A provider
+request, unrelated scene import or mixed legacy batch is not covered by this
+button. Engine transport/decode work may continue into its shared cache; late
+callbacks cannot attach objects/maps or overwrite a subsequent batch. This is
+batch cancellation, not a promise of immediate network/GPU-work abortion.
+
+New resource fields accept project-relative paths, HTTP(S), data and blob URLs;
+embedded URL credentials, file/javascript schemes and relative parent traversal
+are refused. In a file-based installed app, root-relative models/textures/audio
+paths become app-relative media paths; arbitrary root filesystem paths are
+refused. Ordinary JSON can still retain external/path dependencies; portable
+project embedding remains the option for supported self-contained media.
+
+`editor/tests/ai-asset-transactions.test.js` adds nine regressions covering
+preparation without mutation, exact Undo/Redo, wrong/failed/timed-out/cache-changed
+resources, cancellation/AbortSignal at checkpoint/loading/ready boundaries,
+late callbacks, stale work, concurrent batches, owned-instance cleanup, shared
+cache safety, deduplication and URL/installed-path rules. The Simple browser suite
+now has 37 assertions at 1440px and 660px, including a real GLB and valid PNG
+texture maps, saved restoration, batch Undo/Redo, visible loading cancellation and
+an ignored late texture result. Asset quality, every animation, acoustic playback,
+large/compressed-model budgets and installed-package smoke testing remain open.
+
+Audio and remaining legacy/composite tools still need resource-aware migration.
+Whole-team/prompt rollback, persistent action journals and the autonomous workflow
+are not delivered here. No additional production model/texture packs were added.

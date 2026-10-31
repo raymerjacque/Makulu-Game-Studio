@@ -1,7 +1,7 @@
 import knownIds from './action-ids.json' with { type: 'json' };
 import behaviorIds from './behavior-ids.json' with { type: 'json' };
 
-export const TRANSACTIONAL_ACTIONS = new Set(['spawn_primitive', 'create_light', 'modify_entity', 'delete_entity', 'create_material', 'generate_script', 'attach_behavior', 'set_sky_atmosphere', 'set_physics_gravity', 'configure_hud', 'set_hud_config']);
+export const TRANSACTIONAL_ACTIONS = new Set(['spawn_primitive', 'create_light', 'modify_entity', 'delete_entity', 'create_material', 'generate_script', 'attach_behavior', 'set_sky_atmosphere', 'set_physics_gravity', 'configure_hud', 'set_hud_config', 'spawn_model']);
 const known = new Set(knownIds), behaviors = new Set(behaviorIds);
 const primitives = new Set(['box', 'sphere', 'capsule', 'cylinder', 'cone', 'plane']);
 const fail = message => { throw new Error(message); };
@@ -11,9 +11,10 @@ const vector = value => Array.isArray(value) && value.length === 3 && value.ever
 const name = value => typeof value === 'string' && value.trim().length > 0 && value.length <= 160;
 const fields = {
   spawn_primitive: ['type', 'name', 'position', 'rotation', 'scale', 'components'],
+  spawn_model: ['url', 'name', 'position', 'rotation', 'scale'],
   create_light: ['type', 'name', 'position', 'rotation', 'color', 'intensity', 'range', 'castShadows'],
   modify_entity: ['name', 'targetId', 'position', 'rotation', 'scale'],
-  delete_entity: ['target', 'targetId'], create_material: ['target', 'targetId', 'diffuse', 'emissive', 'metalness', 'roughness', 'opacity'],
+  delete_entity: ['target', 'targetId'], create_material: ['target', 'targetId', 'diffuse', 'emissive', 'metalness', 'roughness', 'opacity', 'diffuseMapUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl'],
   generate_script: ['name', 'code'], attach_behavior: ['target', 'targetId', 'behavior', 'properties'],
   set_sky_atmosphere: ['preset'], set_physics_gravity: ['gravity'], configure_hud: ['config'], set_hud_config: ['config']
 };
@@ -48,6 +49,16 @@ function component(component) {
   }
 }
 
+export function validateResourceUrl(value) {
+  if (typeof value !== 'string' || !value.trim() || value.length > 700000 || /[\u0000-\u001f]/.test(value)) fail('Invalid asset URL.');
+  let decoded = value;
+  for (let index = 0; index < 4; index++) { try { const next = decodeURIComponent(decoded); if (next === decoded) break; decoded = next; } catch { break; } }
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(value) && /(?:^|[\\/])\.\.(?:[\\/]|$)/.test(decoded)) fail('Asset paths cannot traverse outside the project.');
+  let url; try { url = new URL(value, 'https://studio.invalid/'); } catch { fail('Invalid asset URL.'); }
+  if (!['https:', 'http:', 'data:', 'blob:'].includes(url.protocol) || url.username || url.password) fail('Asset URLs must use project paths, HTTP(S), data or blob URLs without embedded credentials.');
+  return value;
+}
+
 export function validateActionBatch(input) {
   if (!Array.isArray(input) || input.length > 100) fail('AI edits require an array of at most 100 actions.');
   jsonValue(input);
@@ -62,6 +73,8 @@ export function validateActionBatch(input) {
     for (const key of ['position', 'rotation', 'scale', 'gravity', 'diffuse', 'emissive', 'color']) {
       if (action[key] !== undefined && !vector(action[key])) fail(`${action.action}.${key} must be three finite numbers.`);
     }
+    if (action.action === 'spawn_model') validateResourceUrl(action.url);
+    for (const field of ['diffuseMapUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl']) if (action[field] !== undefined) validateResourceUrl(action[field]);
     if (action.scale?.some(n => Math.abs(n) < 1e-6)) fail('Entity scale must be nonzero.');
     for (const key of ['diffuse', 'emissive', 'color']) if (action[key]?.some(n => n < 0 || n > 1)) fail('Colors must be in the range 0 to 1.');
     for (const key of ['name', 'target', 'targetId']) if (action[key] !== undefined && !name(action[key])) fail('Entity/script references must be nonempty strings.');
@@ -81,7 +94,7 @@ export function validateActionBatch(input) {
     }
     for (const key of ['intensity', 'range']) if (action[key] !== undefined && !number(action[key], 0)) fail('Light values must be nonnegative finite numbers.');
     for (const key of ['metalness', 'roughness', 'opacity']) if (action[key] !== undefined && !number(action[key], 0, 1)) fail('Material values must be between 0 and 1.');
-    if (action.action === 'create_material' && !['diffuse', 'emissive', 'metalness', 'roughness', 'opacity'].some(key => action[key] !== undefined)) fail('create_material needs material fields.');
+    if (action.action === 'create_material' && !['diffuse', 'emissive', 'metalness', 'roughness', 'opacity', 'diffuseMapUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl'].some(key => action[key] !== undefined)) fail('create_material needs material fields.');
     if (action.action === 'generate_script' && (['__proto__', 'prototype', 'constructor'].includes(action.name) || !name(action.name) || typeof action.code !== 'string' || action.code.length > 100000)) fail('Script name/source is invalid or too large.');
     if (action.action === 'attach_behavior') {
       if (!behaviors.has(action.behavior) || (action.properties !== undefined && !object(action.properties))) fail('Unknown behavior or invalid behavior parameters.');

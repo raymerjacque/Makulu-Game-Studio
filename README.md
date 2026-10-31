@@ -823,7 +823,7 @@ work. Run the editor regression suite with `cd editor && npm test`.
 See the [completion roadmap](roadmap.html#progress) for current progress and the
 [capability register](docs/capabilities/README.md) for source-based support
 findings, known limitations and the certification backlog. The baseline covers
-150 behaviors, 52 AI actions, 33 UI modules, 461 literal control templates and
+150 behaviors, 52 AI actions, 33 UI modules, 462 literal control templates and
 30 reviewed feature areas. Presence in a catalog or source branch does not mean
 a feature is verified across save/open, preview and export.
 
@@ -967,3 +967,10 @@ reversed with one Undo and reapplied with Redo, including in Simple mode. Invali
 or failed core batches roll back; mixed advanced lists are labelled as legacy and
 are not fully undoable. Awaited asset transactions, cancellation and whole-team
 prompt grouping remain pending. See [transaction scope](docs/project-format.md#validated-synchronous-ai-batches-31-october-2026).
+
+
+Core AI batches now prepare models and four material texture maps before applying
+any edits. They support loading progress, Cancel loading, bounded waits and
+single-step Undo/Redo. Late cancelled loads cannot change the scene; shared engine
+assets may remain cached. Audio, advanced legacy tools and whole-team rollback
+remain pending. See [prepared asset transaction scope](docs/project-format.md#prepared-ai-modelstextures-and-cancellation-31-october-2026).

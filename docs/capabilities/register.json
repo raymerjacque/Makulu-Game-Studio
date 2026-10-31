@@ -24,7 +24,7 @@
     "aiActions": 52,
     "advertisedActions": 29,
     "uiModules": 33,
-    "literalControlTemplates": 461
+    "literalControlTemplates": 462
   },
   "gaps": {
     "inspectorWithoutEditorBranch": [],
@@ -141,18 +141,20 @@
       "id": "undo",
       "name": "Universal undo/redo",
       "status": "partial",
-      "editor": "11 synchronous core AI action types have validated, reversible commands grouped into one history entry. Simple exposes Undo/Redo; legacy mixed lists are identified separately.",
+      "editor": "12 core AI action names support one-history-entry batches; model containers and four material-map resources prepare before synchronous commit. Cancellation/timeouts/stale work cannot leave partial edits. Legacy mixed lists are labelled separately.",
       "persistence": "History is not a durable task journal.",
       "export": "Editor-only.",
-      "next": "Awaited resource-aware edits, cancellation, whole-team/prompt grouping, complete UI/tool migration and durable history/resource ownership.",
+      "next": "Audio and legacy tools, whole-team/prompt rollback, durable journals, complete history/cache resource ownership and provider/workflow cancellation.",
       "evidence": [
         "editor/src/core/command-bus.js",
         "editor/src/ai/ai-executor.js",
         "editor/src/ai/action-contract.js",
         "editor/src/ai/transactional-actions.js",
-        "editor/tests/ai-transactions.test.js"
+        "editor/tests/ai-transactions.test.js",
+        "editor/src/ai/prepared-resources.js",
+        "editor/tests/ai-asset-transactions.test.js"
       ],
-      "proof": "Eleven contract/engine/recovery regressions plus real Simple browser multi-action Undo/Redo and failed-response rollback pass; legacy tools remain outside atomic scope."
+      "proof": "Existing core/physics checks plus nine prepared-resource regressions and 37 Simple browser assertions cover real GLB/PNG loading, saved restoration, Undo/Redo and cancellation/late results."
     },
     {
       "id": "play",
@@ -348,7 +350,7 @@
       "id": "ai-chat",
       "name": "AI scene copilot",
       "status": "partial",
-      "editor": "Provider client and real scene-action execution exist. Requests are serialized with busy/settled UI state; Simple refreshes a separate preview after each response. Core action batches are validated, revision-checked and undoable; invalid batches report failure and legacy execution is labelled.",
+      "editor": "Provider client and real scene-action execution exist. Requests are serialized with busy/settled UI state; Simple refreshes a separate preview after each response. Core action batches are validated, revision-checked and undoable; invalid batches report failure and legacy execution is labelled. Cancel loading is available for core model/material preparation; provider and legacy cancellation remain pending.",
       "persistence": "Chat history is not durable project/task memory.",
       "export": "Build results use the same unverified export path.",
       "next": "Full per-tool/behavior contracts, awaited asset transactions, scene context and persistent task runner.",
@@ -480,10 +482,10 @@
       "id": "resource-readiness",
       "name": "Active-scene model, material and declared audio readiness",
       "status": "partial",
-      "editor": "Awaited open, progress, timeout/failure/cancellation and retry include declared audio slots.",
+      "editor": "Awaited open, progress, timeout/failure/cancellation and retry include declared audio slots. Core AI models/material maps now prepare without scene mutation and support cancellation, deadlines and stale revision checks.",
       "persistence": "Retry retains current scene data, IDs and scripts; four material map references restore.",
       "export": "Generated artifact and Game Preview await declared model/material/audio loads with bounded failures before gameplay; script-created dependencies remain outside scope.",
-      "next": "Complete imported-file workflows, inactive-scene preload and resource ownership/rollback.",
+      "next": "Audio/legacy transaction migration, transport/decoder budgets, inactive-scene policies and full cache/history ownership.",
       "evidence": [
         "editor/src/project/resource-load-session.js",
         "editor/src/core/editor.js",
@@ -4918,7 +4920,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 150
+          "line": 190
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4934,7 +4936,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 374
+          "line": 414
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -4948,7 +4950,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 341
+          "line": 381
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4964,7 +4966,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 357
+          "line": 397
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4981,7 +4983,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 483
+          "line": 523
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -4995,7 +4997,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 133
+          "line": 173
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5013,7 +5015,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 607
+          "line": 647
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5027,7 +5029,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 405
+          "line": 445
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5041,7 +5043,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 668
+          "line": 708
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5057,7 +5059,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 388
+          "line": 428
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5073,7 +5075,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 594
+          "line": 634
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5087,7 +5089,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 228
+          "line": 268
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5103,7 +5105,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 815
+          "line": 855
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5119,7 +5121,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 619
+          "line": 659
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5136,7 +5138,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 795
+          "line": 835
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5153,7 +5155,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 537
+          "line": 577
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5167,7 +5169,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 688
+          "line": 728
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5183,7 +5185,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 90
+          "line": 130
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5199,7 +5201,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 257
+          "line": 297
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5213,7 +5215,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 287
+          "line": 327
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5222,6 +5224,7 @@
       "notes": "Handler exists; payload validation, transactional undo, failure reporting and gameplay results are not certified.",
       "testMentions": [
         "editor/tests/aaa-behaviors-and-ai.test.js",
+        "editor/tests/ai-asset-transactions.test.js",
         "editor/tests/ai-transactions.test.js"
       ]
     },
@@ -5230,7 +5233,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 238
+          "line": 278
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5244,7 +5247,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 210
+          "line": 250
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5258,7 +5261,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 559
+          "line": 599
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5272,7 +5275,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 708
+          "line": 748
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5288,7 +5291,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 624
+          "line": 664
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5304,7 +5307,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 727
+          "line": 767
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5320,7 +5323,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 181
+          "line": 221
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5334,7 +5337,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 766
+          "line": 806
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5350,7 +5353,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 516
+          "line": 556
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5364,7 +5367,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 747
+          "line": 787
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5380,7 +5383,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 159
+          "line": 199
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5388,6 +5391,7 @@
       "status": "experimental",
       "notes": "Handler exists; payload validation, transactional undo, failure reporting and gameplay results are not certified.",
       "testMentions": [
+        "editor/tests/ai-asset-transactions.test.js",
         "editor/tests/ai-transactions.test.js"
       ]
     },
@@ -5396,7 +5400,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 305
+          "line": 345
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5412,7 +5416,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 584
+          "line": 624
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5426,7 +5430,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 113
+          "line": 153
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5434,6 +5438,7 @@
       "status": "partial",
       "notes": "Registers code in the shared script library; source now persists, but full attachment/activation and isolation are not certified.",
       "testMentions": [
+        "editor/tests/ai-asset-transactions.test.js",
         "editor/tests/ai-transactions.test.js"
       ]
     },
@@ -5442,7 +5447,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 843
+          "line": 883
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5456,7 +5461,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 121
+          "line": 161
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5464,6 +5469,7 @@
       "status": "partial",
       "notes": "Direct transform mutation bypasses command history and whole-prompt undo.",
       "testMentions": [
+        "editor/tests/ai-asset-transactions.test.js",
         "editor/tests/ai-transactions.test.js"
       ]
     },
@@ -5472,7 +5478,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 858
+          "line": 898
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5489,7 +5495,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 196
+          "line": 236
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5503,7 +5509,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 314
+          "line": 354
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5517,7 +5523,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 830
+          "line": 870
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5533,7 +5539,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 575
+          "line": 615
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5547,7 +5553,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 807
+          "line": 847
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5563,7 +5569,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 229
+          "line": 269
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5577,7 +5583,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 219
+          "line": 259
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5593,7 +5599,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 325
+          "line": 365
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5607,7 +5613,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 142
+          "line": 182
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5623,21 +5629,23 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 168
+          "line": 208
         }
       ],
       "advertisedInSystemPrompt": true,
       "verification": "handler-presence-only",
       "status": "experimental",
       "notes": "Handler exists; payload validation, transactional undo, failure reporting and gameplay results are not certified.",
-      "testMentions": []
+      "testMentions": [
+        "editor/tests/ai-asset-transactions.test.js"
+      ]
     },
     {
       "id": "spawn_primitive",
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 73
+          "line": 113
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5655,7 +5663,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 640
+          "line": 680
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5671,7 +5679,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 567
+          "line": 607
         }
       ],
       "advertisedInSystemPrompt": true,
@@ -5685,7 +5693,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 660
+          "line": 700
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5701,7 +5709,7 @@
       "executorHandlers": [
         {
           "file": "editor/src/ai/ai-executor.js",
-          "line": 787
+          "line": 827
         }
       ],
       "advertisedInSystemPrompt": false,
@@ -5806,12 +5814,23 @@
         },
         {
           "element": "button",
+          "id": "ai-btn-cancel-assets",
+          "classes": "btn",
+          "dataAttributes": [],
+          "source": {
+            "file": "editor/src/ui/ai-assistant.js",
+            "line": 79
+          },
+          "verification": "template-declaration-only"
+        },
+        {
+          "element": "button",
           "id": "ai-btn-send",
           "classes": "btn btn-primary",
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/ai-assistant.js",
-            "line": 79
+            "line": 80
           },
           "verification": "template-declaration-only"
         },
@@ -5822,7 +5841,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/ai-assistant.js",
-            "line": 246
+            "line": 253
           },
           "verification": "template-declaration-only"
         }

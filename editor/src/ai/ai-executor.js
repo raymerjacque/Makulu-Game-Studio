@@ -1,3 +1,4 @@
+import { PreparedResources, MATERIAL_MAPS } from './prepared-resources.js';
 import { validateActionBatch, TRANSACTIONAL_ACTIONS } from './action-contract.js';
 import { applyTransactionalActions } from './transactional-actions.js';
 import * as pc from 'playcanvas';
@@ -44,22 +45,61 @@ export class AIExecutor {
     return null;
   }
 
-  async executeActions(input) {
+  cancelPending() {
+    const operation = this.activeOperation;
+    if (!operation?.resources || operation.cancelled || operation.phase !== 'preparing') return false;
+    operation.cancelled = true; operation.resources.cancel(); return true;
+  }
+
+  async executeActions(input, { signal, assetTimeoutMs = 30000 } = {}) {
+    if (this.activeOperation) throw new Error('Another AI action batch is still preparing or executing.');
     const actions = validateActionBatch(input);
     if (!actions.length) return [];
     if (this.editor.isPlaying || this.editor.sceneResourceStatus && this.editor.sceneResourceStatus.status !== 'ready') throw new Error('Stop play and finish loading scene resources before applying AI edits.');
+    if (signal?.aborted) throw new Error('AI edit cancelled before preparation.');
     const transactional = actions.every(action => TRANSACTIONAL_ACTIONS.has(action.action));
-    let executed;
-    if (transactional) {
-      const revision = this.editor.exportProjectJSON();
-      const selection = this.editor.selection.getEntities();
-      if (this.editor.persistence && !await this.editor.persistence.protectBeforeReplace()) throw new Error('AI edits were not applied because a recovery checkpoint could not be saved. Save the project file first.');
-      if (this.editor.exportProjectJSON() !== revision || this.editor.selection.getEntities().some((node, index) => node !== selection[index]) || this.editor.selection.getEntities().length !== selection.length) throw new Error('The project changed while preparing AI edits. Retry against the current project.');
-      executed = this.editor.commandBus.runTransaction('AI change', () => applyTransactionalActions(this.editor, actions));
-    } else executed = await this.executeLegacyActions(actions);
-    Object.defineProperty(executed, 'batchInfo', { value: { mode: transactional ? 'transaction' : 'legacy', undoable: transactional, actionCount: executed.length } });
-    this.editor.events.emit('ai:edit:result', executed.batchInfo);
-    return executed;
+    if (!transactional && signal) throw new Error('Cancellation is only supported for fully transactional batches.');
+    // Root-relative bundled media must resolve inside the installed app rather than the OS filesystem.
+    if (transactional && globalThis.location?.protocol === 'file:') for (const action of actions) {
+      for (const field of ['url', ...MATERIAL_MAPS.map(([field]) => field)]) if (typeof action[field] === 'string' && action[field].startsWith('/')) {
+        if (!/^\/(models|textures|audio)\//.test(action[field])) throw new Error('Installed-app asset paths must stay inside bundled media folders.');
+        action[field] = '.' + action[field];
+      }
+    }
+    const operation = { phase: 'checkpoint', cancelled: false, resources: null };
+    this.activeOperation = operation;
+    const abort = () => { operation.cancelled = true; operation.resources?.cancel(); };
+    signal?.addEventListener('abort', abort, { once: true });
+    try {
+      let executed;
+      if (transactional) {
+        const revision = this.editor.exportProjectJSON();
+        const selection = this.editor.selection.getEntities();
+        if (this.editor.persistence && !await this.editor.persistence.protectBeforeReplace()) throw new Error('AI edits were not applied because a recovery checkpoint could not be saved. Save the project file first.');
+        if (operation.cancelled) throw new Error('AI edit cancelled before asset loading.');
+        operation.resources = new PreparedResources(this.editor.getApp(), { timeoutMs: assetTimeoutMs, onChange: report => {
+          if (operation.resources?.requests.size && this.activeOperation === operation) {
+            try { this.editor.events.emit('ai:resources:state', { status: report.status, total: report.total, loaded: report.loaded, failed: report.failures.length }); } catch {}
+          }
+        } });
+        operation.resources.collect(actions); operation.phase = 'preparing';
+        await operation.resources.load();
+        if (operation.cancelled) throw new Error('AI asset loading cancelled. No edits from this batch were applied.');
+        if (this.editor.isPlaying || this.editor.sceneResourceStatus && this.editor.sceneResourceStatus.status !== 'ready' || this.editor.exportProjectJSON() !== revision || this.editor.selection.getEntities().some((node, index) => node !== selection[index]) || this.editor.selection.getEntities().length !== selection.length) throw new Error('The project changed while preparing AI edits. Retry against the current project.');
+        operation.phase = 'committing';
+        executed = this.editor.commandBus.runTransaction('AI change', () => applyTransactionalActions(this.editor, actions, operation.resources));
+      } else executed = await this.executeLegacyActions(actions);
+      Object.defineProperty(executed, 'batchInfo', { value: { mode: transactional ? 'transaction' : 'legacy', undoable: transactional, actionCount: executed.length } });
+      this.editor.events.emit('ai:edit:result', executed.batchInfo);
+      return executed;
+    } finally {
+      signal?.removeEventListener('abort', abort);
+      operation.resources?.cancel(); operation.resources?.assets.clear();
+      if (this.activeOperation === operation) this.activeOperation = null;
+      if (operation.resources?.requests.size) {
+        try { this.editor.events.emit('ai:resources:state', { status: 'idle', total: operation.resources.requests.size, loaded: 0, failed: 0 }); } catch {}
+      }
+    }
   }
 
   async executeLegacyActions(actions) {

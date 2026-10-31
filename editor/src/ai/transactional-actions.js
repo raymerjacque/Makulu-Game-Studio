@@ -1,10 +1,11 @@
+import { MATERIAL_MAPS } from './prepared-resources.js';
 import * as pc from 'playcanvas';
 import { Command } from '../core/command-bus.js';
 import { isEditorOnlyNode } from '../engine/editor-only.js';
 import { newDocumentId } from '../project/project-document.js';
 
 /** Synchronous, explicitly journaled edits. Async assets and legacy composite tools are separate. */
-export function applyTransactionalActions(editor, actions) {
+export function applyTransactionalActions(editor, actions, resources) {
   const app = editor.getApp(), root = app?.root || editor.root;
   const initialSelection = editor.selection.getActive();
   const emit = () => editor.events.emit('scene:changed');
@@ -26,18 +27,23 @@ export function applyTransactionalActions(editor, actions) {
   };
   const create = action => {
     if (!app?.systems || (action.action === 'create_light' ? !app.systems.light : !app.systems.render)) throw new Error('This action needs the initialized scene runtime.');
-    const base = action.name || (action.action === 'create_light' ? 'AI_Light' : `AI_${action.type}`);
+    const base = action.name || (action.action === 'create_light' ? 'AI_Light' : action.action === 'spawn_model' ? 'AI_3D_Model' : `AI_${action.type}`);
     let name = base, suffix = 2;
     while (root.findByName(name)) { if (action.name) throw new Error('An entity with that name already exists.'); name = `${base}_${suffix++}`; }
     if (isEditorOnlyNode({ name })) throw new Error('This name is reserved for the editor.');
-    const entity = new pc.Entity(name); entity._studioId = newDocumentId();
+    const entity = new pc.Entity(name, app); entity._studioId = newDocumentId();
     let initialized = false;
     run(`Create ${name}`, () => {
       if (!initialized) {
         entity.setLocalPosition(...(action.position || [0, action.action === 'create_light' ? 3 : 1, 0]));
         entity.setLocalEulerAngles(...(action.rotation || [0, 0, 0])); entity.setLocalScale(...(action.scale || [1, 1, 1]));
         if (action.action === 'create_light') entity.addComponent('light', { type: action.type || 'point', color: new pc.Color(...(action.color || [1, 1, 1])), intensity: action.intensity ?? 2, range: action.range ?? 10, castShadows: action.castShadows ?? true });
-        else {
+        else if (action.action === 'spawn_model') {
+          const asset = resources.get('container', action.url);
+          const model = asset.resource.instantiateRenderEntity({ castShadows: true, receiveShadows: true });
+          model._studioModelInstance = true; entity.addChild(model); entity._modelUrl = action.url;
+          if (asset.resource.animations?.length && !editor.setupModelAnimations(entity, model, asset.resource.animations)) throw new Error('Model animation initialization failed.');
+        } else {
           entity.addComponent('render', { type: action.type });
           for (const component of [...(action.components || [])].sort((a, b) => (a.type === 'collision' ? -1 : 1) - (b.type === 'collision' ? -1 : 1))) {
             if (!app.systems[component.type]) throw new Error('Required component system is unavailable.');
@@ -57,7 +63,7 @@ export function applyTransactionalActions(editor, actions) {
   for (const action of actions) {
     let label;
     switch (action.action) {
-      case 'spawn_primitive': case 'create_light': label = create(action).name; break;
+      case 'spawn_primitive': case 'create_light': case 'spawn_model': label = create(action).name; break;
       case 'modify_entity': {
         const node = target(action), position = node.getLocalPosition().clone(), rotation = node.getLocalRotation().clone(), scale = node.getLocalScale().clone();
         run(`Transform ${node.name}`, () => { if (action.position) node.setPosition(...action.position); if (action.rotation) node.setEulerAngles(...action.rotation); if (action.scale) node.setLocalScale(...action.scale); editor.events.emit('entity:transformed', node); }, () => { node.setLocalPosition(position); node.setLocalRotation(rotation); node.setLocalScale(scale); editor.events.emit('entity:transformed', node); });
@@ -71,13 +77,22 @@ export function applyTransactionalActions(editor, actions) {
       case 'create_material': {
         const node = target(action); if (!node.render) throw new Error('Material target has no render component.');
         const previous = node.render.material, instances = (node.render.meshInstances || []).map(instance => [instance, instance.material]), material = new pc.StandardMaterial();
-        if (action.diffuse) material.diffuse.set(...action.diffuse);
-        if (action.emissive) material.emissive.set(...action.emissive);
-        if (action.metalness !== undefined) { material.metalness = action.metalness; material.useMetalness = true; }
-        if (action.roughness !== undefined) { material.gloss = 1 - action.roughness; material.roughness = action.roughness; }
-        if (action.opacity !== undefined) { material.opacity = action.opacity; if (action.opacity < 1) material.blendType = pc.BLEND_NORMAL; }
-        material.update();
-        run(`Material ${node.name}`, () => { node.render.material = material; instances.forEach(([instance]) => { instance.material = material; }); componentChanged(node); }, () => { node.render.material = previous; instances.forEach(([instance, old]) => { instance.material = old; }); componentChanged(node); }, () => material.destroy());
+        let journalOwnsMaterial = false;
+        try {
+          if (action.diffuse) material.diffuse.set(...action.diffuse);
+          if (action.emissive) material.emissive.set(...action.emissive);
+          if (action.metalness !== undefined) { material.metalness = action.metalness; material.useMetalness = true; }
+          if (action.roughness !== undefined) { material.gloss = 1 - action.roughness; material.roughness = action.roughness; }
+          if (action.opacity !== undefined) { material.opacity = action.opacity; if (action.opacity < 1) material.blendType = pc.BLEND_NORMAL; }
+          for (const [field, property] of MATERIAL_MAPS) if (action[field]) {
+            material[property] = resources.get('texture', action[field]).resource;
+            material['_' + field] = action[field];
+            if (field === 'roughnessMapUrl') { material.glossInvert = true; material.gloss = 1; }
+          }
+          material.update();
+          journalOwnsMaterial = true;
+          run(`Material ${node.name}`, () => { node.render.material = material; instances.forEach(([instance]) => { instance.material = material; }); componentChanged(node); }, () => { node.render.material = previous; instances.forEach(([instance, old]) => { instance.material = old; }); componentChanged(node); }, () => material.destroy());
+        } catch (error) { if (!journalOwnsMaterial) material.destroy(); throw error; }
         label = node.name; break;
       }
       case 'attach_behavior': {
