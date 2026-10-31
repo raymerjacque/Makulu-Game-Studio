@@ -3,6 +3,7 @@ import { CommandBus, Command } from './command-bus.js';
 import { SelectionManager } from './selection.js';
 import { PrefabSystem } from './prefabs.js';
 import { TriggerSystem } from './triggers.js';
+import { ResourceLoadSession } from '../project/resource-load-session.js';
 import { PROJECT_FORMAT, PROJECT_VERSION, newDocumentId, parseProjectDocument, validateSceneData, serializeAssetRegistry } from '../project/project-document.js';
 
 /**
@@ -507,7 +508,7 @@ export class Editor {
     const portableReferences = value => {
       if (!value || typeof value !== 'object') return;
       for (const [key, child] of Object.entries(value)) {
-        if (['modelUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl', 'url'].includes(key) && typeof child === 'string') {
+        if (['modelUrl', 'diffuseMapUrl', 'normalMapUrl', 'roughnessMapUrl', 'emissiveMapUrl', 'url'].includes(key) && typeof child === 'string') {
           if (aliases.has(child)) value[key] = aliases.get(child);
           else if (child.startsWith('blob:')) throw new Error('A temporary asset reference is not ready to save. Finish importing it first.');
         } else portableReferences(child);
@@ -537,12 +538,12 @@ export class Editor {
   }
 
   /** Validate every scene before replacing the current project. Does not execute imported scripts. */
-  loadProjectJSON(input) {
+  loadProjectJSON(input, { assetTimeoutMs = 30000 } = {}) {
     try {
       if (this.isPlaying) throw new Error('Stop the play session before opening a project.');
       const document = parseProjectDocument(input);
       const active = document.scenes.find(scene => scene.id === document.activeSceneId);
-      if (!this.loadSceneJSON(active.data)) throw new Error(this.lastProjectError || 'Could not restore the active scene.');
+      if (!this.loadSceneJSON(active.data, { assetTimeoutMs })) throw new Error(this.lastProjectError || 'Could not restore the active scene.');
       this.projectId = document.id;
       this.projectName = document.name;
       this.activeSceneName = active.name;
@@ -568,6 +569,31 @@ export class Editor {
       this.events.emit('project:load:error', err.message);
       return false;
     }
+  }
+
+  /** Wait for the active scene's registered model/texture requests, with truthful failure/cancel status. */
+  async openProjectJSON(input, options = {}) {
+    if (!this.loadProjectJSON(input, options)) {
+      return { status: 'invalid', dataLoaded: false, message: this.lastProjectError };
+    }
+    const session = this.sceneResourceSession;
+    const report = await session.done;
+    // A later open/switch supersedes this operation even if its requests already settled.
+    if (session !== this.sceneResourceSession) return { ...report, status: 'cancelled', dataLoaded: true };
+    this.lastProjectError = report.status === 'failed' ? `${report.failures.length} scene resource(s) could not be loaded.` : null;
+    this.events.emit('project:resources:settled', report);
+    return { ...report, dataLoaded: true };
+  }
+
+  async retrySceneResources(options = {}) {
+    if (this.isPlaying) return { status: 'invalid', message: 'Stop play before retrying scene resources.' };
+    if (!this.loadSceneJSON(this.exportSceneJSON(), { ...options, restoreScripts: false, restoreProjectName: false })) {
+      return { status: 'invalid', message: this.lastProjectError };
+    }
+    this.commandBus.clear();
+    const session = this.sceneResourceSession;
+    const report = await session.done;
+    return session === this.sceneResourceSession ? report : { ...report, status: 'cancelled' };
   }
 
   /**
@@ -612,6 +638,7 @@ export class Editor {
             metalness: mat.metalness !== undefined ? mat.metalness : 0.5,
             roughness: mat.roughness !== undefined ? mat.roughness : 0.3,
             opacity: mat.opacity !== undefined ? mat.opacity : 1.0,
+            diffuseMapUrl: mat._diffuseMapUrl || null,
             normalMapUrl: mat._normalMapUrl || null,
             roughnessMapUrl: mat._roughnessMapUrl || null,
             emissiveMapUrl: mat._emissiveMapUrl || null
@@ -751,14 +778,18 @@ export class Editor {
   /**
    * Import and Deserialize Scene JSON
    */
-  loadSceneJSON(jsonData, { restoreScripts = true, restoreProjectName = true } = {}) {
+  loadSceneJSON(jsonData, { restoreScripts = true, restoreProjectName = true, assetTimeoutMs = 30000 } = {}) {
     const staging = new pc.Entity('SceneImportStaging');
-    const loadToken = {};
-    const loadState = { committed: false, abandoned: false };
-    const isCurrentLoad = () => !loadState.abandoned && (!loadState.committed || loadToken === this._sceneLoadToken);
+    let session;
     try {
       const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
       validateSceneData(data);
+      session = new ResourceLoadSession({ timeoutMs: assetTimeoutMs, onChange: report => {
+        if (session === this.sceneResourceSession) {
+          this.sceneResourceStatus = report;
+          this.events.emit('scene:resources', report);
+        }
+      } });
       const app = this.getApp();
       const appRoot = app ? app.root : this.root;
       if (!appRoot) return true;
@@ -779,21 +810,17 @@ export class Editor {
 
         if (nodeData.modelUrl) {
           ent._modelUrl = nodeData.modelUrl;
-          if (app?.assets) app.assets.loadFromUrl(nodeData.modelUrl, 'container', (err, asset) => {
-            if (!isCurrentLoad()) return;
-            if (!err && asset && asset.resource) {
-              const modelEntity = asset.resource.instantiateRenderEntity({
-                castShadows: true,
-                receiveShadows: true
-              });
+          session.add({ entityId: ent._studioId, entityName: ent.name, kind: 'model' },
+            done => {
+              if (!app?.assets) { done('no-asset-loader'); return; }
+              app.assets.loadFromUrl(nodeData.modelUrl, 'container', done);
+            },
+            resource => {
+              const modelEntity = resource.instantiateRenderEntity({ castShadows: true, receiveShadows: true });
               modelEntity._studioModelInstance = true;
               ent.addChild(modelEntity);
-
-              if (asset.resource.animations && asset.resource.animations.length > 0) {
-                this.setupModelAnimations(ent, modelEntity, asset.resource.animations);
-              }
-            }
-          });
+              if (resource.animations?.length) this.setupModelAnimations(ent, modelEntity, resource.animations);
+            });
         }
 
         if (nodeData.components) {
@@ -816,14 +843,19 @@ export class Editor {
                 mat.opacity = matData.opacity;
                 if (mat.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL;
               }
-              if (matData.normalMapUrl) mat._normalMapUrl = matData.normalMapUrl;
-              if (matData.roughnessMapUrl) mat._roughnessMapUrl = matData.roughnessMapUrl;
-              if (matData.emissiveMapUrl) mat._emissiveMapUrl = matData.emissiveMapUrl;
-
-              if (app?.assets && matData.normalMapUrl) {
-                app.assets.loadFromUrl(matData.normalMapUrl, 'texture', (err, texAsset) => {
-                  if (isCurrentLoad() && !err && texAsset) { mat.normalMap = texAsset.resource; mat.update(); }
-                });
+              for (const [field, property] of [['diffuseMapUrl', 'diffuseMap'], ['normalMapUrl', 'normalMap'], ['roughnessMapUrl', 'glossMap'], ['emissiveMapUrl', 'emissiveMap']]) {
+                if (!matData[field]) continue;
+                mat[`_${field}`] = matData[field];
+                session.add({ entityId: ent._studioId, entityName: ent.name, kind: field },
+                  done => {
+                    if (!app?.assets) { done('no-asset-loader'); return; }
+                    app.assets.loadFromUrl(matData[field], 'texture', done);
+                  },
+                  texture => {
+                    mat[property] = texture;
+                    if (field === 'roughnessMapUrl') { mat.glossInvert = true; mat.gloss = 1; }
+                    mat.update();
+                  });
               }
               mat.update();
               ent.render.material = mat;
@@ -933,8 +965,8 @@ export class Editor {
       }
 
       // Commit only after the complete hierarchy has been constructed successfully.
-      this._sceneLoadToken = loadToken;
-      loadState.committed = true;
+      this.sceneResourceSession?.cancel();
+      this.sceneResourceSession = session;
       const toRemove = appRoot.children.filter(c => c.name !== 'EditorGrid' && c.name !== 'EditorCamera');
       const forgetBehaviors = node => {
         this.behaviors?.activeBehaviors?.delete(node);
@@ -976,10 +1008,11 @@ export class Editor {
       }
 
       this.selection.clear();
+      session.start();
       this.events.emit('scene:changed');
       return true;
     } catch (err) {
-      loadState.abandoned = true;
+      session?.cancel();
       const discard = node => { this.behaviors?.activeBehaviors?.delete(node); node.children.forEach(discard); };
       discard(staging);
       staging.destroy();

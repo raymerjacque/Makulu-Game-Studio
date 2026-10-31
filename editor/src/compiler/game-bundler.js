@@ -634,13 +634,19 @@ export class GameBundler {
           if (m.metalness !== undefined) { mat.metalness = m.metalness; mat.useMetalness = true; }
           if (m.roughness !== undefined) mat.roughness = m.roughness;
           if (m.opacity !== undefined) { mat.opacity = m.opacity; if (m.opacity < 1.0) mat.blendType = pc.BLEND_NORMAL; }
-          if (m.normalMapUrl) {
-            const embedded = EMBEDDED_ASSETS.find(a => a.name === m.normalMapUrl || a.dataUrl === m.normalMapUrl);
-            const urlToLoad = embedded ? embedded.dataUrl : m.normalMapUrl;
+          [['diffuseMapUrl', 'diffuseMap'], ['normalMapUrl', 'normalMap'], ['roughnessMapUrl', 'glossMap'], ['emissiveMapUrl', 'emissiveMap']].forEach(([field, property]) => {
+            if (!m[field]) return;
+            const embedded = EMBEDDED_ASSETS.find(a => a.name === m[field] || a.dataUrl === m[field]);
+            const urlToLoad = embedded ? embedded.dataUrl : m[field];
+            mat['_' + field] = m[field];
             app.assets.loadFromUrl(urlToLoad, 'texture', (err, texAsset) => {
-              if (!err && texAsset) { mat.normalMap = texAsset.resource; mat.update(); }
+              if (!err && texAsset && texAsset.resource) {
+                mat[property] = texAsset.resource;
+                if (field === 'roughnessMapUrl') { mat.glossInvert = true; mat.gloss = 1; }
+                mat.update();
+              }
             });
-          }
+          });
           mat.update();
           ent.render.material = mat;
         }

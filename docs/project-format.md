@@ -63,9 +63,9 @@ adoption. Active scene construction uses a staging hierarchy. Synchronous
 construction failure discards staging and keeps the previous hierarchy. Successful
 replacement clears old selection/history and stale behavior entries, and refreshes
 the scene list and asset cards. Old asynchronous model callbacks cannot populate a
-subsequent scene. Full asynchronous load readiness and transaction rollback remain
-pending; a successful open means project data was adopted, not that every referenced
-remote model is available or every gameplay feature has been certified.
+subsequent scene. The synchronous compatibility API still reports data adoption. The asynchronous
+File-menu path now awaits active-scene model/material loads as described below;
+complete asynchronous transaction rollback and gameplay certification remain pending.
 
 ## Assets and portability
 
@@ -93,8 +93,46 @@ imports, staging failure, temporary asset remapping, play guards and safe asset
 labels. It also exercises collision extents and zero-valued physics using real
 PlayCanvas systems with a NullGraphicsDevice, and runs the exported scene builder.
 
-Next: await and report asynchronous asset loading; finish missing component/resource
-persistence and stable references; implement complete dependency packaging; add
+Next: extend readiness beyond restored model/material requests; finish missing
+component/resource persistence and stable references; implement complete dependency packaging; add
 atomic desktop saves, browser durable storage, saved/dirty state and rolling
 recovery snapshots. Test real imported animated content and the full interactive
 file workflow before declaring the P1 phase complete.
+
+## Active-scene resource readiness update
+
+The synchronous `loadProjectJSON` method remains a compatibility/data-adoption
+API. The File menu now uses `await editor.openProjectJSON(...)`, which waits for
+all registered model containers and material textures in the active scene. Its
+report distinguishes `ready`, `failed`, `cancelled` and `invalid`, with a separate
+`dataLoaded` flag. A missing model does not erase the restored project data and
+is never reported as a fully successful open. `project:loaded` still denotes data
+adoption; `project:resources:settled` denotes completion of the awaited checks.
+
+`scene:resources` reports actual success/pending counts and failures identified
+by entity and resource kind, without including raw provider errors or URLs. The
+scene status label displays progress and missing assets; **Retry assets** reloads
+the current scene while retaining its edited data, identities and script library.
+Retry clears undo history because it reconstructs scene entity instances. The
+Play control waits for this restoration to be ready. Superseding a scene cancels
+the old wait, and late callbacks cannot apply to its replacement. Requests default
+to a 30-second timeout, configurable via `assetTimeoutMs` for the API and tests.
+
+Diffuse, normal, roughness and emissive texture references now restore and load
+in both editor and exported scene builders. Roughness maps bind through
+PlayCanvas's gloss texture with inversion. Manual diffuse-map application records
+its source URL for saving. These changes do not certify every material property,
+UV/channel setting, animation outcome or final rendered appearance.
+
+Readiness currently covers registered model-container and material-texture loads
+for the active scene restoration. It does not preload inactive scenes, certify
+standalone asset-library records or newly imported files, wait for every audio
+slot, test game scripts, validate gameplay or make exported games offline-ready.
+Missing resources keep adopted project data available for correction; asynchronous
+failures do not roll the whole open back. Actual transport abort and comprehensive
+GPU/asset ownership cleanup remain separate work.
+
+Regression checks live in `editor/tests/resource-readiness.test.js`: deferred and
+cached completion, progress, failure, timeout, cancellation, stale callbacks,
+retry preservation, UI/play guards, and real engine texture slots plus their
+exported scene-builder bindings.

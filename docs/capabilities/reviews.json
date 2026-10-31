@@ -34,10 +34,10 @@
       "id": "project-save",
       "name": "Complete project save/open",
       "status": "partial",
-      "editor": "Versioned full-project Save/Open is wired; legacy scene import is supported.",
+      "editor": "Versioned full-project Save/Open is wired; File open awaits active-scene model and material-texture loads.",
       "persistence": "All scenes, shared script source, IDs, selected settings, asset/prefab records and supported scene data round-trip.",
       "export": "Editable JSON document; not yet a complete offline dependency archive.",
-      "next": "Await asset readiness; complete remaining component/resource fields and durable recovery.",
+      "next": "Complete remaining component/resource fields, dependency packaging and durable recovery.",
       "evidence": [
         "editor/src/core/editor.js",
         "editor/src/ui/topbar.js"
@@ -90,7 +90,7 @@
       "id": "play",
       "name": "Isolated play sessions",
       "status": "partial",
-      "editor": "Play toggles behavior execution and UI.",
+      "editor": "Play toggles behavior execution and UI, and blocks startup while restored scene resources are loading or failed.",
       "persistence": "No complete snapshot restoration in play/stop path.",
       "export": "Separate runtime implementation.",
       "next": "Clone/isolate runtime and restore editing state exactly.",
@@ -108,7 +108,7 @@
       "editor": "Bundled model catalog and GLB loading/animation setup exist.",
       "persistence": "Generated instance children excluded; completed local-import aliases can persist as embedded model URLs.",
       "export": "Referenced paths and model resources need portable collection.",
-      "next": "Await load readiness and verify animated/textured models with every dependency offline.",
+      "next": "Extend readiness to all required resource types and certify animated/textured models and offline dependencies.",
       "evidence": [
         "editor/src/store/model-store.js",
         "editor/src/core/editor.js",
@@ -121,15 +121,15 @@
       "name": "PBR materials and texture maps",
       "status": "partial",
       "editor": "Material editing and preview exist.",
-      "persistence": "Selected fields/URLs serialize; full texture restoration incomplete.",
-      "export": "Parity and resource packaging unverified.",
+      "persistence": "Diffuse/normal/roughness/emissive references now round-trip and load; full material/UV/channel coverage remains open.",
+      "export": "Exported scene builder loads all four supported texture-map slots; complete dependency packaging and visual certification remain pending.",
       "next": "Complete material/texture schema and dependency collection.",
       "evidence": [
         "editor/src/ui/material-editor-modal.js",
         "editor/src/core/editor.js",
         "editor/src/compiler/game-bundler.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Real engine NullGraphicsDevice tests verify saved texture references and editor/export property binding, not final visual quality."
     },
     {
       "id": "terrain",
@@ -392,6 +392,22 @@
         "editor/src/compiler/game-bundler.js"
       ],
       "proof": "Source review; end-to-end certification pending."
+    },
+    {
+      "id": "resource-readiness",
+      "name": "Active-scene model and material readiness",
+      "status": "partial",
+      "editor": "Awaited open, live progress, timeout/failure/cancellation reporting and explicit retry are implemented.",
+      "persistence": "Retry retains current scene data, IDs and scripts; four material map references restore.",
+      "export": "Map bindings are tested in exported scene builder; no exported-runtime readiness UI or offline certification.",
+      "next": "Extend to audio, imported-file workflows, inactive scenes and complete resource ownership/rollback.",
+      "evidence": [
+        "editor/src/project/resource-load-session.js",
+        "editor/src/core/editor.js",
+        "editor/src/ui/topbar.js",
+        "editor/tests/resource-readiness.test.js"
+      ],
+      "proof": "Deferred/failed/cached/late requests, retry, real texture components, exported map bindings and UI/play guards have regression checks."
     }
   ],
   "behaviors": {
@@ -481,7 +497,7 @@
     },
     "topbar": {
       "status": "partial",
-      "notes": "Full-project Save/Open replaces active-scene-only file workflow; isolated play, resource readiness and recovery remain pending."
+      "notes": "Full-project file opening awaits restored model/material requests; scene progress, missing assets, retry and play guards exist. Isolation and recovery remain pending."
     },
     "assets": {
       "status": "partial",

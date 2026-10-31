@@ -823,8 +823,8 @@ work. Run the editor regression suite with `cd editor && npm test`.
 See the [completion roadmap](roadmap.html#progress) for current progress and the
 [capability register](docs/capabilities/README.md) for source-based support
 findings, known limitations and the certification backlog. The baseline covers
-150 behaviors, 52 AI actions, 30 UI modules, 449 literal control templates and
-27 reviewed feature areas. Presence in a catalog or source branch does not mean
+150 behaviors, 52 AI actions, 30 UI modules, 450 literal control templates and
+28 reviewed feature areas. Presence in a catalog or source branch does not mean
 a feature is verified across save/open, preview and export.
 
 To refresh the report after changing editor capabilities:
@@ -855,3 +855,17 @@ resources remain relative/remote references, and autosave/recovery, asynchronous
 load readiness and complete component coverage remain pending. Stop play before
 saving/opening an editable project. See [the format contract](docs/project-format.md)
 and [roadmap progress](roadmap.html#progress).
+
+
+## Resource-loading progress and retry
+
+Opening a project now waits for the active scene’s registered model containers
+and material textures. The scene status reports loading or missing assets; Retry
+assets reloads them, and Play is blocked until those loads are ready. Failed or
+timed-out resources produce a warning rather than a success message. Replaced
+loads are cancelled logically so late callbacks cannot populate another scene.
+
+Diffuse, normal, roughness and emissive texture references now restore in editor
+and exported scene builders. This does not establish complete asset packaging,
+audio readiness, inactive-scene preloading or gameplay correctness. See the
+[resource-readiness contract](docs/project-format.md#active-scene-resource-readiness-update).

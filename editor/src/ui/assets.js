@@ -266,6 +266,7 @@ export class AssetsPanel {
                 app.assets.loadFromUrl(asset.url, 'texture', (err, texAsset) => {
                   if (!err && texAsset && texAsset.resource) {
                     selected.render.material.diffuseMap = texAsset.resource;
+                    selected.render.material._diffuseMapUrl = asset.url;
                     selected.render.material.update();
                     this.editor.events.emit('entity:component:changed', selected);
                     showToast(`🖼️ Applied texture "${asset.name}" to ${selected.name}!`, 'success');

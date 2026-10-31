@@ -38,6 +38,7 @@ export class TopBar {
 
     this.render();
     this.bindEvents();
+    this.bindResourceStatus();
   }
 
   render() {
@@ -216,6 +217,8 @@ export class TopBar {
       <div style="display: flex; align-items: center; gap: 10px; flex: 1; max-width: 600px; justify-content: center; margin: 0 12px;">
         <!-- Scene Quick Picker -->
         <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); white-space: nowrap;">
+          <span id="scene-resource-status" role="status" aria-live="polite" style="font-size: 10px; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">Resources ready</span>
+          <button id="retry-scene-resources" class="btn" style="display: none; font-size: 10px;" title="Reload the active scene’s models and textures">Retry assets</button>
           <span>Scene:</span>
           <select id="top-scene-select" class="select-input" style="width: 105px; padding: 2px 6px; height: 26px; font-size: 11px;">
             <option value="Main Scene">Main Scene</option>
@@ -344,6 +347,27 @@ export class TopBar {
     });
   }
 
+  bindResourceStatus() {
+    const status = this.container.querySelector('#scene-resource-status');
+    const retry = this.container.querySelector('#retry-scene-resources');
+    const update = report => {
+      if (status) {
+        status.textContent = report.status === 'loading' ? `Loading ${report.loaded}/${report.total}` :
+          report.status === 'failed' ? `${report.failures.length} asset(s) missing` :
+          report.status === 'cancelled' ? 'Load cancelled' : 'Resources ready';
+        status.title = report.failures.length ? report.failures.map(f => `${f.entityName} (${f.kind}): ${f.reason}`).join('\n') :
+          'Readiness covers the active scene’s registered model and material-texture loads, not gameplay certification.';
+      }
+      if (retry) retry.style.display = report.status === 'failed' ? '' : 'none';
+    };
+    this.editor.events.on('scene:resources', update);
+    update(this.editor.sceneResourceStatus || { status: 'ready', total: 0, loaded: 0, failures: [] });
+    retry?.addEventListener('click', async () => {
+      const report = await this.editor.retrySceneResources();
+      if (report.status === 'invalid') showToast(report.message, 'warn');
+    });
+  }
+
   /**
    * File Menu Actions
    */
@@ -352,6 +376,8 @@ export class TopBar {
     const importItem = this.container.querySelector('#menu-action-import');
     if (importItem) {
       importItem.addEventListener('click', () => {
+        const openRequest = {};
+        this._projectOpenRequest = openRequest;
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
@@ -359,15 +385,22 @@ export class TopBar {
           const file = e.target.files[0];
           if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => {
-              const success = this.editor.loadProjectJSON(event.target.result);
-              if (success) {
-                showToast(`✨ Loaded project data from "${file.name}"!`, 'success');
+            reader.onload = async (event) => {
+              if (this._projectOpenRequest !== openRequest) return;
+              showToast('Opening project and loading scene resources…', 'info');
+              const report = await this.editor.openProjectJSON(event.target.result);
+              if (this._projectOpenRequest !== openRequest || report.status === 'cancelled') return;
+              if (report.status === 'ready') {
+                showToast(`Project opened; scene resources ready: "${file.name}"`, 'success');
+              } else if (report.status === 'failed') {
+                showToast(`Project data opened, but ${report.failures.length} model/texture resource(s) failed. Check the scene status and Retry assets.`, 'warn', 6000);
               } else {
-                showToast(this.editor.lastProjectError || `Could not open "${file.name}"`, 'error');
+                showToast(report.message || `Could not open "${file.name}"`, 'error');
               }
             };
-            reader.onerror = () => showToast('Could not read the project file. Your current project is unchanged.', 'error');
+            reader.onerror = () => {
+              if (this._projectOpenRequest === openRequest) showToast('Could not read the project file. Your current project is unchanged.', 'error');
+            };
             reader.readAsText(file);
           }
         };
@@ -798,6 +831,10 @@ export class TopBar {
     if (!playBtn) return;
 
     playBtn.addEventListener('click', () => {
+      if (!this.isPlaying && this.editor.sceneResourceStatus && this.editor.sceneResourceStatus.status !== 'ready') {
+        showToast('Wait for scene resources or retry missing assets before playing.', 'warn');
+        return;
+      }
       this.isPlaying = !this.isPlaying;
       this.editor.isPlaying = this.isPlaying;
       let banner = document.getElementById('simulation-banner');
