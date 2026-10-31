@@ -19,16 +19,20 @@
       "id": "modes",
       "name": "Simple and Pro modes",
       "status": "partial",
-      "editor": "Inspector/mode controls exist; both still use the dense editor.",
-      "persistence": "No project conversion is necessary; UI preference is separate.",
+      "editor": "Simple uses docked existing chat plus an embedded isolated preview and essential file/settings/mode controls. Pro retains advanced panels and floating chat.",
+      "persistence": "Mode preference is local. Project, chat/draft, selection and history survive mode changes; switching from simulation restores originals.",
       "export": "Editor-only capability.",
-      "next": "Build chat-and-preview Simple layout against the same project.",
+      "next": "Task-oriented brief/checkpoints, cancellation/resume, complete-game acceptance, live-provider and novice usability/accessibility certification.",
       "evidence": [
         "editor/src/core/editor.js",
         "editor/src/ui/inspector.js",
-        "editor/src/ui/topbar.js"
+        "editor/src/ui/topbar.js",
+        "editor/src/ui/simple-workspace.js",
+        "editor/src/styles/simple-workspace.css",
+        "editor/scripts/test-simple-workspace-browser.js",
+        "editor/tests/simple-workspace.test.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "24 real-browser assertions pass at 1440px and 660px, using synthetic provider output with real actions, preview, file save/open/export and recovery; three request/fog regressions pass."
     },
     {
       "id": "project-save",
@@ -283,7 +287,7 @@
       "id": "ai-chat",
       "name": "AI scene copilot",
       "status": "partial",
-      "editor": "Provider client and real scene-action execution exist.",
+      "editor": "Provider client and real scene-action execution exist. Requests are serialized with busy/settled UI state; Simple refreshes a separate preview after each response.",
       "persistence": "Chat history is not durable project/task memory.",
       "export": "Build results use the same unverified export path.",
       "next": "Scene context, typed validation, transactions and task runner.",

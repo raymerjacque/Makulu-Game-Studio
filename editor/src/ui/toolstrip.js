@@ -72,6 +72,7 @@ export class ToolStrip {
 
     // Keyboard shortcuts Q, W, E, R, F
     window.addEventListener('keydown', (e) => {
+      if (this.editor?.simpleWorkspace?.active) return;
       // Don't trigger if typing in an input or simulation is running
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
       if (this.editor.isPlaying) return;

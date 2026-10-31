@@ -434,25 +434,25 @@ export class GameBundler {
     const preset = SCENE_DATA.atmosphere || 'day';
     if (preset === 'sunset') {
       app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
-      app.scene.fog = pc.FOG_EXP2;
+      app.scene.fog.type = pc.FOG_EXP2;
       app.scene.fogColor = new pc.Color(0.8, 0.4, 0.2);
       app.scene.fogDensity = 0.015;
     } else if (preset === 'cyberpunk') {
       app.scene.ambientLight = new pc.Color(0.05, 0.08, 0.18);
-      app.scene.fog = pc.FOG_EXP2;
+      app.scene.fog.type = pc.FOG_EXP2;
       app.scene.fogColor = new pc.Color(0.02, 0.05, 0.15);
       app.scene.fogDensity = 0.02;
     } else if (preset === 'foggy') {
       app.scene.ambientLight = new pc.Color(0.3, 0.35, 0.4);
-      app.scene.fog = pc.FOG_EXP2;
+      app.scene.fog.type = pc.FOG_EXP2;
       app.scene.fogColor = new pc.Color(0.45, 0.5, 0.55);
       app.scene.fogDensity = 0.035;
     } else if (preset === 'night') {
       app.scene.ambientLight = new pc.Color(0.02, 0.03, 0.08);
-      app.scene.fog = pc.FOG_NONE;
+      app.scene.fog.type = pc.FOG_NONE;
     } else {
       app.scene.ambientLight = new pc.Color(0.25, 0.25, 0.28);
-      app.scene.fog = pc.FOG_NONE;
+      app.scene.fog.type = pc.FOG_NONE;
     }
 
     if (SCENE_DATA.postProcessing) {
@@ -463,7 +463,7 @@ export class GameBundler {
       else if (pfx.toneMapping === 'linear') app.scene.toneMapping = pc.TONEMAP_LINEAR;
 
       if (pfx.fog && pfx.fog.enabled) {
-        app.scene.fog = pc.FOG_EXP2;
+        app.scene.fog.type = pc.FOG_EXP2;
         if (pfx.fog.color) {
           const hex = pfx.fog.color;
           const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -1294,25 +1294,25 @@ export class GameBundler {
                 const preset = b.properties?.atmosphere || 'cyberpunk';
                 if (preset === 'sunset') {
                   app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
-                  app.scene.fog = pc.FOG_EXP2;
+                  app.scene.fog.type = pc.FOG_EXP2;
                   app.scene.fogColor = new pc.Color(0.8, 0.4, 0.2);
                   app.scene.fogDensity = 0.015;
                 } else if (preset === 'cyberpunk') {
                   app.scene.ambientLight = new pc.Color(0.05, 0.08, 0.18);
-                  app.scene.fog = pc.FOG_EXP2;
+                  app.scene.fog.type = pc.FOG_EXP2;
                   app.scene.fogColor = new pc.Color(0.02, 0.05, 0.15);
                   app.scene.fogDensity = 0.02;
                 } else if (preset === 'foggy') {
                   app.scene.ambientLight = new pc.Color(0.3, 0.35, 0.4);
-                  app.scene.fog = pc.FOG_EXP2;
+                  app.scene.fog.type = pc.FOG_EXP2;
                   app.scene.fogColor = new pc.Color(0.45, 0.5, 0.55);
                   app.scene.fogDensity = 0.035;
                 } else if (preset === 'night') {
                   app.scene.ambientLight = new pc.Color(0.02, 0.03, 0.08);
-                  app.scene.fog = pc.FOG_NONE;
+                  app.scene.fog.type = pc.FOG_NONE;
                 } else {
                   app.scene.ambientLight = new pc.Color(0.25, 0.25, 0.28);
-                  app.scene.fog = pc.FOG_NONE;
+                  app.scene.fog.type = pc.FOG_NONE;
                 }
               } else if (dist >= radius && b._state.active) {
                 b._state.active = false;

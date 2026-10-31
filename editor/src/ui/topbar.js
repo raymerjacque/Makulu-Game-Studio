@@ -886,6 +886,12 @@ export class TopBar {
     const playIcon = this.container.querySelector('#play-icon');
     const playText = this.container.querySelector('#play-text');
     if (!playBtn) return;
+    this.editor.events.on('game:restored', () => {
+      this.isPlaying = false;
+      playBtn.style.background = 'var(--accent-orange)'; playBtn.style.borderColor = 'var(--accent-orange)';
+      playIcon.textContent = '▶'; playText.textContent = 'Play';
+      document.getElementById('simulation-banner')?.remove();
+    });
 
     playBtn.addEventListener('click', () => {
       if (!this.editor.isPlaying && this.editor.sceneResourceStatus && this.editor.sceneResourceStatus.status !== 'ready') {

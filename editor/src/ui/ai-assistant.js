@@ -55,10 +55,10 @@ export class AIAssistantUI {
       <div class="ai-chat-body" id="ai-chat-body">
         <div class="ai-message assistant">
           <div class="ai-bubble">
-            👋 Greetings! I am your <strong>MakuluLinux Game Studio AI Co-Creator</strong>.
-            I can generate 3D levels, configure lighting, create materials, write PlayCanvas game scripts, and inspect scene performance.
+            Describe the game you want to create, or a change to your project.
+            After each response, try the preview and tell me what to improve.
             <div style="margin-top: 6px; font-size: 11px; color: var(--text-secondary);">
-              Try one of the quick actions below, or ask me to build anything!
+              Use the preview to test your changes as you go.
             </div>
           </div>
         </div>
@@ -75,7 +75,7 @@ export class AIAssistantUI {
 
       <!-- Input Bar -->
       <div class="ai-input-bar">
-        <input type="text" id="ai-text-input" class="ai-input" placeholder="Ask AI to create or modify anything..." />
+        <textarea id="ai-text-input" class="ai-input" rows="2" aria-label="Describe your game or a change" placeholder="Describe your game or a change…"></textarea>
         <button id="ai-btn-send" class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;">Send</button>
       </div>
     `;
@@ -221,7 +221,7 @@ export class AIAssistantUI {
 
     sendBtn.addEventListener('click', submit);
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submit();
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
     });
   }
 
@@ -274,6 +274,23 @@ export class AIAssistantUI {
   }
 
   async sendUserPrompt(promptText) {
+    if (this.isBusy || !promptText?.trim()) return;
+    this.isBusy = true;
+    const input = this.panel.querySelector('#ai-text-input'), send = this.panel.querySelector('#ai-btn-send');
+    if (input) input.disabled = true;
+    if (send) send.disabled = true;
+    this.editor?.events?.emit('ai:request:state', { busy: true });
+    try { return await this.performUserPrompt(promptText); }
+    finally {
+      this.isBusy = false;
+      if (input) input.disabled = false;
+      if (send) send.disabled = false;
+      this.editor?.events?.emit('ai:request:state', { busy: false });
+      this.editor?.events?.emit('ai:request:settled');
+    }
+  }
+
+  async performUserPrompt(promptText) {
     // Ensure open
     this.panel.style.display = 'flex';
     this.isOpen = true;

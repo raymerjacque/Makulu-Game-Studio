@@ -120,6 +120,7 @@ export class HierarchyPanel {
     if (typeof window !== 'undefined') {
       // Keyboard shortcuts (Delete, Ctrl+D duplicate, Ctrl+S export, Ctrl+G group)
       window.addEventListener('keydown', (e) => {
+      if (this.editor?.simpleWorkspace?.active) return;
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
 
         if (e.key === 'Delete') {

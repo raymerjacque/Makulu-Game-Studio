@@ -1,3 +1,5 @@
+import { SimpleWorkspace } from './ui/simple-workspace.js';
+import './styles/simple-workspace.css';
 import { initializeEditorPhysics } from './compiler/runtime-bundle.js';
 import { showToast } from './ui/toast.js';
 import { ProjectPersistence } from './project/project-persistence.js';
@@ -148,6 +150,7 @@ async function bootstrap() {
 
   // Setup Resizable Splitters
   setupSplitters();
+  new SimpleWorkspace(editor, aiUI);
 
   console.log('✅ MakuluLinux Game Studio Ready!');
 }

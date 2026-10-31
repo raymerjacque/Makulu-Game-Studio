@@ -447,3 +447,42 @@ non-flat elevation, mesh/static collision, selection/modal completion, helper
 geometry/style, framing and undo/redo. Combined browser coverage is now 45
 assertions. This does not add sculpting controls, texture assets or certify
 terrain traversal by every supported character/controller.
+
+
+## Simple chat-and-preview workspace (31 October 2026)
+
+Simple mode now has a conversation pane and an embedded opaque-origin game
+preview. Its toolbar provides New/Open, editable project Save, local Recover,
+HTML game Export, AI settings and Open in Pro. The same editor and chat objects
+are reused: switching modes preserves project IDs/content, selection, history,
+messages and unsent draft. The workspace preference is local UI state, outside
+the project file. Pro retains manual editing tools and the floating chat panel.
+
+Simple hides advanced panels, roster/quick-action controls and floating chat
+chrome; global Pro editing shortcuts are inactive. Ctrl+S saves the editable
+project. Entering Simple stops/restores Pro simulation; leaving it destroys the
+embedded game frame. Restart/Stop use the same preview lifecycle as the existing
+modal. Save and Export use the existing file handlers; they do not mark a game
+verified or publish it. New checkpoints unsaved work before replacement, and a
+changed project ID clears prior conversation/client history.
+
+The chat input accepts multiline text (Shift+Enter), permits one request at a
+time and exposes busy/settled events. While busy, Simple disables New/Open,
+recovery and preview preparation; after a response settles it prepares a fresh
+preview of current content. Failure messages remain in chat; previewing partial
+changes is not proof that the request succeeded. There is no fake cancel button:
+cancellation, persisted tasks, resuming, transactional rollback and verified
+completion still require P2/P4/P5/P6 work.
+
+Integration also fixed atmosphere restoration to update `scene.fog.type` on the
+pinned engine rather than assigning its read-only fog object. The prior API use
+could interrupt New/Open in the full runtime; generated games use the same fix.
+
+`npm run test:simple-browser` runs 24 assertions in a fresh profile with a
+synthetic provider response and the real action executor/runtime. It checks
+layout/shortcut separation, mode/draft/selection/history preservation, safe exit
+from simulation, editable Save/Ctrl+S, settings routing, request concurrency,
+automatic isolated preview, Restart/Stop, HTML export, New with recovery and
+Open with restored name/content. It passes at 1440px and 660px widths. This does
+not certify live-provider output quality or complete playable objectives. Three
+unit regressions cover request lifecycle and the real engine fog parameter API.

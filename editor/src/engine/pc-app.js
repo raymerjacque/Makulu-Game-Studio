@@ -91,26 +91,26 @@ export class EngineRuntime {
 
     if (preset === 'sunset') {
       this.app.scene.ambientLight = new pc.Color(0.4, 0.2, 0.25);
-      this.app.scene.fog = pc.FOG_EXP2;
+      this.app.scene.fog.type = pc.FOG_EXP2;
       this.app.scene.fogColor = new pc.Color(0.8, 0.4, 0.2);
       this.app.scene.fogDensity = 0.015;
     } else if (preset === 'cyberpunk') {
       this.app.scene.ambientLight = new pc.Color(0.05, 0.08, 0.18);
-      this.app.scene.fog = pc.FOG_EXP2;
+      this.app.scene.fog.type = pc.FOG_EXP2;
       this.app.scene.fogColor = new pc.Color(0.02, 0.05, 0.15);
       this.app.scene.fogDensity = 0.02;
     } else if (preset === 'foggy') {
       this.app.scene.ambientLight = new pc.Color(0.3, 0.35, 0.4);
-      this.app.scene.fog = pc.FOG_EXP2;
+      this.app.scene.fog.type = pc.FOG_EXP2;
       this.app.scene.fogColor = new pc.Color(0.45, 0.5, 0.55);
       this.app.scene.fogDensity = 0.035;
     } else if (preset === 'night') {
       this.app.scene.ambientLight = new pc.Color(0.02, 0.03, 0.08);
-      this.app.scene.fog = pc.FOG_NONE;
+      this.app.scene.fog.type = pc.FOG_NONE;
     } else {
       // Clear Day
       this.app.scene.ambientLight = new pc.Color(0.22, 0.24, 0.28);
-      this.app.scene.fog = pc.FOG_NONE;
+      this.app.scene.fog.type = pc.FOG_NONE;
     }
   }
 
@@ -489,6 +489,7 @@ export class EditorCameraController {
 
     const keys = {};
     window.addEventListener('keydown', (e) => {
+      if (this.editor?.simpleWorkspace?.active) return;
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
       keys[e.key.toLowerCase()] = true;
       if (e.key.toLowerCase() === 'f' && this.editor) {
@@ -553,6 +554,7 @@ export class EditorCameraController {
 
     // WASD Spectator Flythrough when Right-Click held
     this.app.on('update', (dt) => {
+      if (this.editor?.simpleWorkspace?.active) return;
       if (isPanning && keys) {
         const move = new pc.Vec3();
         const speed = 10 * dt;

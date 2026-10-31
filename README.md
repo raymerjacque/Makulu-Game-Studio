@@ -823,7 +823,7 @@ work. Run the editor regression suite with `cd editor && npm test`.
 See the [completion roadmap](roadmap.html#progress) for current progress and the
 [capability register](docs/capabilities/README.md) for source-based support
 findings, known limitations and the certification backlog. The baseline covers
-150 behaviors, 52 AI actions, 32 UI modules, 451 literal control templates and
+150 behaviors, 52 AI actions, 33 UI modules, 459 literal control templates and
 30 reviewed feature areas. Presence in a catalog or source branch does not mean
 a feature is verified across save/open, preview and export.
 
@@ -946,3 +946,17 @@ the captured game; Close removes its runtime. The first enabled game camera is
 used, and game controls clear on blur. The browser fixture now checks isolation,
 controls, camera, model loading, restart and failure cleanup as well as Play/Stop.
 See the [preview scope](docs/project-format.md#isolated-game-preview-and-shared-delivery-preparation-31-october-2026).
+
+
+## Simple workspace
+
+Simple mode now presents chat beside a playable preview, with New/Open, Save,
+Recover, Export game, AI settings and Open in Pro. Pro keeps the editing panels.
+Both use the same project and conversation; mode switching preserves the draft,
+selection and undo history. Preview refreshes after an AI response and supports
+Restart/Stop. Automatic complete-game generation and build cancellation/resume
+remain on the roadmap.
+
+Run `npm run test:simple-browser` in `editor/` for the browser workflow checks;
+use `SIMPLE_VIEWPORT=660,1000 npm run test:simple-browser` for the narrow layout.
+See [Simple workspace scope](docs/project-format.md#simple-chat-and-preview-workspace-31-october-2026).
