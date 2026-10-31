@@ -119,10 +119,12 @@ test('desktop asset IPC refuses untrusted senders before calling the filesystem 
   vm.runInNewContext(source, { __dirname: '/synthetic/studio', process: { env: {} }, console,
     require(name) {
       if (name === 'electron') return { app: { commandLine: { appendSwitch() {} }, whenReady: () => ({ then() {} }), on() {} }, ipcMain: { handle: (id, handler) => handlers.set(id, handler) } };
+      if (name === './runtime-files.cjs') return { readExportRuntimes: async () => { reads++; return {}; } };
       if (name === './bundled-assets.cjs') return { readBundledAsset: async () => { reads++; return {}; } };
       if (name === './desktop-security.cjs') return nodeRequire('../desktop-security.cjs');
       return nodeRequire(name);
     } });
   assert.equal(await handlers.get('read-bundled-asset')({ sender: {} }, 'file:///private/file.bin'), null);
+  assert.equal(await handlers.get('get-export-runtimes')({ sender: {} }), null);
   assert.equal(reads, 0);
 });

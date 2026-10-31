@@ -321,3 +321,29 @@ content, script-tag safety, filesystem boundaries and untrusted IPC. The isolate
 browser suite now adds three transport/embedding/hash checks to the existing ten
 storage/heightmap checks. This verifies that collected asset payloads can be
 reprocessed without network access; it does not establish an offline game runtime.
+
+
+## Pinned offline HTML runtime (31 October 2026)
+
+File → Export Offline HTML Game now embeds the verified PlayCanvas 2.23.3 engine,
+asm.js Ammo physics, both license notices and the supported declared asset payloads.
+The Vite build emits only the fixed runtime files in `runtime-manifest.json`;
+SHA-256 or engine-version mismatches fail the build/export. Desktop access uses a
+trusted-frame-only IPC with no caller-supplied path. Development reads the fixed
+installed sources; packaged builds read their emitted runtime directory.
+
+Editor startup awaits the same physics build before application creation and
+reports failure visibly. Physics is paused during authoring, advances in Play and
+freezes on Stop. Exact pre-play restoration and a privileged-code-isolated shared
+runtime are still pending. Scene serialization now preserves each entity's local
+enabled flag, including children underneath disabled parents.
+
+`npm run test:offline-export` launches a copied HTML file in a temporary browser
+profile, outside the repository, with CSP blocking external connections. It waits
+for a real embedded GLB, asserts the pinned engine and initialized physics world,
+and simulates a dynamic sphere landing on a static floor. This is a focused
+portability/physics fixture; it does not certify objectives, restart, transitions,
+audible output or every behavior. Custom scripts can still introduce network
+requests; unsupported compressed models are rejected by asset packaging. The
+File-menu export is currently active-scene only. Low-level synchronous bundler
+callers must supply the verified runtime bundle to avoid the legacy CDN path.

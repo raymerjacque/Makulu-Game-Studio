@@ -715,7 +715,7 @@ Test gameplay mechanics instantly using ready-to-play prototypes:
 ## 🚀 Game Compiling & Cloud Publishing
 
 Share games instantly across any platform:
-* **Zero-Install Single-File HTML5 Compiler:** Packages the entire game, PlayCanvas 3D engine, custom behaviors (WASD, spin, flicker, patrol, billboard, collectible, float, orbit, camera follow, health, damage, potions), 2D Screen UI HUD overlays (health bar, score counter, crosshair, game over screen), Base64 inlined offline assets (audio, textures, models), PBR materials, lights with shadow casting, collision shapes, dynamic/static rigidbodies, atmosphere presets with exponential fog, interactive trigger volumes, particles, and spatial audio into a **single self-contained `.html` file**. Double-click to play in any browser (Linux, Windows, Mac, iOS, Android) with zero setup.
+* **Single-file HTML export:** The File-menu export embeds PlayCanvas 2.23.3, Ammo physics, license notices and supported declared active-scene assets. A moved-file Chromium fixture verifies startup, embedded GLB loading and real sphere-floor contact with network blocked. Custom-script network requests, unsupported compressed-model decoders, full gameplay parity and cross-browser/device certification remain outside this verified scope.
 * **1-Click Makulu Cloud Web Hosting:** Click **🚀 Publish** to generate an instant live shareable web URL with clipboard copying and responsive touch controls.
 
 ---
@@ -919,6 +919,17 @@ No new models or textures were added in this implementation batch.
 
 File → Save Portable Project embeds declared media across all scenes and standard
 glTF dependencies. The HTML-game action embeds the active scene’s assets, but
-still needs internet for engine/physics startup. Missing/unsupported assets stop
+now embeds the pinned engine and initialized physics runtime, with license notices. Missing/unsupported assets stop
 the export; ordinary JSON saving remains available. See [packaging scope and
 limits](docs/project-format.md#declared-asset-packaging-update).
+
+
+## Pinned runtime verification
+
+Run `npm run test:offline-export` from `editor/` to verify the moved-file game in
+Chromium with external connections blocked. Run `npm test`,
+`npm run test:recovery-browser` and `npm run build` for the foundation checks.
+The runtime manifest pins engine, physics and license hashes; builds and exports
+fail on mismatches. See [runtime provenance](editor/vendor/ammo/README.md).
+Physics initializes before the editor, pauses during authoring and advances during
+Play. Exact editing-state restoration on Stop remains the next milestone.

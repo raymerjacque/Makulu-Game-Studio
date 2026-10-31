@@ -151,7 +151,7 @@
       "id": "play",
       "name": "Isolated play sessions",
       "status": "partial",
-      "editor": "Play toggles behavior execution and UI, and blocks startup while restored scene resources are loading or failed.",
+      "editor": "Play toggles behavior execution and UI, and blocks startup while restored scene resources are loading or failed. Real Ammo advances only during Play and freezes on Stop; exact restoration remains pending.",
       "persistence": "No complete snapshot restoration in play/stop path.",
       "export": "Separate runtime implementation.",
       "next": "Clone/isolate runtime and restore editing state exactly.",
@@ -227,17 +227,17 @@
       "id": "physics",
       "name": "Physics and joints",
       "status": "partial",
-      "editor": "Component/constraint interfaces and custom helpers exist.",
+      "editor": "Pinned Ammo initializes before application creation; physics pauses during authoring and advances in Play.",
       "persistence": "Collision half-extents and zero mass/friction/restitution now round-trip; complete joint fields and semantics remain unverified.",
-      "export": "Exporter loads Ammo externally; editor setup differs.",
-      "next": "Explicit shared physics initialization and constraint scenarios.",
+      "export": "File-menu HTML embeds the same pinned Ammo source and engine, with integrity checks and licenses.",
+      "next": "Restore pre-play state exactly; verify constraints, terrain traversal and supported gameplay scenarios.",
       "evidence": [
         "editor/src/ui/physics-joint-modal.js",
         "editor/src/core/editor.js",
         "editor/src/engine/pc-app.js",
         "editor/src/compiler/game-bundler.js"
       ],
-      "proof": "Real Collision/RigidBody/Script systems with NullGraphicsDevice pass project round-trip checks."
+      "proof": "Real Ammo freeze/advance tests and moved-file browser sphere-floor contact pass."
     },
     {
       "id": "audio",
@@ -377,12 +377,15 @@
       "status": "partial",
       "editor": "HTML bundler exists.",
       "persistence": "Not an editable full-project format.",
-      "export": "File-menu HTML export embeds active-scene declared media; engine/physics remain network dependencies.",
-      "next": "Pin/vendor runtime and decoders, build deduplicated archives and verify clean-target gameplay offline.",
+      "export": "File-menu HTML embeds pinned engine, initialized physics, licenses and active-scene declared media.",
+      "next": "Build archives, support complete scene transitions and verify objective/restart gameplay.",
       "evidence": [
-        "editor/src/compiler/game-bundler.js"
+        "editor/src/compiler/game-bundler.js",
+        "editor/src/compiler/runtime-bundle.js",
+        "editor/tests/export-runtime.test.js",
+        "editor/scripts/test-offline-export.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Moved-file real-browser test blocks network and verifies engine startup, embedded GLB loading and dynamic sphere-floor contact."
     },
     {
       "id": "publish",
@@ -479,7 +482,7 @@
       "status": "partial",
       "editor": "Portable project save and asset-embedded active-scene HTML export are wired with progress and failure handling.",
       "persistence": "All project scenes and supported asset/prefab references embed; provided provenance fields and integrity manifest survive.",
-      "export": "Standard GLB/glTF buffers/images plus material/audio payloads embed; engine/physics and unsupported decoder dependencies remain external.",
+      "export": "Standard GLB/glTF buffers/images, material/audio payloads and pinned engine/physics embed; unsupported decoders are rejected.",
       "next": "Pinned runtime/decoder vendoring, ZIP/folder delivery, full script/prefab coverage and packaged desktop smoke checks.",
       "evidence": [
         "editor/src/project/asset-packager.js",
@@ -521,7 +524,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1528
+          "line": 1542
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -549,7 +552,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2044
+          "line": 2058
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -577,7 +580,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1801
+          "line": 1815
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -605,7 +608,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1247
+          "line": 1261
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -630,7 +633,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1005
+          "line": 1019
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -658,11 +661,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1534
+          "line": 1548
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2584
+          "line": 2598
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -691,7 +694,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2643
+          "line": 2657
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -719,7 +722,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2111
+          "line": 2125
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -751,7 +754,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1031
+          "line": 1045
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -776,7 +779,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1709
+          "line": 1723
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -802,7 +805,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2303
+          "line": 2317
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -831,7 +834,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1698
+          "line": 1712
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -857,7 +860,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1977
+          "line": 1991
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -885,7 +888,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2725
+          "line": 2739
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -913,7 +916,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1318
+          "line": 1332
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -946,11 +949,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1041
+          "line": 1055
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2095
+          "line": 2109
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -978,7 +981,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2149
+          "line": 2163
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1005,7 +1008,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2141
+          "line": 2155
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1033,7 +1036,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1722
+          "line": 1736
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1064,11 +1067,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1557
+          "line": 1571
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1911
+          "line": 1925
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1095,7 +1098,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2155
+          "line": 2169
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1121,7 +1124,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1067
+          "line": 1081
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1152,7 +1155,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1968
+          "line": 1982
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1180,7 +1183,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2137
+          "line": 2151
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1208,7 +1211,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1359
+          "line": 1373
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1235,7 +1238,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1391
+          "line": 1405
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1261,7 +1264,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2000
+          "line": 2014
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1288,7 +1291,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2040
+          "line": 2054
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1316,7 +1319,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2391
+          "line": 2405
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1344,7 +1347,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1675
+          "line": 1689
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1370,7 +1373,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1890
+          "line": 1904
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1395,7 +1398,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2152
+          "line": 2166
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1423,7 +1426,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2634
+          "line": 2648
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1451,7 +1454,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2384
+          "line": 2398
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1479,7 +1482,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2693
+          "line": 2707
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1508,7 +1511,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1097
+          "line": 1111
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1536,7 +1539,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2211
+          "line": 2225
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1563,7 +1566,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2251
+          "line": 2265
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1590,7 +1593,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2406
+          "line": 2420
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1617,7 +1620,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 982
+          "line": 996
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1645,7 +1648,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1786
+          "line": 1800
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1673,7 +1676,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1133
+          "line": 1147
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1698,7 +1701,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1512
+          "line": 1526
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1726,7 +1729,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2022
+          "line": 2036
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1754,7 +1757,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2062
+          "line": 2076
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1782,7 +1785,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2052
+          "line": 2066
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1818,15 +1821,15 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1816
+          "line": 1830
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2174
+          "line": 2188
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2186
+          "line": 2200
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1852,7 +1855,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2240
+          "line": 2254
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1884,7 +1887,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2173
+          "line": 2187
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1910,7 +1913,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2651
+          "line": 2665
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1938,7 +1941,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1842
+          "line": 1856
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1965,7 +1968,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2531
+          "line": 2545
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -1994,7 +1997,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2003
+          "line": 2017
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2058,71 +2061,71 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1048
+          "line": 1062
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1074
+          "line": 1088
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1089
+          "line": 1103
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1121
+          "line": 1135
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1309
+          "line": 1323
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1382
+          "line": 1396
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1444
+          "line": 1458
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1575
+          "line": 1589
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1632
+          "line": 1646
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1794
+          "line": 1808
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2082
+          "line": 2096
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2223
+          "line": 2237
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2461
+          "line": 2475
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2518
+          "line": 2532
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2602
+          "line": 2616
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 3053
+          "line": 3067
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 3061
+          "line": 3075
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2155,11 +2158,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1082
+          "line": 1096
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2095
+          "line": 2109
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2185,7 +2188,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1376
+          "line": 1390
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2214,7 +2217,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2556
+          "line": 2570
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2241,7 +2244,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2416
+          "line": 2430
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2269,7 +2272,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 967
+          "line": 981
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2297,7 +2300,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2268
+          "line": 2282
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2325,7 +2328,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2311
+          "line": 2325
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2353,7 +2356,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2593
+          "line": 2607
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2380,7 +2383,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1882
+          "line": 1896
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2406,7 +2409,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2042
+          "line": 2056
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2433,7 +2436,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2356
+          "line": 2370
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2461,7 +2464,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2087
+          "line": 2101
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2490,7 +2493,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1215
+          "line": 1229
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2518,7 +2521,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2421
+          "line": 2435
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2550,11 +2553,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1175
+          "line": 1189
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2095
+          "line": 2109
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2582,7 +2585,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2442
+          "line": 2456
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2610,7 +2613,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1302
+          "line": 1316
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2639,7 +2642,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1237
+          "line": 1251
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2666,7 +2669,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1326
+          "line": 1340
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2696,7 +2699,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 924
+          "line": 938
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2722,7 +2725,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1193
+          "line": 1207
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2754,7 +2757,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2701
+          "line": 2715
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2781,7 +2784,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2526
+          "line": 2540
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2809,7 +2812,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2901
+          "line": 2915
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2837,7 +2840,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2708
+          "line": 2722
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2865,7 +2868,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2134
+          "line": 2148
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2892,7 +2895,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1909
+          "line": 1923
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2917,7 +2920,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1293
+          "line": 1307
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2946,7 +2949,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 945
+          "line": 959
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -2974,7 +2977,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2814
+          "line": 2828
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3002,7 +3005,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1018
+          "line": 1032
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3029,7 +3032,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2734
+          "line": 2748
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3054,7 +3057,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1519
+          "line": 1533
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3082,7 +3085,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 935
+          "line": 949
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3107,7 +3110,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 930
+          "line": 944
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3132,7 +3135,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2612
+          "line": 2626
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3160,7 +3163,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2665
+          "line": 2679
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3188,7 +3191,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1259
+          "line": 1273
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3215,7 +3218,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1456
+          "line": 1470
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3243,7 +3246,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2639
+          "line": 2653
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3271,7 +3274,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2297
+          "line": 2311
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3299,7 +3302,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2883
+          "line": 2897
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3326,7 +3329,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2365
+          "line": 2379
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3354,7 +3357,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2849
+          "line": 2863
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3382,7 +3385,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2259
+          "line": 2273
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3410,7 +3413,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2201
+          "line": 2215
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3437,7 +3440,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2742
+          "line": 2756
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3464,7 +3467,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2346
+          "line": 2360
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3493,7 +3496,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1902
+          "line": 1916
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3522,11 +3525,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1579
+          "line": 1593
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1914
+          "line": 1928
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3551,7 +3554,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2284
+          "line": 2298
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3580,7 +3583,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2069
+          "line": 2083
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3607,7 +3610,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2131
+          "line": 2145
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3635,7 +3638,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2220
+          "line": 2234
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3661,7 +3664,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1778
+          "line": 1792
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3689,7 +3692,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2264
+          "line": 2278
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3716,7 +3719,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2378
+          "line": 2392
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3744,7 +3747,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2468
+          "line": 2482
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3777,15 +3780,15 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1562
+          "line": 1576
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1619
+          "line": 1633
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1761
+          "line": 1775
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3813,7 +3816,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1011
+          "line": 1025
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3840,7 +3843,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2620
+          "line": 2634
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3868,7 +3871,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1992
+          "line": 2006
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3896,7 +3899,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 917
+          "line": 931
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3922,7 +3925,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1775
+          "line": 1789
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3950,7 +3953,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1394
+          "line": 1408
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -3984,11 +3987,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1929
+          "line": 1943
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1952
+          "line": 1966
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4017,7 +4020,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1597
+          "line": 1611
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4042,7 +4045,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2496
+          "line": 2510
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4070,7 +4073,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2924
+          "line": 2938
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4097,7 +4100,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2916
+          "line": 2930
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4125,7 +4128,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1769
+          "line": 1783
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4154,7 +4157,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2682
+          "line": 2696
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4199,27 +4202,27 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1168
+          "line": 1182
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1382
+          "line": 1396
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1444
+          "line": 1458
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2223
+          "line": 2237
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2584
+          "line": 2598
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2790
+          "line": 2804
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4246,7 +4249,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1400
+          "line": 1414
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4272,7 +4275,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2830
+          "line": 2844
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4300,7 +4303,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1473
+          "line": 1487
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4327,7 +4330,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2945
+          "line": 2959
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4357,7 +4360,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1916
+          "line": 1930
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4386,7 +4389,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2502
+          "line": 2516
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4413,7 +4416,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2860
+          "line": 2874
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4442,7 +4445,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1408
+          "line": 1422
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4474,7 +4477,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2104
+          "line": 2118
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4503,7 +4506,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1646
+          "line": 1660
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4531,7 +4534,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2291
+          "line": 2305
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4559,7 +4562,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2278
+          "line": 2292
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4588,7 +4591,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1807
+          "line": 1821
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4613,7 +4616,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 896
+          "line": 910
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4646,7 +4649,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1497
+          "line": 1511
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4674,7 +4677,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2030
+          "line": 2044
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4701,7 +4704,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1336
+          "line": 1350
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4734,11 +4737,11 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 999
+          "line": 1013
         },
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2748
+          "line": 2762
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4766,7 +4769,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2328
+          "line": 2342
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4794,7 +4797,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2954
+          "line": 2968
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4822,7 +4825,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 1731
+          "line": 1745
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4850,7 +4853,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2038
+          "line": 2052
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -4878,7 +4881,7 @@
       "exportedRuntimeBranches": [
         {
           "file": "editor/src/compiler/game-bundler.js",
-          "line": 2486
+          "line": 2500
         }
       ],
       "persistence": "partial-generic-behavior-configuration-only",
@@ -11179,7 +11182,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 63
+            "line": 64
           },
           "verification": "template-declaration-only"
         },
@@ -11195,7 +11198,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 92
+            "line": 93
           },
           "verification": "template-declaration-only"
         },
@@ -11211,7 +11214,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 142
+            "line": 143
           },
           "verification": "template-declaration-only"
         },
@@ -11227,7 +11230,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 193
+            "line": 194
           },
           "verification": "template-declaration-only"
         },
@@ -11243,7 +11246,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 206
+            "line": 207
           },
           "verification": "template-declaration-only"
         },
@@ -11254,7 +11257,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 231
+            "line": 232
           },
           "verification": "template-declaration-only"
         },
@@ -11265,7 +11268,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 234
+            "line": 235
           },
           "verification": "template-declaration-only"
         },
@@ -11281,7 +11284,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 242
+            "line": 243
           },
           "verification": "template-declaration-only"
         },
@@ -11297,7 +11300,7 @@
           ],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 243
+            "line": 244
           },
           "verification": "template-declaration-only"
         },
@@ -11308,7 +11311,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 249
+            "line": 250
           },
           "verification": "template-declaration-only"
         },
@@ -11319,7 +11322,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 250
+            "line": 251
           },
           "verification": "template-declaration-only"
         },
@@ -11330,7 +11333,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 257
+            "line": 258
           },
           "verification": "template-declaration-only"
         },
@@ -11341,7 +11344,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 266
+            "line": 267
           },
           "verification": "template-declaration-only"
         },
@@ -11352,7 +11355,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 269
+            "line": 270
           },
           "verification": "template-declaration-only"
         },
@@ -11363,7 +11366,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 273
+            "line": 274
           },
           "verification": "template-declaration-only"
         },
@@ -11374,7 +11377,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 274
+            "line": 275
           },
           "verification": "template-declaration-only"
         },
@@ -11385,7 +11388,7 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 278
+            "line": 279
           },
           "verification": "template-declaration-only"
         },
@@ -11396,13 +11399,13 @@
           "dataAttributes": [],
           "source": {
             "file": "editor/src/ui/topbar.js",
-            "line": 283
+            "line": 284
           },
           "verification": "template-declaration-only"
         }
       ],
       "status": "partial",
-      "notes": "Portable project and asset-embedded HTML file actions supplement JSON save/recovery. HTML engine/physics remain online; native installs and full offline delivery need certification.",
+      "notes": "Portable project and asset-embedded HTML file actions supplement JSON save/recovery. File-menu HTML embeds pinned engine/physics; native installs and full gameplay delivery need certification.",
       "verification": "source-inventory-only"
     }
   ]

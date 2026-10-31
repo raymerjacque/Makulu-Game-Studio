@@ -654,7 +654,8 @@ export class Editor {
       if (!node) return { children: [] };
       const data = {
         name: node.name,
-        enabled: node.enabled,
+        // The engine getter includes disabled ancestors; persist the local flag instead.
+        enabled: typeof node._enabled === 'boolean' ? node._enabled : node.enabled,
         locked: Boolean(node.locked),
         tags: node.tags?.list ? node.tags.list() : Array.from(node.tags || []),
         id: node._studioId || (node._studioId = newDocumentId()),

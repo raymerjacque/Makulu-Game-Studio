@@ -1,3 +1,4 @@
+import { bindEditorPhysics } from './editor-physics.js';
 import * as pc from 'playcanvas';
 
 /**
@@ -24,6 +25,7 @@ export class EngineRuntime {
     });
 
     this.app.start();
+    this.disposePhysicsBinding = bindEditorPhysics(this.app, editor.events);
 
     // Editor viewport canvas sizing: Must use FILLMODE_NONE with exact container bounds
     this.app.setCanvasFillMode(pc.FILLMODE_NONE);

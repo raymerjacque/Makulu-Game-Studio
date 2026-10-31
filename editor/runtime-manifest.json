@@ -1,0 +1,12 @@
+{
+  "formatVersion": 1,
+  "engineVersion": "2.23.3",
+  "physicsFormat": "asm.js",
+  "physicsSourceCommit": "ff178eb98cfefc41ccc38c9e7965fbf081f6acb2",
+  "files": {
+    "engine": { "file": "playcanvas-2.23.3.min.js", "sha256": "fea87830de8d74b71fe3ef6c7ce1e04a5aa60c5e9976da06b866774ea9ae9711" },
+    "physics": { "file": "ammo-ff178eb9.js", "sha256": "bf10f059738327768007d380eb6257f38f52b21ae6455c0550e583ee71667550" },
+    "engineLicense": { "file": "LICENSE.playcanvas.txt", "sha256": "42fa51ddd556be151a29f381fb97ee975825dcc454e805ea3ea9c079cca04d34" },
+    "physicsLicense": { "file": "LICENSE.ammo.txt", "sha256": "f9a230c1a7f6cb856a80b31041e8c0228c5eece8ef6f564b79b3bc8097927a97" }
+  }
+}

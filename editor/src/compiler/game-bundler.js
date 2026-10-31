@@ -36,6 +36,13 @@ export class GameBundler {
       });
     }
 
+    const runtime = options.runtimeBundle;
+    const inlineScript = source => source.replace(/<\/script/gi, '<\\/script');
+    const runtimeScripts = runtime ? `<script>${inlineScript(runtime.physics)}</script>\n<script>${inlineScript(runtime.engine)}</script>` :
+      '<script src="https://code.playcanvas.com/ammo.751ef4f.js"></script>\n<script src="https://code.playcanvas.com/playcanvas-stable.min.js"></script>';
+    const exportManifest = runtime ? { mode: 'embedded', runtime: runtime.descriptor, assets: options.assetManifest || null } : { mode: 'legacy-network-runtime' };
+    const licenseData = runtime ? { playcanvas: runtime.engineLicense, ammo: runtime.physicsLicense } : {};
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -313,8 +320,7 @@ export class GameBundler {
   </style>
 
   <!-- PlayCanvas Engine & Ammo.js Physics Engine Runtime -->
-  <script src="https://code.playcanvas.com/ammo.751ef4f.js"></script>
-  <script src="https://code.playcanvas.com/playcanvas-stable.min.js"></script>
+  ${runtimeScripts}
 </head>
 <body>
   <div id="ui-overlay">
@@ -393,7 +399,13 @@ export class GameBundler {
   <button id="ui-fullscreen" onclick="document.documentElement.requestFullscreen()">⛶ Fullscreen</button>
   <canvas id="game-canvas"></canvas>
 
+  <script id="makulu-export-manifest" type="application/json">${JSON.stringify(exportManifest).replace(/</g, '\\u003c')}</script>
+  <script id="makulu-runtime-licenses" type="application/json">${JSON.stringify(licenseData).replace(/</g, '\\u003c')}</script>
   <script>
+    (async () => {
+    window.__makuluRuntimeStatus = { state: 'initializing' };
+    if (typeof globalThis.Ammo === 'function') globalThis.Ammo = await globalThis.Ammo();
+    if (typeof globalThis.Ammo?.btVector3 !== 'function') throw new Error('Physics initialization failed.');
     // Embedded Scene Data & Inlined Base64 Assets
     const SCENE_DATA = ${sceneJSON.replace(/</g, '\\u003c')};
     const EMBEDDED_ASSETS = ${JSON.stringify(assetRegistry).replace(/</g, '\\u003c')};
@@ -406,7 +418,9 @@ export class GameBundler {
       keyboard: new pc.Keyboard(window)
     });
 
+    if (SCENE_DATA.gravity) app.systems.rigidbody.gravity.set(...SCENE_DATA.gravity);
     app.start();
+    if (!app.systems.rigidbody.physicsWorld) throw new Error('Physics backend is unavailable.');
     app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
     app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
@@ -3098,7 +3112,15 @@ export class GameBundler {
       }
     });
 
-    console.log("🎮 Game loaded successfully!");
+    window.__makuluRuntimeStatus = { state: 'running', engineVersion: pc.version, physicsReady: Boolean(app.systems.rigidbody.physicsWorld) };
+    console.log('Game runtime initialized.');
+    })().catch(() => {
+      window.__makuluRuntimeStatus = { state: 'error', message: 'Game startup failed.' };
+      const error = document.createElement('div'); error.setAttribute('role', 'alert');
+      error.style.cssText = 'position:fixed;inset:0;z-index:1000;background:#111;color:#fff;padding:48px;font:18px system-ui';
+      error.textContent = 'This game could not start. The runtime or scene could not be initialized.';
+      document.body.appendChild(error);
+    });
   </script>
 </body>
 </html>`;

@@ -93,7 +93,7 @@
       "id": "play",
       "name": "Isolated play sessions",
       "status": "partial",
-      "editor": "Play toggles behavior execution and UI, and blocks startup while restored scene resources are loading or failed.",
+      "editor": "Play toggles behavior execution and UI, and blocks startup while restored scene resources are loading or failed. Real Ammo advances only during Play and freezes on Stop; exact restoration remains pending.",
       "persistence": "No complete snapshot restoration in play/stop path.",
       "export": "Separate runtime implementation.",
       "next": "Clone/isolate runtime and restore editing state exactly.",
@@ -169,17 +169,17 @@
       "id": "physics",
       "name": "Physics and joints",
       "status": "partial",
-      "editor": "Component/constraint interfaces and custom helpers exist.",
+      "editor": "Pinned Ammo initializes before application creation; physics pauses during authoring and advances in Play.",
       "persistence": "Collision half-extents and zero mass/friction/restitution now round-trip; complete joint fields and semantics remain unverified.",
-      "export": "Exporter loads Ammo externally; editor setup differs.",
-      "next": "Explicit shared physics initialization and constraint scenarios.",
+      "export": "File-menu HTML embeds the same pinned Ammo source and engine, with integrity checks and licenses.",
+      "next": "Restore pre-play state exactly; verify constraints, terrain traversal and supported gameplay scenarios.",
       "evidence": [
         "editor/src/ui/physics-joint-modal.js",
         "editor/src/core/editor.js",
         "editor/src/engine/pc-app.js",
         "editor/src/compiler/game-bundler.js"
       ],
-      "proof": "Real Collision/RigidBody/Script systems with NullGraphicsDevice pass project round-trip checks."
+      "proof": "Real Ammo freeze/advance tests and moved-file browser sphere-floor contact pass."
     },
     {
       "id": "audio",
@@ -319,12 +319,15 @@
       "status": "partial",
       "editor": "HTML bundler exists.",
       "persistence": "Not an editable full-project format.",
-      "export": "File-menu HTML export embeds active-scene declared media; engine/physics remain network dependencies.",
-      "next": "Pin/vendor runtime and decoders, build deduplicated archives and verify clean-target gameplay offline.",
+      "export": "File-menu HTML embeds pinned engine, initialized physics, licenses and active-scene declared media.",
+      "next": "Build archives, support complete scene transitions and verify objective/restart gameplay.",
       "evidence": [
-        "editor/src/compiler/game-bundler.js"
+        "editor/src/compiler/game-bundler.js",
+        "editor/src/compiler/runtime-bundle.js",
+        "editor/tests/export-runtime.test.js",
+        "editor/scripts/test-offline-export.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Moved-file real-browser test blocks network and verifies engine startup, embedded GLB loading and dynamic sphere-floor contact."
     },
     {
       "id": "publish",
@@ -421,7 +424,7 @@
       "status": "partial",
       "editor": "Portable project save and asset-embedded active-scene HTML export are wired with progress and failure handling.",
       "persistence": "All project scenes and supported asset/prefab references embed; provided provenance fields and integrity manifest survive.",
-      "export": "Standard GLB/glTF buffers/images plus material/audio payloads embed; engine/physics and unsupported decoder dependencies remain external.",
+      "export": "Standard GLB/glTF buffers/images, material/audio payloads and pinned engine/physics embed; unsupported decoders are rejected.",
       "next": "Pinned runtime/decoder vendoring, ZIP/folder delivery, full script/prefab coverage and packaged desktop smoke checks.",
       "evidence": [
         "editor/src/project/asset-packager.js",
@@ -545,7 +548,7 @@
     },
     "topbar": {
       "status": "partial",
-      "notes": "Portable project and asset-embedded HTML file actions supplement JSON save/recovery. HTML engine/physics remain online; native installs and full offline delivery need certification."
+      "notes": "Portable project and asset-embedded HTML file actions supplement JSON save/recovery. File-menu HTML embeds pinned engine/physics; native installs and full gameplay delivery need certification."
     },
     "assets": {
       "status": "partial",

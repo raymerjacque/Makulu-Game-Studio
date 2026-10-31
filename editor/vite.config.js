@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite';
+import { runtimeAssetPlugin } from './build-support/runtime-assets.js';
 
 export default defineConfig({
   base: './',
+  plugins: [runtimeAssetPlugin()],
   server: {
     host: '127.0.0.1',
     port: 3000,

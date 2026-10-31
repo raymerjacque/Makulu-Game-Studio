@@ -1,3 +1,5 @@
+import { initializeEditorPhysics } from './compiler/runtime-bundle.js';
+import { showToast } from './ui/toast.js';
 import { ProjectPersistence } from './project/project-persistence.js';
 import { Editor } from './core/editor.js';
 import { EngineRuntime } from './engine/pc-app.js';
@@ -112,6 +114,16 @@ async function bootstrap() {
   new HierarchyPanel(hierarchyContainer, editor);
   new InspectorPanel(inspectorContainer, editor, codeEditor, animBlendModal);
   new AssetsPanel(assetsContainer, editor, modelStore, terrainModal, codeEditor, materialModal);
+
+  try { await initializeEditorPhysics(); }
+  catch {
+    showToast('Physics could not start. Reload the studio and check the installed runtime files.', 'error', 12000);
+    const error = document.createElement('div'); error.setAttribute('role', 'alert');
+    error.style.cssText = 'position:absolute;inset:20px;padding:24px;background:var(--bg-panel);z-index:50';
+    error.textContent = 'Studio startup stopped because physics could not initialize. Reload or reinstall the application runtime files.';
+    document.getElementById('viewport-container').appendChild(error);
+    return;
+  }
 
   // Initialize PlayCanvas 3D Engine Runtime
   const runtime = new EngineRuntime(canvasElement, editor);

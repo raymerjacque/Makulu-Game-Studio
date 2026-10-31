@@ -1,3 +1,4 @@
+import { loadExportRuntimes } from '../compiler/runtime-bundle.js';
 import { AssetPackager } from '../project/asset-packager.js';
 import { resolvePortableReferences } from '../project/project-document.js';
 import { showRecoverySnapshots } from './recovery-modal.js';
@@ -75,7 +76,7 @@ export class TopBar {
                 <span class="item-label">🕘 Local Recovery Snapshots...</span>
               </div>
               <div class="topbar-dropdown-item" id="menu-action-export-html">
-                <span class="item-label">🌐 Export HTML Game (assets included)...</span>
+                <span class="item-label">🌐 Export Offline HTML Game...</span>
               </div>
               <div class="topbar-dropdown-separator"></div>
               <div class="topbar-dropdown-item" id="menu-action-templates">
@@ -502,9 +503,10 @@ export class TopBar {
         const source = JSON.parse(this.editor.exportSceneJSON());
         resolvePortableReferences(source, this.editor.assetsPanel?.assets || this.editor.projectAssets || []);
         const result = await packager.packageScene(source);
-        const html = new GameBundler(this.editor).compileStandaloneHTML({ title: source.project, sceneData: result.scene, embeddedAssets: [] });
+        const runtimeBundle = await loadExportRuntimes();
+        const html = new GameBundler(this.editor).compileStandaloneHTML({ title: source.project, sceneData: result.scene, embeddedAssets: [], runtimeBundle, assetManifest: result.manifest });
         this.downloadContent(html, `${(source.project || 'Game').replace(/\s+/g, '_')}_Game.html`, 'text/html');
-        showToast('Game exported with its assets. Internet is still needed to start the engine and physics runtime.', 'success', 7000);
+        showToast('Game downloaded with its engine, physics and declared assets built in.', 'success', 7000);
       }));
     }
 

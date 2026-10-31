@@ -19,7 +19,8 @@
     "dist:linux": "vite build && electron-builder --linux AppImage deb",
     "audit:capabilities": "node scripts/capability-audit.js",
     "audit:capabilities:check": "node scripts/capability-audit.js --check",
-    "test:recovery-browser": "node scripts/test-recovery-browser.js"
+    "test:recovery-browser": "node scripts/test-recovery-browser.js",
+    "test:offline-export": "node scripts/test-offline-export.js"
   },
   "dependencies": {
     "playcanvas": "^2.23.3"
@@ -42,7 +43,9 @@
       "desktop-security.cjs",
       "package.json",
       "public/**/*",
-      "bundled-assets.cjs"
+      "bundled-assets.cjs",
+      "runtime-files.cjs",
+      "runtime-manifest.json"
     ],
     "linux": {
       "target": [
