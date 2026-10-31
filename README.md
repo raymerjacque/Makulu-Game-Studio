@@ -823,7 +823,7 @@ work. Run the editor regression suite with `cd editor && npm test`.
 See the [completion roadmap](roadmap.html#progress) for current progress and the
 [capability register](docs/capabilities/README.md) for source-based support
 findings, known limitations and the certification backlog. The baseline covers
-150 behaviors, 52 AI actions, 33 UI modules, 459 literal control templates and
+150 behaviors, 52 AI actions, 33 UI modules, 461 literal control templates and
 30 reviewed feature areas. Presence in a catalog or source branch does not mean
 a feature is verified across save/open, preview and export.
 
@@ -960,3 +960,10 @@ remain on the roadmap.
 Run `npm run test:simple-browser` in `editor/` for the browser workflow checks;
 use `SIMPLE_VIEWPORT=660,1000 npm run test:simple-browser` for the narrow layout.
 See [Simple workspace scope](docs/project-format.md#simple-chat-and-preview-workspace-31-october-2026).
+
+
+Core AI edits now use validated synchronous batches: supported lists can be
+reversed with one Undo and reapplied with Redo, including in Simple mode. Invalid
+or failed core batches roll back; mixed advanced lists are labelled as legacy and
+are not fully undoable. Awaited asset transactions, cancellation and whole-team
+prompt grouping remain pending. See [transaction scope](docs/project-format.md#validated-synchronous-ai-batches-31-october-2026).

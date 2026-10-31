@@ -1,3 +1,4 @@
+import { TRANSACTIONAL_ACTIONS } from './action-contract.js';
 import { aiSettings } from './ai-settings.js';
 
 /**
@@ -27,6 +28,8 @@ Always follow the established patterns and parameter standards from the Skills L
 
 Whenever the user asks you to create, modify, add, or generate something in the 3D scene or write scripts, you MUST provide a friendly explanation AND output a JSON block wrapped in \`\`\`json:actions ... \`\`\` with the exact action list.
 
+Undoable batch contract: use only ${[...TRANSACTIONAL_ACTIONS].join(', ')} together for one reversible action batch. Other tools still use the legacy execution path; keep them separate when possible. Use exact unambiguous entity names or targetId for stable IDs. The reference "selected" means the selection before the batch. Use finite numeric vectors and documented fields only; primitive embedded components support collision and rigidbody only. Generated scripts are stored, never executed in the editor by this action. Behavior parameter semantics still require playtesting.
+
 Supported action types:
 1. "spawn_primitive": { "type": "box"|"sphere"|"capsule"|"cylinder"|"cone"|"plane", "name": string, "position": [x,y,z], "scale": [x,y,z] }
 2. "create_light": { "type": "directional"|"point"|"spot", "name": string, "position": [x,y,z], "color": [r,g,b], "intensity": number, "range": number }
@@ -54,7 +57,7 @@ Supported action types:
 24. "modify_entity": { "name": string|"selected", "position": [x,y,z], "rotation": [x,y,z], "scale": [x,y,z] }
 25. "delete_entity": { "target": string|"selected" }
 26. "clear_scene": {}
-27. "configure_hud": { "config": { "health": {"enabled": true}, "score": {"enabled": true}, "crosshair": {"enabled": true}, "minimap": {"enabled": true}, "quests": {"enabled": true} } }
+27. "configure_hud": { "config": { "health": {"enabled": true}, "score": {"enabled": true}, "crosshair": {"enabled": true}, "keys": {"enabled": true}, "jetpack": {"enabled": true} } }
 28. "generate_script": { "name": string, "code": string }
 29. "consult_skill": { "skill": string }
 

@@ -1,3 +1,5 @@
+import { validateActionBatch, TRANSACTIONAL_ACTIONS } from './action-contract.js';
+import { applyTransactionalActions } from './transactional-actions.js';
 import * as pc from 'playcanvas';
 import { TerrainGenerator } from '../engine/terrain-generator.js';
 
@@ -21,8 +23,7 @@ export class AIExecutor {
       const data = JSON.parse(match[1].trim());
       return data.actions || (Array.isArray(data) ? data : [data]);
     } catch (e) {
-      console.warn('AIExecutor: Failed to parse action JSON:', e);
-      return null;
+      throw new Error('AI action JSON could not be parsed. No edits were applied.');
     }
   }
 
@@ -43,7 +44,25 @@ export class AIExecutor {
     return null;
   }
 
-  async executeActions(actions) {
+  async executeActions(input) {
+    const actions = validateActionBatch(input);
+    if (!actions.length) return [];
+    if (this.editor.isPlaying || this.editor.sceneResourceStatus && this.editor.sceneResourceStatus.status !== 'ready') throw new Error('Stop play and finish loading scene resources before applying AI edits.');
+    const transactional = actions.every(action => TRANSACTIONAL_ACTIONS.has(action.action));
+    let executed;
+    if (transactional) {
+      const revision = this.editor.exportProjectJSON();
+      const selection = this.editor.selection.getEntities();
+      if (this.editor.persistence && !await this.editor.persistence.protectBeforeReplace()) throw new Error('AI edits were not applied because a recovery checkpoint could not be saved. Save the project file first.');
+      if (this.editor.exportProjectJSON() !== revision || this.editor.selection.getEntities().some((node, index) => node !== selection[index]) || this.editor.selection.getEntities().length !== selection.length) throw new Error('The project changed while preparing AI edits. Retry against the current project.');
+      executed = this.editor.commandBus.runTransaction('AI change', () => applyTransactionalActions(this.editor, actions));
+    } else executed = await this.executeLegacyActions(actions);
+    Object.defineProperty(executed, 'batchInfo', { value: { mode: transactional ? 'transaction' : 'legacy', undoable: transactional, actionCount: executed.length } });
+    this.editor.events.emit('ai:edit:result', executed.batchInfo);
+    return executed;
+  }
+
+  async executeLegacyActions(actions) {
     if (!actions || !Array.isArray(actions)) return [];
 
     const executed = [];

@@ -94,7 +94,7 @@ export class AgentTeam {
           this.messageBus.postMessage({
             from: agent.name,
             type: 'action',
-            content: `✓ Completed: Executed ${executed.length} action(s).`,
+            content: `Applied ${executed.length} action(s). ${executed.batchInfo?.undoable ? 'One Undo reverses this batch.' : 'Legacy actions: full-batch Undo unavailable.'}`,
             data: executed
           });
         }

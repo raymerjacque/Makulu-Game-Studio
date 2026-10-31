@@ -341,9 +341,10 @@ export class AIAssistantUI {
       if (actions && actions.length > 0) {
         // Execute actions on the scene
         const executed = await this.executor.executeActions(actions);
+        const historyNote = executed.batchInfo?.undoable ? 'One Undo reverses this action batch.' : 'Legacy actions: full-batch Undo is unavailable.';
         actionCardHTML = `
           <div class="ai-action-card">
-            <div class="ai-action-header">⚡ Executed ${executed.length} Scene Action(s)</div>
+            <div class="ai-action-header">Applied ${executed.length} scene action(s)</div><div>${historyNote}</div>
             <div class="ai-action-preview">${executed.map(e => `✓ ${this.escapeHTML(e.action)}: ${this.escapeHTML(e.target || e.script)}`).join('\n')}</div>
           </div>
         `;
@@ -356,7 +357,7 @@ export class AIAssistantUI {
       assistantMsg.className = 'ai-message assistant';
       assistantMsg.innerHTML = `
         <div class="ai-bubble">
-          ${cleanText ? this.escapeHTML(cleanText).replace(/\n/g, '<br>') : 'I have created the requested scene setup!'}
+          ${cleanText ? this.escapeHTML(cleanText).replace(/\n/g, '<br>') : actionCardHTML ? 'Changes applied. Preview the project to test them.' : 'No project edits were applied.'}
           ${actionCardHTML}
         </div>
       `;
@@ -366,7 +367,7 @@ export class AIAssistantUI {
       errMsg.className = 'ai-message assistant';
       errMsg.innerHTML = `
         <div class="ai-bubble" style="border-color: #ef4444; color: #fca5a5;">
-          ⚠️ AI Request Error: ${this.escapeHTML(err.message)}. Please check your connection to the MakuluLinux AI server.
+          ⚠️ This request could not be completed: ${this.escapeHTML(err.message)}.
         </div>
       `;
       chatBody.appendChild(errMsg);

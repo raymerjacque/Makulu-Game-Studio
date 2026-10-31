@@ -18,6 +18,7 @@ export class SimpleWorkspace {
           <button class="btn" data-file-action="menu-action-export">Save</button>
           <button class="btn" data-file-action="menu-action-recovery">Recover</button>
           <button class="btn btn-primary" data-file-action="menu-action-export-html">Export game</button>
+          <button class="btn" id="simple-undo">Undo</button><button class="btn" id="simple-redo">Redo</button>
           <button class="btn" id="simple-settings">AI settings</button>
           <button class="btn" id="simple-pro">Open in Pro ↗</button>
         </nav>
@@ -41,6 +42,18 @@ export class SimpleWorkspace {
       if (['menu-action-import', 'menu-action-recovery'].includes(button.dataset.fileAction)) { this.preview.close(); this.showEmpty(); }
       topbar.querySelector(`#${button.dataset.fileAction}`)?.click();
     }));
+    const updateHistory = () => {
+      this.root.querySelector('#simple-undo').disabled = Boolean(ai.isBusy) || !editor.commandBus.canUndo();
+      this.root.querySelector('#simple-redo').disabled = Boolean(ai.isBusy) || !editor.commandBus.canRedo();
+    };
+    editor.commandBus.subscribe(updateHistory); updateHistory();
+    for (const action of ['undo', 'redo']) this.root.querySelector(`#simple-${action}`).addEventListener('click', () => {
+      if (ai.isBusy) return;
+      try { editor.commandBus[action](); this.preview.close(); this.showEmpty(); } catch { showToast('The change could not be reversed. Restore a recovery snapshot if needed.', 'error'); }
+    });
+    editor.events.on('ai:edit:result', info => {
+      this.root.querySelector('.simple-note').textContent = info.undoable ? 'This action batch can be reversed with Undo. Preview to test gameplay.' : 'Advanced legacy actions were used. Whole-batch Undo is unavailable for this response.';
+    });
     this.root.querySelector('#simple-new').addEventListener('click', () => { void this.newProject(); });
     this.root.querySelector('#simple-pro').addEventListener('click', () => editor.setEditorMode('pro'));
     this.root.querySelector('#simple-settings').addEventListener('click', () => ai.settingsModal?.open());
@@ -51,9 +64,10 @@ export class SimpleWorkspace {
       this.updateName();
     });
     editor.events.on('ai:request:state', ({ busy }) => {
+      updateHistory();
       this.root.querySelector('#simple-build-state').textContent = busy ? 'AI is working…' : 'Response finished · preview to test';
       for (const selector of ['#simple-new', '[data-file-action="menu-action-import"]', '[data-file-action="menu-action-recovery"]', '#simple-refresh']) this.root.querySelector(selector).disabled = busy;
-      if (busy) { this.preview.close(); this.showEmpty(); }
+      if (busy) { this.root.querySelector('.simple-note').textContent = 'AI changes need playtesting. Automatic completion and verification are still being built.'; this.preview.close(); this.showEmpty(); }
     });
     editor.events.on('ai:request:settled', () => { if (this.active) void this.refresh(); });
     this.chatProjectId = editor.projectId;

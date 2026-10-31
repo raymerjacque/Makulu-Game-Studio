@@ -486,3 +486,61 @@ automatic isolated preview, Restart/Stop, HTML export, New with recovery and
 Open with restored name/content. It passes at 1440px and 660px widths. This does
 not certify live-provider output quality or complete playable objectives. Three
 unit regressions cover request lifecycle and the real engine fog parameter API.
+
+
+## Validated synchronous AI batches (31 October 2026)
+
+`AIExecutor.executeActions` validates the entire list before mutation: plain JSON,
+finite numbers, safe object keys, known action IDs, 100-action/1MiB/depth limits.
+Eleven core names additionally enforce supported fields, vector/color/range types,
+primitive physics component shapes, behavior IDs, script-source size, atmosphere
+presets and supported HUD fields. Behavior parameter objects are JSON-checked;
+the complete per-mechanic parameter/semantic contract remains future work. The
+52-action and 150-behavior ID inventories have source-consistency regressions.
+
+The transactional subset is `spawn_primitive`, `create_light`, `modify_entity`,
+`delete_entity`, `create_material`, `generate_script`, `attach_behavior`,
+`set_sky_atmosphere`, `set_physics_gravity`, `configure_hud` and `set_hud_config`.
+Scripts are stored, not executed, by the registry edit. Syntax/lifecycle/security
+certification of generated scripts is separate. Primitive physics creation needs
+real registered systems/backend; no fake component objects are substituted.
+
+For lists entirely within that subset, unsaved work is protected through the
+existing recovery policy before execution. A changed project revision or
+selection during preparation aborts application. Commands execute synchronously
+as one named history entry. Failure compensates completed and partially applied
+commands, releases resources owned solely by the failed batch, restores selection
+and preserves prior Undo/Redo entries. Clean/dirty status is recalculated after
+rollback. Successful Undo/Redo retains object identity and existing earlier
+history, and replay failures retain the history entry rather than silently losing
+it. Deleted/undone physics objects are disabled before detachment.
+
+References may use `targetId`; otherwise a name must match exactly one editable
+entity. Editor helpers and their descendants are protected. `selected` refers to
+the selection before the batch, even when a creation changes current selection.
+Delete restores original sibling order and enabled state. Material undo restores
+individual mesh-instance material references; HUD merges preserve unspecified
+fields, and zero numeric values are retained.
+
+Mixed/advanced lists still use the legacy executor and are visibly labelled as
+lacking full-batch Undo. Only their JSON envelope/action names and any core-action
+fields are validated here; legacy tool payloads are not certified contracts.
+Likewise, a specialist team's run may apply several separate batches. **One
+transactional response batch is not whole-prompt/whole-team atomicity.** Async
+model/texture/audio loading, cancellation, resource ownership across discarded
+successful history, stable references throughout every tool, durable action
+journals and rollback of legacy helpers remain open P2 work.
+
+Simple now exposes Undo/Redo and closes an outdated preview when either is used.
+Chat/team results identify the execution mode. Malformed action JSON and missing
+targets report failure rather than fabricated success. The former headless-team
+success test now expects an unavailable-runtime failure: placeholder graph edits
+cannot certify a runnable game.
+
+Eleven regressions in `editor/tests/ai-transactions.test.js` cover rejection before
+mutation, exact mixed-core save equality through Undo/Redo, rollback with existing
+history, IDs/ambiguous/protected targets, original selection/order, recovery and
+stale revision guards, replay failure, catalog consistency, per-mesh materials
+and real Ammo simulation removal/owned-body cleanup. The Simple browser suite now
+has 29 assertions at desktop and narrow widths, including multi-action single-step
+Undo/Redo and failed-response rollback with the real executor and project UI.

@@ -83,15 +83,18 @@
       "id": "undo",
       "name": "Universal undo/redo",
       "status": "partial",
-      "editor": "Create/delete and some component edits use command history.",
+      "editor": "11 synchronous core AI action types have validated, reversible commands grouped into one history entry. Simple exposes Undo/Redo; legacy mixed lists are identified separately.",
       "persistence": "History is not a durable task journal.",
       "export": "Editor-only.",
-      "next": "Awaited mixed-operation transactions and whole-prompt rollback.",
+      "next": "Awaited resource-aware edits, cancellation, whole-team/prompt grouping, complete UI/tool migration and durable history/resource ownership.",
       "evidence": [
         "editor/src/core/command-bus.js",
-        "editor/src/ai/ai-executor.js"
+        "editor/src/ai/ai-executor.js",
+        "editor/src/ai/action-contract.js",
+        "editor/src/ai/transactional-actions.js",
+        "editor/tests/ai-transactions.test.js"
       ],
-      "proof": "Source shows modify_entity mutating transforms directly; prior targeted check confirmed no added undo entry."
+      "proof": "Eleven contract/engine/recovery regressions plus real Simple browser multi-action Undo/Redo and failed-response rollback pass; legacy tools remain outside atomic scope."
     },
     {
       "id": "play",
@@ -287,10 +290,10 @@
       "id": "ai-chat",
       "name": "AI scene copilot",
       "status": "partial",
-      "editor": "Provider client and real scene-action execution exist. Requests are serialized with busy/settled UI state; Simple refreshes a separate preview after each response.",
+      "editor": "Provider client and real scene-action execution exist. Requests are serialized with busy/settled UI state; Simple refreshes a separate preview after each response. Core action batches are validated, revision-checked and undoable; invalid batches report failure and legacy execution is labelled.",
       "persistence": "Chat history is not durable project/task memory.",
       "export": "Build results use the same unverified export path.",
-      "next": "Scene context, typed validation, transactions and task runner.",
+      "next": "Full per-tool/behavior contracts, awaited asset transactions, scene context and persistent task runner.",
       "evidence": [
         "editor/src/ai/ai-client.js",
         "editor/src/ai/ai-executor.js",
@@ -310,7 +313,7 @@
         "editor/src/ai/swarm/agent-team.js",
         "editor/src/ai/swarm/scene-inspector.js"
       ],
-      "proof": "Source review; end-to-end certification pending."
+      "proof": "Source review; end-to-end certification pending. Unavailable runtime now reports failure; separate worker batches do not imply whole-team atomicity."
     },
     {
       "id": "skills",

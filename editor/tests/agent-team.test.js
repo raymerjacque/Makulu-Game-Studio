@@ -81,7 +81,7 @@ test('SceneInspector detects defects and generates repair actions', () => {
   assert.equal(colliderDefect.fix.type, 'collision');
 });
 
-test('AgentTeam executes full multi-agent collaboration cycle (Plan -> Work -> Inspect -> Repair -> Debrief)', async () => {
+test('AgentTeam reports an unavailable runtime instead of certifying a headless placeholder scene', async () => {
   const editor = new Editor();
   const executor = new AIExecutor(editor);
   const team = new AgentTeam(editor, null, executor);
@@ -90,10 +90,8 @@ test('AgentTeam executes full multi-agent collaboration cycle (Plan -> Work -> I
   const result = await team.executeTeamTask(goal, { maxRepairRounds: 2, useLLM: false });
 
   assert.ok(result);
-  assert.equal(result.finalStatus, 'success');
-  assert.ok(result.executedActions.length >= 4, 'Multiple actions executed across specialists');
-  assert.ok(result.inspection, 'Inspection was performed');
-  assert.ok(result.inspection.score >= 80, `Expected high QA score, got ${result.inspection.score}`);
+  assert.equal(result.finalStatus, 'error');
+  assert.ok(team.messageBus.getHistory().some(message => message.type === 'error' && message.content.includes('runtime is unavailable')));
 
   // Verify inter-agent messages in bus history
   const history = team.messageBus.getHistory();
@@ -102,5 +100,5 @@ test('AgentTeam executes full multi-agent collaboration cycle (Plan -> Work -> I
   const senders = history.map(m => m.from);
   assert.ok(senders.includes('Lead Director'), 'Director spoke on the bus');
   assert.ok(senders.includes('World Architect'), 'Architect spoke on the bus');
-  assert.ok(senders.includes('QA Inspector'), 'QA Inspector spoke on the bus');
+  assert.ok(!result.inspection, 'Missing runtime must not receive a gameplay inspection certificate');
 });
