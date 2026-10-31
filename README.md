@@ -493,7 +493,7 @@ Add interactive gameplay logic without writing a single line of JavaScript:
 ## 🎵 Built-in Procedural Audio Synthesizer Studio
 
 MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthesizer Studio** accessible from the TopBar (`Tools ▾ -> 🔊 Procedural Audio Synth Studio`):
-* **Live Audio Synthesis:** Synthesizes sound effects on the fly without needing external audio files:
+* **Live Audio Synthesis:** Synthesizes sound effects on the fly without needing external audio files, featuring **28 distinct presets**:
   * **🔫 Laser / Shoot:** Rapid frequency sweep for projectile weapons and plasma blasters.
   * **💥 Explosion & Impact:** Filtered low-pass noise burst for bullet hits, destructible targets, and hazards.
   * **🪙 Coin & Pickup:** Dual-tone sine chime for collectibles, powerups, and score pickups.
@@ -516,6 +516,12 @@ MakuluLinux Game Studio includes a zero-dependency **Web Audio API Sound Synthes
   * **💨 Ambient Wind:** Filtered atmospheric aerodynamic breeze.
   * **🌊 Water Splash:** Resonant fluid impact and bubbling droplet decay.
   * **🔘 Mechanical Click:** Crisp tactile switch feedback for levers and buttons.
+  * **💨 Air Whoosh:** Aerodynamic high-speed sweep for melee swings and dashes.
+  * **💥 Heavy Laser:** Piercing high-energy military laser discharge.
+  * **🌌 Magic Portal:** Four-oscillator harmonic chord for dimensional rifts.
+  * **🎒 Equip Item:** Crisp dual-pitch tone for inventory management and hotbar equipping.
+  * **❤️ Low HP Heartbeat:** Low-frequency thumping pulse for critical health states.
+  * **🔘 Tactile Click:** Micro-duration square-wave click for UI buttons and switches.
 * **📈 Real-Time Audio Waveform Visualizer:** Live canvas oscilloscope rendering frequency harmonics and audio waveforms during sound playback and synthesis.
 * **🎛️ Custom ADSR Envelope & Waveform Synthesizer:** Full sound design suite with selectable waveforms (**Sine**, **Square**, **Sawtooth**, **Triangle**, and **White Noise**), start/end frequency sweep sliders, and four-stage **ADSR Envelope** (Attack, Decay, Sustain, Release) shaping.
 * **1-Click 16-Bit PCM WAV Exporting:** Generates authentic 16-bit PCM WAV Base64 Data URLs and exports them directly into your project's **Assets Panel** (`SFX_*.wav`) for use across sound components and triggers.
@@ -589,6 +595,10 @@ Create reactive game mechanics through modular trigger volumes:
   * **GPU Transcode Targets:** Auto (Hardware Best Fit), ASTC (Mobile / High Fidelity), DXT / BC1 / BC3 (Desktop PCs), ETC2 (Android Standard), BC7 (AAA High Detail), and RGBA Uncompressed.
   * **Compression Quality:** Fast (Sub-second transcode), Normal (Balanced VRAM), High (Production), and Max (AAA Perfection).
   * **Anisotropic Texture Filtering:** 1x, 4x, 8x, and 16x hardware anisotropic filtering control for ultra-sharp oblique angle textures.
+* **💡 PlayCanvas Clustered Lighting Pipeline & Shadow Atlas (`Settings ▾ -> ⚙️ Project Settings`):**
+  * **Clustered Shading Pipeline:** High-performance clustered lighting grid supporting dozens of active dynamic lights per scene cell.
+  * **Shadow Atlas Resolution:** Selectable shadow map atlas sizes: **1024×1024** (Performance), **2048×2048** (Balanced), or **4096×4096** (Ultra AAA).
+  * **Max Clustered Lights:** Configurable light density limits (16 to 256 simultaneous point/spot lights).
 * **🕺 Visual Animation Blend Graph & State Machine Editor (`Tools ▾ -> 🕺 Visual Animation Blend Graph`):**
   * **Interactive Node Canvas:** Visual state machine editor for skeletal character GLB animations (`Idle`, `Walk`, `Run`, `Jump`, `Attack`).
   * **Condition & Transition Engine:** Create animated transition links with custom boolean and float conditions (`speed > 0.1`, `isGrounded == false`, `isAttacking == true`) and blend durations.
@@ -620,6 +630,8 @@ Create reactive game mechanics through modular trigger volumes:
   * **📸 1-Click High-Res Viewport Snapshot Tool:** Dedicated TopBar button (`📸 Snapshot`) and autonomous AI action (`capture_screenshot`) that captures PNG screenshots of the 3D scene, prompts instant download, and saves them to the project's Asset Browser.
   * **⬇️ Drop to Floor Ground Helper:** 1-click Scene menu action (`⬇️ Drop Selected to Floor Ground`) that automatically positions any elevated or floating entity flush onto the ground plane based on its bounding height.
   * **🟢 Real-Time Physics Collider Wireframe Debugger:** 1-click ToolStrip toggle (`🟢`) that dynamically projects live green wireframe bounding hulls (boxes, spheres, capsules, cylinders) for all scene colliders simultaneously.
+  * **💡 Viewport Shading Mode Switcher (Lit / Wireframe / Unlit):** 1-click ToolStrip button (`LIT`) that cycles the entire 3D scene between **Full Lit PBR**, **Wireframe Mesh Structure**, and **Unlit Flat Color** rendering.
+  * **📊 Real-Time Viewport Performance Profiler Overlay:** 1-click ToolStrip toggle (`📊`) activating an in-viewport HUD telemetry card displaying live **FPS**, **Draw Calls**, **Triangle Count**, and **Total Entity Count**.
   * **🧲 Dual Position & Rotation Angle Snapping Steps:** Right-click the snap button (`🧲`) to configure custom translation snapping increments (`0.1m`, `0.25m`, `0.5m`, `1.0m`, `2.0m`) and rotation angle snap steps (`15°`, `30°`, `45°`, `90°`) with active status feedback.
   * **Light Range Gizmo:** Wireframe sphere matching point/spot light radius and color.
   * **Spatial Audio Gizmo:** Cyan wireframe sphere displaying audio maximum attenuation range.
