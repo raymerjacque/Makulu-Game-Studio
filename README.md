@@ -1,3 +1,5 @@
+> **Continuing development?** Read [AGENTS.md](AGENTS.md) and the [local project handoff](docs/CONTINUITY.md) first. The [roadmap](roadmap.html) tracks verified progress and remaining work.
+
 <div align="center">
 
 <img src="docs/images/logo.png" width="128" height="128" alt="MakuluLinux Game Studio Logo" />
