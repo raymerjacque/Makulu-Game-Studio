@@ -32,3 +32,10 @@
 - Preserve user-approved project requirements, decisions and project-owned AI prompt locations in local tracked documentation. Do not save private platform/system instructions, raw chat transcripts containing secrets, or credentials.
 - Production backend API keys and key arrays are protected: do not delete, replace, reduce or filter them. Do not copy their values into this repository or handoff notes.
 - Save source/document changes locally, then commit and push completed milestones under the rules above. Local recovery data, browser storage and credentials are not transferred by cloning GitHub.
+
+## 5. Mandatory Continuity Rule · Every Work Session
+- User rule: “Anything we do, always update the local files so another Codex agent will always be able to pick up where we left off.”
+- Apply this to every work session, including investigation, planning, decisions, implementation, validation and unfinished work—not only completed milestones.
+- Before ending a work session, update `docs/CONTINUITY.md` with meaningful progress, decisions, checks actually performed, outstanding problems, unfinished changes and the precise next action. Update other affected project documents and mark verified implementation completion in `roadmap.html`.
+- During extended work, checkpoint meaningful progress in local files so continuity does not depend on the chat surviving. Keep records concise, current and free of secrets or private platform instructions.
+- Commit and push completed changes under the mandatory push rule. If work or a push is unfinished, record the local state and remaining action explicitly; never claim it was backed up when it was not.

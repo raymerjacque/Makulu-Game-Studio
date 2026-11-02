@@ -109,6 +109,17 @@ These results belong to the preceding implementation milestone, not a fresh run:
 Browser fixtures use temporary profiles; do not automate the user's real profile.
 Tests binding local ports, git writes or pushes may need environment approval.
 
+## Standing user rule: update local context for everything
+Every work session must leave the local project records current, including
+investigations, plans, decisions, implementation, validation and unfinished work.
+Checkpoint meaningful progress during extended work and update this handoff
+before ending. This requirement is recorded in `AGENTS.md` section 5.
+
+Latest documentation change (2 November 2026): adopted this mandatory continuity
+rule. No application code changed. Documentation whitespace checks passed;
+application tests were not rerun for this documentation-only change. The next
+implementation action remains the reference-game inspection described above.
+
 ## Handoff update checklist
 Record what changed and why, checks actually run, known failures, and next steps.
 Keep detailed backlog in the roadmap and contracts in their own documents.
